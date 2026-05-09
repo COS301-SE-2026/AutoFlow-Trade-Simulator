@@ -4,6 +4,8 @@
   "scripts": {
     "db:start": "docker compose up -d db redis",
     "db:stop": "docker compose down",
+    "db:seed": "cd backend && ../.venv/bin/python seeds.py",
+    "db:reset": "bash scripts/db-reset.sh",
     "migrate": "bash scripts/migrate.sh",
     "migrate:dev": "bash scripts/migrate-dev.sh",
     "backend": "./.venv/bin/uvicorn app.main:app --reload --app-dir backend",
