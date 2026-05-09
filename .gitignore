@@ -12,6 +12,7 @@ backend/.mypy_cache/
 backend/.ruff_cache/
 backend/.coverage
 backend/htmlcov/
+backend/node_modules/
 frontend/node_modules/
 frontend/.next/
 frontend/.turbo/
@@ -20,3 +21,5 @@ frontend/.next-env.d.ts
 dist/
 build/
 coverage/
+node_modules/
+

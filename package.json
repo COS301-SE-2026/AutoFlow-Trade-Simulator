@@ -8,5 +8,8 @@
     "backend": "./.venv/bin/uvicorn app.main:app --reload --app-dir backend",
     "frontend": "npm run dev --prefix frontend",
     "dev": "node scripts/dev.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.4"
   }
 }
