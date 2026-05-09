@@ -80,6 +80,16 @@ cd backend
 alembic upgrade head
 ```
 
+From the repository root you can also use npm scripts:
+
+```bash
+npm run migrate
+npm run migrate:dev -- "describe schema change"
+```
+
+- `npm run migrate` applies existing migrations to head.
+- `npm run migrate:dev -- "message"` autogenerates a new Alembic migration from SQLModel changes and then upgrades to head in one command.
+
 ### Automatic schema sync (optional)
 
 This project includes an optional automatic schema synchronization feature that will create any missing tables at application startup from your `SQLModel` models. It's controlled by the `auto_sync_db` setting in `backend/app/settings.py` and can be set via environment variables using the `.env` file.

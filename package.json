@@ -4,7 +4,8 @@
   "scripts": {
     "db:start": "docker compose up -d db redis",
     "db:stop": "docker compose down",
-    "migrate": "./.venv/bin/alembic upgrade head",
+    "migrate": "bash scripts/migrate.sh",
+    "migrate:dev": "bash scripts/migrate-dev.sh",
     "backend": "./.venv/bin/uvicorn app.main:app --reload --app-dir backend",
     "frontend": "npm run dev --prefix frontend",
     "dev": "node scripts/dev.mjs"
