@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 
 #This is the random number generator for money
 class LCGPseudoRandomGenerator:
@@ -27,6 +28,28 @@ class LCGPseudoRandomGenerator:
 
         return round(raw_price, 2)
 
+    def choice(self, options_list):
+        index = self.generate_number() % len(options_list)
+        return options_list[index]
+    
+
 lcg = LCGPseudoRandomGenerator()
 
 print(lcg.generate_currency())
+
+symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "DOT/USDT"]
+intervals = ["1m", "5m", "15m", "1h", "1d"]
+timestamps = [datetime.now().isoformat() for _ in range(5)]
+
+print(lcg.choice(symbols))
+print(lcg.choice(intervals))
+print(lcg.choice(timestamps))
+
+test_seeds = [42, 0, 2147483647, 12345]
+
+for s in test_seeds:
+    test_lcg = LCGPseudoRandomGenerator(seed=s)
+    print(f"--- Testing Seed: {s} ---")
+    print(f"First Symbol: {test_lcg.choice(symbols)}")
+    print(f"First Price:  ${test_lcg.generate_currency(30000, 60000)}")
+    print("")
