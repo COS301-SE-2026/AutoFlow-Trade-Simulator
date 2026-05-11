@@ -2,5 +2,11 @@ from pydantic import BaseModel
 
 
 class EpicStatusDTO(BaseModel):
-    epic: str
-    status: str
+    timestamp: str
+    symbol: str
+    iterval: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
