@@ -22,45 +22,52 @@ AutoFlow is a local-first starter repo for a trading simulator stack. The first 
 
 ## Setup flow
 
-1. Copy the environment file.
-2. Start the local services.
-3. Run backend migrations.
-4. Start the backend.
-5. Start the frontend.
+The repo now uses Node-based scripts, so the same npm commands work on macOS, Linux, and Windows.
 
-You can also use the root npm scripts:
+1. Open Docker Desktop (or ensure Docker is running).
+
+2. Copy the environment file:
+
+```bash
+cp .env.example .env
+```
+
+3. Set up the project environment and install backend plus frontend dependencies:
+
+```bash
+npm run setup
+```
+
+This creates a repository-level virtual environment at `.venv` and installs backend Python packages and frontend `node_modules`.
+
+4. Start local infrastructure (Postgres + Redis):
+
+```bash
+npm run db:start
+```
+
+5. Apply migrations and seed the database:
+
+```bash
+npm run migrate
+npm run db:reset
+```
+
+6. Start the backend and frontend:
 
 ```bash
 npm run dev
 ```
 
-Or start one side only:
+Useful shortcuts:
 
 ```bash
-npm run backend
-npm run frontend
+npm run dev
+npm run db:reset
 ```
 
-```bash
-cp .env.example .env
-
-npm run db:start
-npm run migrate
-
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-In a second terminal:
-
-```bash
-cd frontend
-npm install
-```
-
-The root `package.json` also includes scripts for `db:stop`, `db:start`, `migrate`, `backend`, `frontend`, and `dev`.
+- Wait a few seconds after `npm run db:start` before running migrations so Postgres finishes startup.
+- `npm run db:reset` drops all tables, runs migrations, then seeds the DB (useful for clean local resets).
 
 ## Environment variables
 
@@ -73,11 +80,29 @@ The backend reads the database URL from `DATABASE_URL` only. The frontend reads 
 
 ## Migrations
 
-Alembic is configured under `backend/alembic/`. The initial migration creates the starter `users` table.
+Alembic is configured under `backend/alembic/`. The canonical initial migration creates the current schema (all model tables).
+
+Apply migrations from the repository root with the npm scripts:
 
 ```bash
-cd backend
-alembic upgrade head
+npm run migrate
+npm run migrate:dev -- "describe schema change"
+```
+
+Notes:
+- `npm run migrate` applies migrations to head.
+- `npm run migrate:dev -- "message"` generates an autogenerate migration (uses SQLModel metadata) then upgrades to head.
+- These scripts run cross-platform and no longer depend on shell helpers.
+
+## Seeding
+
+An idempotent seeder populates development data. The seeder implementation is `backend/seeds.py` and documentation lives at `docs/seeding.md`.
+
+From the repository root:
+
+```bash
+npm run db:seed
+npm run db:reset
 ```
 
 ### Automatic schema sync (optional)
