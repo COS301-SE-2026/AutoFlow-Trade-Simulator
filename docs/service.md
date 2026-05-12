@@ -15,7 +15,7 @@ class YourService:
         self.session = session
 
     def create(self, data: YourCreateDTO) -> YourModel:
-        obj = YourModel(**data.dict())
+        obj = YourModel.model_validate(data)
         self.session.add(obj)
         self.session.commit()
         self.session.refresh(obj)
@@ -61,7 +61,7 @@ class YourService:
 ### Create
 ```python
 def create(self, data: CreateDTO) -> Model:
-    obj = Model(**data.dict())
+    obj = Model.model_validate(data)
     self.session.add(obj)
     self.session.commit()
     self.session.refresh(obj)  # Get DB-generated fields
