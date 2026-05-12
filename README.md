@@ -24,13 +24,15 @@ AutoFlow is a local-first starter repo for a trading simulator stack. The first 
 
 The repo now uses Node-based scripts, so the same npm commands work on macOS, Linux, and Windows.
 
-1. Copy the environment file:
+1. Open Docker Desktop (or ensure Docker is running).
+
+2. Copy the environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Set up the project environment and install backend plus frontend dependencies:
+3. Set up the project environment and install backend plus frontend dependencies:
 
 ```bash
 npm run setup
@@ -38,24 +40,23 @@ npm run setup
 
 This creates a repository-level virtual environment at `.venv` and installs backend Python packages and frontend `node_modules`.
 
-3. Start local infrastructure (Postgres + Redis):
+4. Start local infrastructure (Postgres + Redis):
 
 ```bash
 npm run db:start
 ```
 
-4. Apply migrations and seed the database:
+5. Apply migrations and seed the database:
 
 ```bash
 npm run migrate
-npm run db:seed
+npm run db:reset
 ```
 
-5. Start the backend and frontend:
+6. Start the backend and frontend:
 
 ```bash
-npm run backend
-npm run frontend
+npm run dev
 ```
 
 Useful shortcuts:
