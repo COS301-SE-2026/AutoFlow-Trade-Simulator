@@ -40,7 +40,7 @@ const python = venvExe('python', 'python.exe');
 const alembic = venvExe('alembic', 'alembic.exe');
 
 console.log('Dropping all tables...');
-const dropScript = `from sqlmodel import create_engine, SQLModel\nfrom app.settings import settings\nfrom app import models\nengine = create_engine(settings.database_url)\nSQLModel.metadata.drop_all(engine)\nprint('✓ All tables dropped')`;
+const dropScript = `from sqlalchemy import text\nfrom sqlmodel import create_engine, SQLModel\nfrom app.settings import settings\nfrom app import models\nengine = create_engine(settings.database_url)\nSQLModel.metadata.drop_all(engine)\nwith engine.begin() as conn:\n    conn.execute(text('DROP TABLE IF EXISTS alembic_version'))\nprint('✓ All tables dropped')`;
 let res = spawnSync(python, ['-c', dropScript], { cwd: backendDir, stdio: 'inherit', shell: false });
 if (res.status !== 0) process.exit(res.status);
 
