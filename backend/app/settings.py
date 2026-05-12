@@ -1,11 +1,17 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
+
+
+BASE_DIR = Path(__file__).resolve().parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(BASE_DIR / ".env", BASE_DIR.parent / ".env"),
+        extra="ignore",
+    )
 
     database_url: str
     secret_key: str
@@ -20,9 +26,7 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    database_url: str = os.environ["DATABASE_URL"]
-    secret_key: str = os.environ["SECRET_KEY"]
-    return Settings(database_url=database_url, secret_key=secret_key)
+    return Settings()
 
 
 settings = get_settings()
