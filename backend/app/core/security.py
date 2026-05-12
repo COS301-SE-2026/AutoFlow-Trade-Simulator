@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from jose import jwt
 
-from .settings import settings
+from ..settings import settings
 
 
 def create_access_token(subject: str, expires_minutes: int | None = None) -> str:
