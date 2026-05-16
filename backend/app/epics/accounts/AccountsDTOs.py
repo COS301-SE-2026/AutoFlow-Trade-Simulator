@@ -18,3 +18,5 @@ class CreateAcountDTO(SQLModel):
     currency_code:str
     initial_balance:Decimal
 
+class GetAccountDTO(SQLModel):
+    account_id:int

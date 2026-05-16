@@ -1,10 +1,9 @@
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
-
 from ..auth.AuthDTOs import EpicStatusDTO
 from ...models import User, Portfolio
 from ...models.currency import Currency
-from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO
+from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO, GetAccountDTO
 from ...models import InternationalAccount
 
 
@@ -31,6 +30,27 @@ class AccountsService:
             accountsResponse.accounts.append(account)
 
         return accountsResponse
+
+    def find_by_id(self,data:GetAccountDTO,current_user:User) -> AccountResponse:
+
+        #get the account
+        account = self.session.get(InternationalAccount,data.account_id)
+        if account is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
+        assert account.id is not None
+
+        # check account belongs to user
+        
+        portfolio= self.session.exec(select(Portfolio).where(Portfolio.user_id==current_user.id)).first()
+        assert portfolio is not None,"User has no portfolios"
+
+        if account.portfolio_id != portfolio.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Account does not belong to authenticated user")
+
+        # return the account
+        return AccountResponse(id=account.id,portfolio_id=account.portfolio_id,currency_id=account.currency_id,balance=account.balance,created_at=account.created_at)
+
+
     
     def create(self,data:CreateAcountDTO,current_user:User)->AccountResponse:
 
