@@ -31,10 +31,10 @@ class AccountsService:
 
         return accountsResponse
 
-    def find_by_id(self,data:GetAccountDTO,current_user:User) -> AccountResponse:
+    def find_by_id(self,account_id:int,current_user:User) -> AccountResponse:
 
         #get the account
-        account = self.session.get(InternationalAccount,data.account_id)
+        account = self.session.get(InternationalAccount,account_id)
         if account is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
         assert account.id is not None
