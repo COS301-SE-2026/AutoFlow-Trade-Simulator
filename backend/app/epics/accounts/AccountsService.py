@@ -4,7 +4,8 @@ from sqlmodel import Session, select
 
 from backend.app.epics.auth.AuthDTOs import EpicStatusDTO
 from backend.app.models import User,Portfolio
-from .AccountsDTOs import AccountListResponse, AccountResponse
+from backend.app.models.currency import Currency
+from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO
 from ...models import InternationalAccount
 
 
@@ -15,8 +16,7 @@ class AccountsService:
     def find_all(self,current_user:User)->AccountListResponse:
         #see if user has a portfolio
         portfolio= self.session.exec(select(Portfolio).where(Portfolio.user_id==current_user.id)).first()
-        if portfolio is None:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="There is no portfolio connected to user") 
+        assert portfolio is not None,"There is no connected portfolio"
 
         #list all accounts in users portfolio
 
@@ -32,6 +32,36 @@ class AccountsService:
             accountsResponse.accounts.append(account)
 
         return accountsResponse
+    
+    def create(self,data:CreateAcountDTO,current_user:User)->AccountResponse:
+
+        #get portfolio
+        portfolio= self.session.exec(select(Portfolio).where(Portfolio.user_id==current_user.id)).first()
+        assert portfolio is not None,"There is no connected portfolio"
+        
+        # there should be an id if there isnt there a big problem somewhere
+        assert portfolio.id is not None
+
+        # get currency
+
+        currency= self.session.exec(select(Currency).where(Currency.code==data.currency_code)).first()
+
+        if currency is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Unknown currency") 
+
+        # there should be an id if there isnt there a big problem somewhere
+        assert currency.id is not None
+
+        #create the account
+        account:InternationalAccount=InternationalAccount(portfolio_id=portfolio.id,currency_id=currency.id,balance=data.initial_balance)
+        self.session.add(account)
+        self.session.commit()
+        self.session.refresh(account)
+
+        #ensure it was created
+        assert account.id is not None
+
+        return AccountResponse(id=account.id,portfolio_id=account.portfolio_id,currency_id=account.currency_id,balance=account.balance,created_at=account.created_at)
 
     @staticmethod
     def get_status()-> EpicStatusDTO:
