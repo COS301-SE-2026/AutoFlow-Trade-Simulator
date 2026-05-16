@@ -1,0 +1,15 @@
+
+from datetime import datetime
+from decimal import Decimal
+from sqlmodel import SQLModel
+
+
+class AccountResponse(SQLModel):
+    id: int
+    portfolio_id:int
+    currency_id:int
+    balance:Decimal
+    created_at: datetime
+
+class AccountListResponse(SQLModel):
+    accounts: list[AccountResponse]
