@@ -1,10 +1,9 @@
-from re import A
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from backend.app.epics.auth.AuthDTOs import EpicStatusDTO
-from backend.app.models import User,Portfolio
-from backend.app.models.currency import Currency
+from ..auth.AuthDTOs import EpicStatusDTO
+from ...models import User, Portfolio
+from ...models.currency import Currency
 from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO
 from ...models import InternationalAccount
 
