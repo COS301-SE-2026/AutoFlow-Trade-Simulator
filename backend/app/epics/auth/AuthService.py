@@ -58,7 +58,7 @@ class AuthService:
     @staticmethod
     def get_status() -> EpicStatusDTO:
         return EpicStatusDTO(
-            epic="portfolio",
+            epic="Authorisation",
             status="Healthy",
         )
 
