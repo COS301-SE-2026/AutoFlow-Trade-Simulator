@@ -9,8 +9,9 @@
     "migrate": "node scripts/migrate.js",
     "migrate:dev": "node scripts/migrate-dev.js",
     "setup": "node scripts/setup.js",
-    "backend": "node scripts/start-backend.js",
+    "backend": "npm --prefix backend run dev",
     "frontend": "npm run dev --prefix frontend",
-    "dev": "node scripts/dev.mjs"
+    "dev": "npm run backend & npm run frontend",
+    "start": "npm run start --prefix backend & npm run start --prefix frontend"
   }
 }

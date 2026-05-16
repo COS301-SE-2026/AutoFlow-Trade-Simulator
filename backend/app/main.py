@@ -11,6 +11,7 @@ from .epics.core.CoreController import router as core_router
 from .epics.market_data.MarketDataController import router as market_data_router
 from .epics.portfolio.PortfolioController import router as portfolio_router
 from .epics.ui.UiController import router as ui_router
+from .epics.auth.AuthController import router as auth_router
 
 app = FastAPI(title="AutoFlow Trade Simulator")
 
@@ -34,3 +35,4 @@ app.include_router(core_router)
 app.include_router(market_data_router)
 app.include_router(ui_router)
 app.include_router(portfolio_router)
+app.include_router(auth_router)
