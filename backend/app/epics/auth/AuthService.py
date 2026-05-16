@@ -15,6 +15,10 @@ class AuthService:
         #check if registered already
             if self.session.exec(select(User).where(User.email==data.email)).all():
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="Email already registered, please login")
+
+        # check if password is valid length
+            if len(data.password) < 8 :
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Password field must be 8 or more characters")
         # Create user
             user = User(email=data.email,full_name=data.full_name,password_hash=create_password_hash(data.password))
             self.session.add(user)
