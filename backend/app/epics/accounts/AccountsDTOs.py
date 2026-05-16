@@ -13,3 +13,8 @@ class AccountResponse(SQLModel):
 
 class AccountListResponse(SQLModel):
     accounts: list[AccountResponse]
+
+class CreateAcountDTO(SQLModel):
+    currency_code:str
+    initial_balance:Decimal
+
