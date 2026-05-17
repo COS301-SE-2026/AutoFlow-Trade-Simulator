@@ -50,6 +50,7 @@ def test_login_success() -> None:
     assert response.status_code == 200
     assert "access_token" in response.json()
 
+
 def test_login_wrong_password() -> None:
     client.post("/auth/register", json={
         "email": "user@example.com",
@@ -62,6 +63,7 @@ def test_login_wrong_password() -> None:
     })
     assert response.status_code == 401
 
+
 def test_login_unknown_email() -> None:
     client.post("/auth/register", json={
         "email": "user@example.com",
@@ -72,4 +74,9 @@ def test_login_unknown_email() -> None:
         "email": "stranger@example.com",
         "password": "password123"
     })
+    assert response.status_code == 401
+
+
+def test_protected_route_no_token() -> None:
+    response = client.get("/accounts")
     assert response.status_code == 401
