@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .MarketDataDTOs import EpicStatusDTO
+from .MarketDataDTOs import MockOHLCV
 from .MarketDataService import MarketDataService
 
 router = APIRouter(prefix="/market-data", tags=["Market Data"])
