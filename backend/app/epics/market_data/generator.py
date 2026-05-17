@@ -1,5 +1,6 @@
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
+
 
 #This is the random number generator for money
 class LCGPseudoRandomGenerator:
@@ -15,6 +16,7 @@ class LCGPseudoRandomGenerator:
 
         self.x_prev = (self.a * self.x0 + self.c) % self.m
     
+    #helper method to generate the number
     def generate_number(self):
         self.x_prev = (self.a * self.x_prev + self.c) % self.m
 
@@ -31,6 +33,17 @@ class LCGPseudoRandomGenerator:
     def choice(self, options_list):
         index = self.generate_number() % len(options_list)
         return options_list[index]
+
+    def generate_datetime(self, start_date: datetime, end_date: datetime) -> str:
+
+        #calculate the seconds inbetween the dates and use that to generate the data
+        date_seconds = (end_date - start_date).total_seconds()
+
+        random_seconds = self.generate_float() * date_seconds
+
+        random_date = start_date + timedelta(seconds=random_seconds)
+
+        return random_date.isoformat()
     
 
 lcg = LCGPseudoRandomGenerator()
@@ -53,3 +66,13 @@ for s in test_seeds:
     print(f"First Symbol: {test_lcg.choice(symbols)}")
     print(f"First Price:  ${test_lcg.generate_currency(30000, 60000)}")
     print("")
+
+start = datetime(2026, 5, 1, 0, 0, 0)   # May 1st, 2026 at Midnight
+end = datetime(2026, 5, 7, 23, 59, 59)  # May 7th, 2026 at 11:59 PM
+
+lcg = LCGPseudoRandomGenerator(101)
+
+print("Generating random timestamps within the date range:")
+for i in range(3):
+    random_timestamp = lcg.generate_datetime(start, end)
+    print(f"Generated Time {i+1}: {random_timestamp}")
