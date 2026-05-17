@@ -1,6 +1,17 @@
 import time
 from datetime import datetime, timedelta
+from pydantic import BaseModel
 
+#pydantics are like c++ structs their supposedly very good
+class MockOHLCV(BaseModel):
+    timestamp: str
+    symbol: str
+    interval: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
 
 #This is the random number generator for money
 class LCGPseudoRandomGenerator:
@@ -36,7 +47,7 @@ class LCGPseudoRandomGenerator:
 
     def generate_datetime(self, start_date: datetime, end_date: datetime) -> str:
 
-        #calculate the seconds inbetween the dates and use that to generate the data
+        #calculate the seconds in between the dates and use that to generate the data
         date_seconds = (end_date - start_date).total_seconds()
 
         random_seconds = self.generate_float() * date_seconds
@@ -44,7 +55,52 @@ class LCGPseudoRandomGenerator:
         random_date = start_date + timedelta(seconds=random_seconds)
 
         return random_date.isoformat()
+
+    def generate_market_history(self, symbol: str, interval: str, start_date: datetime, count: int, base_price: float):
+
+        #To check what time interval data we are generating
+        if interval == "1d":
+            time_jump = timedelta(days=1)
+        elif interval == "1w":
+            time_jump = timedelta(weeks=1)
+        elif interval == "1m":
+            time_jump = timedelta(days=30)
+        else:
+            raise ValueError("Supported Intervals are only days weeks and month")
+
+        history = []
+        current_time = start_date
+        current_open = base_price
+
+        for _ in range(count):
+            #Simulate market volatility
+            volatility = current_open * 0.03
+
+            #calculate the close based on the open
+            current_close = self.generate_currency(current_open - volatility, current_open + volatility)
     
+            current_high = max(current_open, current_close) + self.generate_currency(0, volatility * 0.5) # must be higher than low
+            current_low = min(current_open, current_close) - self.generate_currency(0, volatility * 0.5) # must be in the dirt or lower than high
+
+            #generate random trading volume
+            volume = self.generate_currency(100, 5000)
+
+            dto = MockOHLCV(
+                timestamp = current_time.isoformat(),
+                symbol = symbol,
+                interval = interval,
+                open = round(current_open, 2),
+                high = round(current_high, 2),
+                low = round(current_low, 2),
+                close = round(current_close, 2),
+                volume = volume
+            )
+            history.append(dto)
+
+            current_open = current_close
+            current_time += time_jump
+
+        return history
 
 lcg = LCGPseudoRandomGenerator()
 
@@ -76,3 +132,18 @@ print("Generating random timestamps within the date range:")
 for i in range(3):
     random_timestamp = lcg.generate_datetime(start, end)
     print(f"Generated Time {i+1}: {random_timestamp}")
+
+TickerTest = LCGPseudoRandomGenerator(777)
+start_history = datetime(2026, 1, 1, 0, 0, 0)
+
+eth_daily_candles = lcg.generate_market_history(
+    symbol="ETH/USDT", 
+    interval="1d", 
+    start_date=start_history, 
+    count=3, 
+    base_price=3000.00
+)
+
+print("--- Generated Continuous Daily Aggregates ---")
+for candle in eth_daily_candles:
+    print(candle.model_dump_json(indent=2))
