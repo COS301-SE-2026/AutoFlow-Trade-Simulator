@@ -1,17 +1,7 @@
 import time
 from datetime import datetime, timedelta
-from pydantic import BaseModel
-
-#pydantics are like c++ structs their supposedly very good
-class MockOHLCV(BaseModel):
-    timestamp: str
-    symbol: str
-    interval: str
-    open: float
-    high: float
-    low: float
-    close: float
-    volume: float
+from MarketDataDTOs import MockOHLCV
+import json
 
 #This is the random number generator for money
 class LCGPseudoRandomGenerator:
@@ -100,14 +90,14 @@ class LCGPseudoRandomGenerator:
             current_open = current_close
             current_time += time_jump
 
-        return history
+        return json.dumps([candle.model_dump() for candle in history], indent=2)
 
 lcg = LCGPseudoRandomGenerator()
 
 print(lcg.generate_currency())
 
 symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "DOT/USDT"]
-intervals = ["1m", "5m", "15m", "1h", "1d"]
+intervals =["1d", '1w', '1m']
 timestamps = [datetime.now().isoformat() for _ in range(5)]
 
 print(lcg.choice(symbols))
@@ -137,13 +127,12 @@ TickerTest = LCGPseudoRandomGenerator(777)
 start_history = datetime(2026, 1, 1, 0, 0, 0)
 
 eth_daily_candles = lcg.generate_market_history(
-    symbol="ETH/USDT", 
-    interval="1d", 
+    symbol=TickerTest.choice(symbols), 
+    interval=TickerTest.choice(intervals), 
     start_date=start_history, 
     count=3, 
     base_price=3000.00
 )
 
 print("--- Generated Continuous Daily Aggregates ---")
-for candle in eth_daily_candles:
-    print(candle.model_dump_json(indent=2))
+print(eth_daily_candles)

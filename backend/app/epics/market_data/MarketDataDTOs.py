@@ -1,10 +1,10 @@
 from pydantic import BaseModel
 
 
-class EpicStatusDTO(BaseModel):
+class MockOHLCV(BaseModel):
     timestamp: str
     symbol: str
-    iterval: str
+    interval: str
     open: float
     high: float
     low: float
