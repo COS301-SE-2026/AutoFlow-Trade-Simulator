@@ -16,6 +16,7 @@ type AccountContextType = {
     isLoading: boolean;
     error: string | null;
     create: (currencyCode: Currency, initialBalance: number) => Promise<void>;
+    update: (updated: InternationalAccount) => void;
 };
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
@@ -37,8 +38,14 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         setAccounts((prev) => (prev ? [...prev, newAccount] : [newAccount]));
     }
 
+    function update(updated: InternationalAccount) {
+        setAccounts((prev) =>
+            prev ? prev.map((a) => (a.id === updated.id ? updated : a)) : [updated]
+        );
+    }
+
     return (
-        <AccountContext.Provider value={{ accounts, isLoading, error, create }}>
+        <AccountContext.Provider value={{ accounts, isLoading, error, create, update }}>
     {children}
     </AccountContext.Provider>
     );
