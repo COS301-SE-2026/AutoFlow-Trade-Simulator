@@ -13,5 +13,13 @@
     "frontend": "npm run dev --prefix frontend",
     "dev": "npm run backend & npm run frontend",
     "start": "npm run start --prefix backend & npm run start --prefix frontend"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^4.3.0"
   }
 }
