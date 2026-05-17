@@ -1,6 +1,6 @@
 import { Card } from "../components/ui/card";
 import { getBackendHealth } from "../lib/api";
-import { SimpleAreaChart } from '../components/priceChart';
+import PriceChart from '../components/charts/priceChart';
 
 export default async function HomePage() {
   const health = await getBackendHealth();
@@ -50,7 +50,7 @@ export default async function HomePage() {
         </section>
 
         <section>
-          <SimpleAreaChart />
+          <PriceChart />
         </section>
       </div>
     </main>
