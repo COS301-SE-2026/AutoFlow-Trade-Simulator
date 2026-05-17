@@ -1,10 +1,124 @@
-from .PortfolioDTOs import EpicStatusDTO
+from decimal import Decimal
+from fastapi import HTTPException, status
+from sqlmodel import Session, select
+
+from backend.app.models.transaction import Direction, Transaction
+
+
+from ...models import Asset,InternationalAccount,User,Portfolio
+from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO
 
 
 class PortfolioService:
+
+    def __init__(self,session:Session):
+        self.session=session
+
+    def _get_position_quantity(self, account_id: int, asset_id: int) -> float:
+        transactions = self.session.exec(
+            select(Transaction).where(
+                Transaction.account_id == account_id,
+                Transaction.asset_id == asset_id,
+            )
+        ).all()
+
+        quantity = 0.0
+        for transaction in transactions:
+            if transaction.direction == Direction.Buy:
+                quantity += transaction.quantity
+            elif transaction.direction == Direction.Sell:
+                quantity -= transaction.quantity
+
+        return quantity
+
+    def execute_trade(self,data:ExecuteTradeDTO,current_user:User)->ExecuteTradeResponseDTO:
+
+
+
+
+        account = self.session.get(InternationalAccount,data.account_id);
+        if account is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
+
+        assert account.id is not None,"Asset ID should not be none"
+        account_id = account.id
+
+        # if acount does not belong to user throw unauthorized
+        portfolio = self.session.exec(select(Portfolio).where(Portfolio.user_id==current_user.id)).first()
+        assert portfolio is not None,"User should have a portfolio"
+
+        if account.portfolio_id!= portfolio.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This account does not belong to the current user")
+
+        
+
+        #get account balance
+        balance:Decimal =account.balance
+
+        #TODO update to use stock generation api
+        asset_price:Decimal= Decimal("0")
+        total_cost = asset_price * Decimal(str(data.quantity))
+
+         # get asset based on ticker
+        asset=self.session.exec(select(Asset).where(Asset.ticker==data.ticker)).first()
+        if asset is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no asset with specified ticker")
+        
+        assert asset.id is not None,"Asset ID should not be none"
+
+
+        if data.direction== Direction.Buy:
+            #buy asset
+            if balance < total_cost:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Account balance is too low")
+
+            account.balance = balance - total_cost
+            buy_transaction:Transaction = Transaction(account_id=account_id,asset_id=asset.id,direction=data.direction,quantity=data.quantity,price_at_execution=asset_price)
+            self.session.add(account)
+            self.session.add(buy_transaction)
+            self.session.commit()
+            self.session.refresh(account)
+            self.session.refresh(buy_transaction)
+
+            new_position_quantity = self._get_position_quantity(account_id, asset.id)
+
+            assert buy_transaction.id is not None, "Transaction id should not be none"
+
+            return ExecuteTradeResponseDTO(transaction_id=buy_transaction.id,account_id=account.id,ticker=asset.ticker,direction=buy_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=asset_price,total_cost=total_cost,executed_at=buy_transaction.executed_at,new_cash_balance=account.balance)
+        
+
+
+        elif data.direction == Direction.Sell:
+            #sell asset
+            owned_quantity = self._get_position_quantity(account_id, asset.id)
+            if owned_quantity < data.quantity:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="You do not have enough of this asset to sell")
+
+            account.balance = balance + total_cost
+            sell_transaction:Transaction = Transaction(account_id=account_id,asset_id=asset.id,direction=data.direction,quantity=data.quantity,price_at_execution=asset_price)
+            self.session.add(account)
+            self.session.add(sell_transaction)
+            self.session.commit()
+            self.session.refresh(account)
+            self.session.refresh(sell_transaction)
+
+            assert sell_transaction.id is not None, "Transaction id should not be none"
+
+            new_position_quantity = self._get_position_quantity(account_id, asset.id)
+            return ExecuteTradeResponseDTO(transaction_id=sell_transaction.id,account_id=account.id,ticker=asset.ticker,direction=sell_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=asset_price,total_cost=total_cost,executed_at=sell_transaction.executed_at,new_cash_balance=account.balance)
+
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Unsupported trade direction")
+        
+
+
     @staticmethod
     def get_status() -> EpicStatusDTO:
         return EpicStatusDTO(
             epic="portfolio",
-            status="scaffolded",
+            status="healthy",
         )
+
+
+
+
+
