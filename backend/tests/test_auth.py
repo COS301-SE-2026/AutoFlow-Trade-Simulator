@@ -35,3 +35,17 @@ def test_register_short_password() -> None:
         "full_name": "Test User"
     })
     assert response.status_code == 400
+
+
+def test_login_success() -> None:
+    client.post("/auth/register", json={
+        "email": "user@example.com",
+        "password": "password123",
+        "full_name": "Test User"
+    })
+    response = client.post("/auth/login", json={
+        "email": "user@example.com",
+        "password": "password123"
+    })
+    assert response.status_code == 200
+    assert "access_token" in response.json()
