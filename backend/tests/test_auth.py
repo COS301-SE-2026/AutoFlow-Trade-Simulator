@@ -26,3 +26,12 @@ def test_register_duplicate_email() -> None:
         "full_name": "Test User"
     })
     assert response.status_code == 409
+
+
+def test_register_short_password() -> None:
+    response = client.post("/auth/register", json={
+        "email": "test@example.com",
+        "password": "e",
+        "full_name": "Test User"
+    })
+    assert response.status_code == 400
