@@ -4,9 +4,14 @@
   "scripts": {
     "db:start": "docker compose up -d db redis",
     "db:stop": "docker compose down",
-    "migrate": "./.venv/bin/alembic upgrade head",
-    "backend": "./.venv/bin/uvicorn app.main:app --reload --app-dir backend",
+    "db:seed": "node scripts/db-seed.js",
+    "db:reset": "node scripts/db-reset.js",
+    "migrate": "node scripts/migrate.js",
+    "migrate:dev": "node scripts/migrate-dev.js",
+    "setup": "node scripts/setup.js",
+    "backend": "npm --prefix backend run dev",
     "frontend": "npm run dev --prefix frontend",
-    "dev": "node scripts/dev.mjs"
+    "dev": "npm run backend & npm run frontend",
+    "start": "npm run start --prefix backend & npm run start --prefix frontend"
   }
 }
