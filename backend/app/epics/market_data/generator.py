@@ -92,47 +92,47 @@ class LCGPseudoRandomGenerator:
 
         return json.dumps([candle.model_dump() for candle in history], indent=2)
 
-lcg = LCGPseudoRandomGenerator()
+# lcg = LCGPseudoRandomGenerator()
 
-print(lcg.generate_currency())
+# print(lcg.generate_currency())
 
-symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "DOT/USDT"]
-intervals =["1d", '1w', '1m']
-timestamps = [datetime.now().isoformat() for _ in range(5)]
+# symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "DOT/USDT"]
+# intervals =["1d", '1w', '1m']
+# timestamps = [datetime.now().isoformat() for _ in range(5)]
 
-print(lcg.choice(symbols))
-print(lcg.choice(intervals))
-print(lcg.choice(timestamps))
+# print(lcg.choice(symbols))
+# print(lcg.choice(intervals))
+# print(lcg.choice(timestamps))
 
-test_seeds = [42, 0, 2147483647, 12345]
+# test_seeds = [42, 0, 2147483647, 12345]
 
-for s in test_seeds:
-    test_lcg = LCGPseudoRandomGenerator(seed=s)
-    print(f"--- Testing Seed: {s} ---")
-    print(f"First Symbol: {test_lcg.choice(symbols)}")
-    print(f"First Price:  ${test_lcg.generate_currency(30000, 60000)}")
-    print("")
+# for s in test_seeds:
+#     test_lcg = LCGPseudoRandomGenerator(seed=s)
+#     print(f"--- Testing Seed: {s} ---")
+#     print(f"First Symbol: {test_lcg.choice(symbols)}")
+#     print(f"First Price:  ${test_lcg.generate_currency(30000, 60000)}")
+#     print("")
 
-start = datetime(2026, 5, 1, 0, 0, 0)   # May 1st, 2026 at Midnight
-end = datetime(2026, 5, 7, 23, 59, 59)  # May 7th, 2026 at 11:59 PM
+# start = datetime(2026, 5, 1, 0, 0, 0)   # May 1st, 2026 at Midnight
+# end = datetime(2026, 5, 7, 23, 59, 59)  # May 7th, 2026 at 11:59 PM
 
-lcg = LCGPseudoRandomGenerator(101)
+# lcg = LCGPseudoRandomGenerator(101)
 
-print("Generating random timestamps within the date range:")
-for i in range(3):
-    random_timestamp = lcg.generate_datetime(start, end)
-    print(f"Generated Time {i+1}: {random_timestamp}")
+# print("Generating random timestamps within the date range:")
+# for i in range(3):
+#     random_timestamp = lcg.generate_datetime(start, end)
+#     print(f"Generated Time {i+1}: {random_timestamp}")
 
-TickerTest = LCGPseudoRandomGenerator(777)
-start_history = datetime(2026, 1, 1, 0, 0, 0)
+# TickerTest = LCGPseudoRandomGenerator(777)
+# start_history = datetime(2026, 1, 1, 0, 0, 0)
 
-eth_daily_candles = lcg.generate_market_history(
-    symbol=TickerTest.choice(symbols), 
-    interval=TickerTest.choice(intervals), 
-    start_date=start_history, 
-    count=3, 
-    base_price=3000.00
-)
+# eth_daily_candles = lcg.generate_market_history(
+#     symbol=TickerTest.choice(symbols), 
+#     interval=TickerTest.choice(intervals), 
+#     start_date=start_history, 
+#     count=3, 
+#     base_price=3000.00
+# )
 
-print("--- Generated Continuous Daily Aggregates ---")
-print(eth_daily_candles)
+# print("--- Generated Continuous Daily Aggregates ---")
+# print(eth_daily_candles)
