@@ -1,4 +1,4 @@
-from datatime import datetime
+from datetime import datetime
 
 Symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "DOT/USDT", "USD", "JPY", "ZAR", "EUR"]
 
