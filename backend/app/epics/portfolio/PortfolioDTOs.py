@@ -11,7 +11,6 @@ class EpicStatusDTO(SQLModel):
     status: str
 
 class ExecuteTradeDTO(SQLModel):
-    account_id:int
     ticker:str
     direction: Direction
     quantity:float
@@ -28,3 +27,15 @@ class ExecuteTradeResponseDTO(SQLModel):
     new_cash_balance: Decimal
     new_position_quantity: float
 
+class TransactionResponse(SQLModel):
+    account_id:int
+    account_currency_code:str
+    asset_ticker:str
+    asset_id:int
+    direction:Direction
+    quantity:float
+    price_at_execution:Decimal
+    executed_at:datetime
+
+class TradeHistoryResponse(SQLModel):
+    transactions:list[TransactionResponse]

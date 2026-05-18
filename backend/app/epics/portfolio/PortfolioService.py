@@ -1,11 +1,12 @@
 from decimal import Decimal
 from fastapi import HTTPException, status
+from sqlalchemy.orm import session
 from sqlmodel import Session, select
 
 
 from ...models.transaction import Direction
-from ...models import Asset,InternationalAccount,User,Portfolio,Transaction
-from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO
+from ...models import Asset,InternationalAccount,User,Portfolio,Transaction,Currency
+from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, TransactionResponse
 
 
 class PortfolioService:
@@ -30,12 +31,8 @@ class PortfolioService:
 
         return quantity
 
-    def execute_trade(self,data:ExecuteTradeDTO,current_user:User)->ExecuteTradeResponseDTO:
-
-
-
-
-        account = self.session.get(InternationalAccount,data.account_id);
+    def execute_trade(self,data:ExecuteTradeDTO,account_id:int,current_user:User)->ExecuteTradeResponseDTO:
+        account = self.session.get(InternationalAccount,account_id);
         if account is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
 
@@ -108,6 +105,43 @@ class PortfolioService:
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Unsupported trade direction")
         
+    def get_transaction_history(self,account_id:int,current_user:User)->TradeHistoryResponse:
+
+        account = self.session.get(InternationalAccount,account_id);
+        if account is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
+
+        assert account.id is not None,"Asset ID should not be none"
+
+        # if acount does not belong to user throw unauthorized
+        portfolio = self.session.exec(select(Portfolio).where(Portfolio.user_id==current_user.id)).first()
+        assert portfolio is not None,"User should have a portfolio"
+
+        if account.portfolio_id!= portfolio.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This account does not belong to the current user")
+
+        #get account currency code
+        currency=  self.session.get(Currency,account.currency_id)
+        assert currency is not None,"Account should have currency"
+        currency_code:str= currency.code
+
+        transactions= self.session.exec(select(Transaction).where(Transaction.account_id==account_id))
+        response:TradeHistoryResponse= TradeHistoryResponse(transactions=[])
+        for transaction in transactions:
+            # get asset ticker
+            asset=self.session.get(Asset,transaction.asset_id)
+            assert asset is not None,"Asset should not be null"
+
+            trade_history:TransactionResponse= TransactionResponse(account_id=transaction.account_id,price_at_execution=transaction.price_at_execution,quantity=transaction.quantity,executed_at=transaction.executed_at,direction=transaction.direction,asset_id=transaction.asset_id,account_currency_code=currency_code,asset_ticker=asset.ticker)
+            response.transactions.append(trade_history)
+        return response
+
+
+
+
+
+
+
 
 
     @staticmethod
