@@ -13,7 +13,7 @@ profiles = {
     "DOT/USDT": {"base_price": 7.50}
 }
 
-PlacholderTicker = [
+PlaceholderTicker = [
     {
     "timestamp": "2026-05-18T00:00:00",
     "symbol": "ETH/USDT",

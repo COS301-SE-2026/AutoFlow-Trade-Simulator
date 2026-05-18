@@ -1,9 +1,10 @@
 
-from .MarketDataDTOs import MockOHLCV
+from .MarketDataDTOs import MockOHLCV, EpicStatusDTO
 from datetime import datetime
 from typing import Optional
 from .generator import LCGPseudoRandomGenerator
 from .tickers import Symbols, intervals, default_start_date, profiles, PlaceholderTicker
+from fastapi import HTTPException
 
 
 class MarketDataService:
@@ -61,22 +62,21 @@ class MarketDataService:
                 status_code=422,
                 detail="Invalid time"
             )
-        
-    #Payload construction
-    payload = {
-        "symbol": FormattedSymbol,
-        "interval": timeframe,
-    }
+    
+        #Payload construction
+        payload = {
+            "symbol": FormattedSymbol,
+            "interval": timeframe,
+        }
 
-    RawData = self.generate_history(payload)
-
-    return RawData
+        RawData = self.generate_history(payload)
+        return RawData
 
     def get_asset_summary_data(self, ticker: str):
 
         #Exact same logic as the function above it when it comes to validating the ticker
         FormattedSymbol = ticker.upper().replace("-", "/")
-           if FormattedSymbol not in profiles:
+        if FormattedSymbol not in profiles:
             raise HTTPException(
                 status_code=404,
                 detail="Invalid symbol"
@@ -103,11 +103,11 @@ class MarketDataService:
         NewBar = DailyHistory[-1]
 
         SummaryData = {
-            "ticker": formatted_symbol,
-            "current_price": latest_bar["close"],
-            "daily_high": latest_bar["high"],
-            "daily_low": latest_bar["low"],
-            "timestamp": latest_bar["timestamp"]
+            "ticker": FormattedSymbol,
+            "current_price": NewBar["close"],
+            "daily_high": NewBar["high"],
+            "daily_low": NewBar["low"],
+            "timestamp": NewBar["timestamp"]
         }
 
         return SummaryData

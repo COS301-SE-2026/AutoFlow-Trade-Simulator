@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from sqlmodel SQLModel
+from sqlmodel import SQLModel
 
 
 class MockOHLCV(SQLModel):
