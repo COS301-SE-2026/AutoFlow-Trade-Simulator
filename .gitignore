@@ -20,3 +20,4 @@ frontend/.next-env.d.ts
 dist/
 build/
 coverage/
+test.db
