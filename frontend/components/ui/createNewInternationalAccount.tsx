@@ -21,7 +21,7 @@ import { useAccount } from "@/lib/hooks/accountContext"
 export function CreateNewInternationalAccount() {
     const { create } = useAccount()
     const [currency, setCurrency] = useState<Currency | null>(null)
-    const [initialBalance, setInitialBalance] = useState(100.00)
+    const [initialBalance, setInitialBalance] = useState(100)
     const [open, setOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 

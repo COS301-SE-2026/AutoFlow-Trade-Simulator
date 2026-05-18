@@ -38,16 +38,13 @@ function FieldLegend({
   )
 }
 
-function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
+function FieldGroup({ className, ...props }: React.ComponentProps<"fieldset">) {
   return (
-    <div
-      data-slot="field-group"
-      className={cn(
-        "group/field-group @container/field-group flex w-full flex-col gap-5 data-[slot=checkbox-group]:gap-3 *:data-[slot=field-group]:gap-4",
-        className
-      )}
-      {...props}
-    />
+      <fieldset
+          data-slot="field-group"
+          className={cn(fieldVariants(), className)}
+          {...props}
+      />
   )
 }
 
@@ -70,18 +67,17 @@ const fieldVariants = cva(
 )
 
 function Field({
-  className,
-  orientation = "vertical",
-  ...props
-}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
+                 className,
+                 orientation = "vertical",
+                 ...props
+               }: React.ComponentProps<"fieldset"> & VariantProps<typeof fieldVariants>) {
   return (
-    <div
-      role="group"
-      data-slot="field"
-      data-orientation={orientation}
-      className={cn(fieldVariants({ orientation }), className)}
-      {...props}
-    />
+      <fieldset
+          data-slot="field"
+          data-orientation={orientation}
+          className={cn(fieldVariants({ orientation }), className)}
+          {...props}
+      />
   )
 }
 
