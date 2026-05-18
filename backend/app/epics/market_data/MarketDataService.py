@@ -30,3 +30,10 @@ class MarketDataService:
 
         #No that all validation is done hand it to or LCG gen
         return self.lcg.generate_market_history(symbol, interval, start_date, count, base_price)
+
+    @staticmethod
+    def get_status() -> EpicStatusDTO:
+        return EpicStatusDTO(
+            epic="market_data",
+            status="scaffolded",
+        )

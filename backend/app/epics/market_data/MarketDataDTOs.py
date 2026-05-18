@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 
-class MockOHLCV(BaseModel):
+class MockOHLCV(SQLModel):
     timestamp: str
     symbol: str
     interval: str
