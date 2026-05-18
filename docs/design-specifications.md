@@ -54,6 +54,7 @@ In addition to that, UI statuses and such should be accompanied by intuitive ico
 #### **UI Componenent Styling:**
 
 #### **Accessibility:**
+Guidelines are in place for the usage of colors to accomodate colorblind users. Additionally we will be using icons and patterns to indicate statuses instead of depending solely on colors. For example, instead of the 'traditional' red/green.
 
 ### **4.2.2 Wireframes**
 

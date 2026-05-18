@@ -1,6 +1,6 @@
 import { Card } from "../components/ui/card";
 import { getBackendHealth } from "../lib/api";
-import PriceChart from '../components/charts/priceChart';
+import TickerPage from '../assets/temp-ticker';
 
 export default async function HomePage() {
   const health = await getBackendHealth();
@@ -50,7 +50,7 @@ export default async function HomePage() {
         </section>
 
         <section>
-          <PriceChart ticker="putatickerhere"/>
+          <TickerPage />
         </section>
       </div>
     </main>
