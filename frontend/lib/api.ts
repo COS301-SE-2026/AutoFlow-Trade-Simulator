@@ -20,12 +20,12 @@ function getToken()
   return sessionStorage.getItem('token');
 }
 
-async function apiClient(endpoint: string, options: any = {}) 
+export async function apiClient(endpoint: string, options: any = {}) 
 {
   const token = getToken();
 
   const headers: any = {
-    'Content-Type': 'application/kson',
+    'Content-Type': 'application/json',
     ...options.headers
   }
 

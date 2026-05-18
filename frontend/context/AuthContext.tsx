@@ -9,14 +9,14 @@ import {
     type ReactNode
 } from 'react';
 
-interface User {
+export interface User {
     id: number;
     email: string;
     password_hash: string;
     full_name: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
     user: User | null;
     token: string | null;
     login: (token: string, user: User) => void;
@@ -24,7 +24,7 @@ interface AuthContextType {
     isLoading: boolean;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode })
 {
@@ -71,9 +71,4 @@ export function AuthProvider({ children }: { children: React.ReactNode })
     }), [user, token, isLoading]);
 
     return (<AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>);
-}
-export function useAuth() {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error("useAuth must be used within AuthProvider");
-    return (context);
 }
