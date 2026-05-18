@@ -1,6 +1,4 @@
-
-from .MarketDataDTOs import MockOHLCV
-from datetime import datetime
+from .MarketDataDTOs import EpicStatusDTO
 from typing import Optional
 from .generator import LCGPseudoRandomGenerator
 from .tickers import Symbols, intervals, default_start_date, profiles

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .MarketDataDTOs import 
+from .MarketDataDTOs import EpicStatusDTO 
 from .MarketDataService import MarketDataService
 
 router = APIRouter(prefix="/market-data", tags=["Market Data"])
