@@ -55,3 +55,39 @@ def test_create_account_invalid_currency() -> None:
         "initial_balance": "1000.00"
     }, headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 400
+
+
+def test_get_own_account() -> None:
+    seed_currency()
+    token = get_token()
+    create_response = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token}"})
+    account_id = create_response.json()["id"]
+    response = client.get(
+        f"/accounts/{account_id}", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+
+
+def test_get_other_users_account() -> None:
+    seed_currency()
+    token_1 = get_token("test_user_number_1@email.com")
+    token_2 = get_token("test_user_number_2@email.com")
+
+    create_response_1 = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token_1}"})
+    account_id_1 = create_response_1.json()["id"]
+
+    create_response_2 = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token_2}"})
+    account_id_2 = create_response_2.json()["id"]
+
+    # try get the id of account 1 using the token of account 2
+    response = client.get(
+        f"/accounts/{account_id_1}", headers={"Authorization": f"Bearer {token_2}"})
+    assert response.status_code == 403
