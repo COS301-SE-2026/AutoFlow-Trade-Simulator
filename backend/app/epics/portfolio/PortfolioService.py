@@ -2,10 +2,9 @@ from decimal import Decimal
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from backend.app.models.transaction import Direction, Transaction
 
-
-from ...models import Asset,InternationalAccount,User,Portfolio
+from ...models.transaction import Direction
+from ...models import Asset,InternationalAccount,User,Portfolio,Transaction
 from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO
 
 
