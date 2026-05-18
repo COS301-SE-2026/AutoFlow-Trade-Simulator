@@ -27,19 +27,14 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          source .venv/bin/activate
           python -m pip install --upgrade pip
           python -m pip install -r backend/requirements.txt
 
       - name: Lint backend
-        run: |
-          source .venv/bin/activate
-          npm run lint:backend
+        run: npm run lint:backend
 
       - name: Run backend tests
-        run: |
-          source .venv/bin/activate
-          npm run test:backend
+        run: npm run test:backend
 
   frontend:
     name: Frontend lint and build
