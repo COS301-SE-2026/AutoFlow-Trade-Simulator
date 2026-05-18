@@ -72,5 +72,43 @@ class MarketDataService:
 
     return RawData
 
+    def get_asset_summary_data(self, ticker: str):
 
+        #Exact same logic as the function above it when it comes to validating the ticker
+        FormattedSymbol = ticker.upper().replace("-", "/")
+           if FormattedSymbol not in profiles:
+            raise HTTPException(
+                status_code=404,
+                detail="Invalid symbol"
+            )
+    
+        #Payload construction
+        payload = {
+            "symbol" : FormattedSymbol,
+            "interval" : "1d",
+            "count" : 7 
+        }
+
+        #Leverage already exsisting logic
+        DailyHistory = self.generate_history(payload)
+
+        #Failed to generate the data
+        if not DailyHistory:
+            raise HTTPException(
+                status_code=500,
+                detail="Data failed to generate"
+            )
+
+        #Python has some really nice features lets use negative indexing
+        NewBar = DailyHistory[-1]
+
+        SummaryData = {
+            "ticker": formatted_symbol,
+            "current_price": latest_bar["close"],
+            "daily_high": latest_bar["high"],
+            "daily_low": latest_bar["low"],
+            "timestamp": latest_bar["timestamp"]
+        }
+
+        return SummaryData
 
