@@ -40,3 +40,37 @@ class MarketDataService:
 
     def get_mock_ticker_data():
         return PlaceholderTicker
+
+    def get_asset_prices_data(self, ticker: str, timeframe: str):
+
+        #Make the symbol name smth we can process
+        FormattedSymbol = ticker.upper().replace("-", "/")
+
+        #If its an invalid symbol throw the expected 404
+        if FormattedSymbol not in profiles:
+            raise HTTPException(
+                status_code=404,
+                detail="Invalid symbol"
+            )
+        
+        #Validate the times and throw the expected 422 invalid time stamp error
+        allowed_intervals = ["1d", "1w", "1m"]
+
+        if timeframe not in allowed_intervals:
+             raise HTTPException(
+                status_code=422,
+                detail="Invalid time"
+            )
+        
+    #Payload construction
+    payload = {
+        "symbol": FormattedSymbol,
+        "interval": timeframe,
+    }
+
+    RawData = self.generate_history(payload)
+
+    return RawData
+
+
+

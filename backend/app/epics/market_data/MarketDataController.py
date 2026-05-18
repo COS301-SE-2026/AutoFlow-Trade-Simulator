@@ -14,3 +14,7 @@ def get_epic_status() -> EpicStatusDTO:
 @router.get("/assets", response_model=List[MockOHLCV])
 def get_mock_tickers():
     return MarketDataService.get_mock_ticker_data()
+
+@router.get("/assets/{ticker}/prices", response_model=List[MockOHLCV])
+def get_asset_prices():
+    return MarketDataService.get_asset_prices_data()

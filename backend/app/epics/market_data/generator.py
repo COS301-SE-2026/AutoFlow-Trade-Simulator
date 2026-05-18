@@ -85,9 +85,9 @@ class LCGPseudoRandomGenerator:
                 close = round(current_close, 2),
                 volume = volume
             )
-            history.append(dto)
+            history.append(dto.model_dump())
 
             current_open = current_close
             current_time += time_jump
 
-        return json.dumps([candle.model_dump() for candle in history], indent=2)
+        return history
