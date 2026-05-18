@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import logging
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 from sqlmodel import SQLModel
 
@@ -28,6 +29,14 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="AutoFlow Trade Simulator", lifespan=lifespan)
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Frontend URLs
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(core_router)
 app.include_router(market_data_router)
