@@ -50,7 +50,7 @@ export default async function HomePage() {
         </section>
 
         <section>
-          <PriceChart />
+          <PriceChart ticker="putatickerhere"/>
         </section>
       </div>
     </main>
