@@ -49,7 +49,7 @@ export function LoginForm({
                   Sign In
                 </Button>
                 <FieldDescription className="text-center">
-                  Don't have an account? <a href="/signup">Sign up</a>
+                  Don't have an account? <a href="/register">Sign up</a>
                 </FieldDescription>
               </Field>
             </FieldGroup>

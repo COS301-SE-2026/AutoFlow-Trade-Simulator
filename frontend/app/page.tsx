@@ -15,7 +15,10 @@ export default async function HomePage() {
           </p>
           <div className="actions">
             <a className="button primary" href="/login">
-              Open the demo route
+              Login Page
+            </a>
+            <a className="button primary" href="/register">
+              Register Page
             </a>
             <a className="button secondary" href="http://localhost:8000/health">
               Backend health
