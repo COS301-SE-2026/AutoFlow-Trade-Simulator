@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+import sqlmodel
 
 
 class MockOHLCV(SQLModel):
@@ -13,7 +14,7 @@ class MockOHLCV(SQLModel):
     close: float
     volume: float
 
-class MarketHistoryReq(BaseModel):
+class MarketHistoryReq(SQLModel):
     symbol: Optional[str] = None
     interval: Optional[str] = None
     start_date: Optional[datetime] = None
