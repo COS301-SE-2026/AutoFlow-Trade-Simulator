@@ -2,10 +2,7 @@ import os
 from pathlib import Path
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
+# Set environment variables BEFORE importing app modules
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
 os.environ.setdefault("SECRET_KEY", "test-secret")
 os.environ.setdefault("ALGORITHM", "HS256")
@@ -15,6 +12,12 @@ os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 from sqlmodel import SQLModel, Session, create_engine
 from app.database import get_session
 from app.main import app
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 
 test_engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
 
@@ -24,7 +27,7 @@ def get_test_session():
 
 app.dependency_overrides[get_session] = get_test_session
 
-import pytest
+
 
 @pytest.fixture(autouse=True)
 def setup_database():
