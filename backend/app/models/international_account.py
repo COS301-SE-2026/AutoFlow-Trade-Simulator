@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional
-from sqlalchemy.orm import foreign
 from sqlmodel import SQLModel,Field
 
 

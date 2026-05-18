@@ -91,3 +91,7 @@ def test_get_other_users_account() -> None:
     response = client.get(
         f"/accounts/{account_id_1}", headers={"Authorization": f"Bearer {token_2}"})
     assert response.status_code == 403
+
+    response2 = client.get(
+        f"/accounts/{account_id_2}", headers={"Authorization": f"Bearer {token_2}"})
+    assert response2.status_code == 200
