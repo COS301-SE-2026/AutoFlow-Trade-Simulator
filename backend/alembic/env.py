@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.models import User  # noqa: F401,E402
+from app import models  # noqa: F401,E402
 from app.settings import settings  # noqa: E402
 
 config = context.config
@@ -24,9 +24,29 @@ if config.config_file_name is not None:
 target_metadata = SQLModel.metadata
 
 
+def process_revision_directives(context, revision, directives) -> None:
+    """Skip generating empty migration files during --autogenerate runs."""
+    if not getattr(config.cmd_opts, "autogenerate", False):
+        return
+
+    if not directives:
+        return
+
+    script = directives[0]
+    if script.upgrade_ops.is_empty():
+        directives[:] = []
+        print("No schema changes detected.")
+
+
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        compare_type=True,
+        compare_server_default=True,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
@@ -40,7 +60,13 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+            compare_server_default=True,
+            process_revision_directives=process_revision_directives,
+        )
 
         with context.begin_transaction():
             context.run_migrations()

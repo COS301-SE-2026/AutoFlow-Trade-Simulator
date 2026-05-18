@@ -1,0 +1,8 @@
+{
+  "name": "autoflow-backend",
+  "private": true,
+  "scripts": {
+    "dev": "fastapi dev app/main.py",
+    "start": "fastapi run app/main.py"
+  }
+}
