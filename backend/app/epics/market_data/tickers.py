@@ -1,6 +1,10 @@
 from datetime import datetime
 
-Symbols = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "DOT/USDT", "USD", "JPY", "ZAR", "EUR"]
+#Sonar qube hates mock data so lets fix that
+sol_string = "SOL/USDT"
+eth_string = "ETH/USDT"
+
+Symbols = ["BTC/USDT", eth_string, sol_string, "DOT/USDT", "USD", "JPY", "ZAR", "EUR"]
 
 intervals = ["1d", "1w", "1m"]
 
@@ -8,15 +12,15 @@ default_start_date = datetime(2026, 1, 1, 0, 0, 0)
 
 profiles = {
     "BTC/USDT": {"base_price": 65000.00},
-    "ETH/USDT": {"base_price": 3000.00},
-    "SOL/USDT": {"base_price": 140.00},
+    eth_string: {"base_price": 3000.00},
+    sol_string: {"base_price": 140.00},
     "DOT/USDT": {"base_price": 7.50}
 }
 
 PlaceholderTicker = [
     {
     "timestamp": "2026-05-18T00:00:00",
-    "symbol": "ETH/USDT",
+    "symbol": eth_string,
     "interval": "1d",
     "open": 3400.00,
     "high": 3485.50,
@@ -26,7 +30,7 @@ PlaceholderTicker = [
   },
   {
     "timestamp": "2026-05-19T00:00:00",
-    "symbol": "ETH/USDT",
+    "symbol": eth_string,
     "interval": "1d",
     "open": 3462.10,
     "high": 3520.00,
@@ -36,7 +40,7 @@ PlaceholderTicker = [
   },
   {
     "timestamp": "2026-05-11T00:00:00",
-    "symbol": "SOL/USDT",
+    "symbol": sol_string,
     "interval": "1w",
     "open": 145.50,
     "high": 158.20,
@@ -46,7 +50,7 @@ PlaceholderTicker = [
   },
   {
     "timestamp": "2026-05-18T00:00:00",
-    "symbol": "SOL/USDT",
+    "symbol": sol_string,
     "interval": "1w",
     "open": 154.75,
     "high": 162.00,

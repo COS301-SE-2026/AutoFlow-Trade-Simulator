@@ -39,6 +39,7 @@ class MarketDataService:
             status="scaffolded",
         )
 
+    @staticmethod
     def get_mock_ticker_data():
         return PlaceholderTicker
 
