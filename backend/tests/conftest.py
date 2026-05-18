@@ -1,6 +1,10 @@
 import os
 from pathlib import Path
 import sys
+from sqlmodel import SQLModel, Session, create_engine
+from app.database import get_session
+from app.main import app
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -12,9 +16,6 @@ os.environ.setdefault("ALGORITHM", "HS256")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 
-from sqlmodel import SQLModel, Session, create_engine
-from app.database import get_session
-from app.main import app
 
 test_engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
 
@@ -24,7 +25,7 @@ def get_test_session():
 
 app.dependency_overrides[get_session] = get_test_session
 
-import pytest
+
 
 @pytest.fixture(autouse=True)
 def setup_database():

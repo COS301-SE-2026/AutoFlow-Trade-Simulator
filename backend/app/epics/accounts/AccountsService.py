@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from ..auth.AuthDTOs import EpicStatusDTO
 from ...models import User, Portfolio
 from ...models.currency import Currency
-from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO, GetAccountDTO
+from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO
 from ...models import InternationalAccount
 
 
