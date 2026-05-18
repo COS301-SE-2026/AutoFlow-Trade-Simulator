@@ -1,3 +1,5 @@
+"use client"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -12,15 +14,35 @@ import {
 import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Currency} from "@/lib/types/currencies";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Currency } from "@/lib/types/currencies"
+import { useAccount } from "@/lib/hooks/accountContext"
 
-export function DialogDemo() {
+export function CreateNewInternationalAccount() {
+    const { create } = useAccount()
+    const [currency, setCurrency] = useState<Currency | null>(null)
+    const [initialBalance, setInitialBalance] = useState(100.00)
+    const [open, setOpen] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    async function handleSubmit() {
+        if (!currency) return
+
+        setIsSubmitting(true)
+        try {
+            await create(currency, initialBalance)
+            setOpen(false)
+        } catch (err) {
+            console.error("Failed to create account:", err)
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
     return (
-        <Dialog>
-            <form>
+        <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline">Open Dialog</Button>
+                    <Button variant="outline">Add new Account</Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-sm hero">
                     <DialogHeader>
@@ -32,14 +54,13 @@ export function DialogDemo() {
                     <FieldGroup>
                         <Field>
                             <Label htmlFor="role-1">Currency</Label>
-                            <Select name="role">
+                            <Select name="role" onValueChange={(val) => setCurrency(val as Currency)}>
                                 <SelectTrigger id="role-1" className="w-full">
                                     <SelectValue placeholder="Select a currency" />
                                 </SelectTrigger>
                                 <SelectContent style={{
                                     backgroundColor: 'var(--accent-strong)',
                                     color: 'var(--text)',
-
                                 }}>
                                     <SelectGroup>
                                         {Object.values(Currency)?.map((curr) => (
@@ -53,17 +74,28 @@ export function DialogDemo() {
                         </Field>
                         <Field>
                             <Label htmlFor="initialBalance-1">Initial Balance</Label>
-                            <Input type="number" id="initialBalance-1" name="initialBalance" defaultValue="100.00" />
+                            <Input
+                                type="number"
+                                id="initialBalance-1"
+                                name="initialBalance"
+                                defaultValue="100.00"
+                                onChange={(e) => setInitialBalance(Number(e.target.value))}
+                            />
                         </Field>
                     </FieldGroup>
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button type="submit">Confirm</Button>
+                        <Button
+                            type="button"
+                            disabled={!currency || isSubmitting}
+                            onClick={handleSubmit}
+                        >
+                            {isSubmitting ? "Creating..." : "Confirm"}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
-            </form>
         </Dialog>
     )
 }
