@@ -20,3 +20,7 @@ class MarketHistoryReq(SQLModel):
     start_date: Optional[datetime] = None
     count: Optional[int] = None
     base_price: Optional[float] = None
+
+class EpicStatusDTO(SQLModel):
+    epic: str
+    status: str

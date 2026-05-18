@@ -3,7 +3,7 @@ from .MarketDataDTOs import MockOHLCV
 from datetime import datetime
 from typing import Optional
 from .generator import LCGPseudoRandomGenerator
-from .tickers import Symbols, intervals, default_start_date, profiles
+from .tickers import Symbols, intervals, default_start_date, profiles, PlaceholderTicker
 
 
 class MarketDataService:
@@ -37,3 +37,6 @@ class MarketDataService:
             epic="market_data",
             status="scaffolded",
         )
+
+    def get_mock_ticker_data():
+        return PlaceholderTicker
