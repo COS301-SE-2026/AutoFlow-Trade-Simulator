@@ -52,15 +52,15 @@ export function DialogDemo() {
                             </Select>
                         </Field>
                         <Field>
-                            <Label htmlFor="username-1">Username</Label>
-                            <Input id="username-1" name="username" defaultValue="@peduarte" />
+                            <Label htmlFor="initialBalance-1">Initial Balance</Label>
+                            <Input type="number" id="initialBalance-1" name="initialBalance" defaultValue="100.00" />
                         </Field>
                     </FieldGroup>
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button type="submit">Save changes</Button>
+                        <Button type="submit">Confirm</Button>
                     </DialogFooter>
                 </DialogContent>
             </form>
