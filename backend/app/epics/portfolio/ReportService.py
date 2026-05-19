@@ -97,3 +97,15 @@ class ReportGenService:
                 status_code=500, 
                 detail=f"Failed to persist generated report: {str(e)}"
             )
+    
+    def get_user_report_history(self, user_id: int, db: Session) -> List[Report]:
+        #you need this to read the db
+        try:
+            statement = select(Report).where(Report.user_id == user_id)
+            reports = db.exec(statement).all()
+            return reports
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to retrieve report history: {str(e)}"
+            )
