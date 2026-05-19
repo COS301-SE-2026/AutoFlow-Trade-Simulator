@@ -5,7 +5,7 @@ export const InternationalAccountSchema = z.object({
     portfolio_id: z.number().int().nonnegative(),
     currency_id: z.number().int().nonnegative(),
     balance: z.string().regex(/^\d+$/),
-    created_at: z.string().datetime(),
+    created_at: z.coerce.date(),
 });
 
 export const InternationalAccountsResponseSchema = z.object({
