@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+//import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -29,7 +29,7 @@ export function LoginForm({
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const router = useRouter();
+  //const router = useRouter();
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -38,7 +38,8 @@ export function LoginForm({
     {
       login(email, password);
 
-      router.push('/');
+      //should not assume that it succeeds until we can improve the error handling
+      //router.push('/');
     }
     catch(err: any)
     {
