@@ -101,7 +101,7 @@ export function LoginForm({
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </Button>
                 <FieldDescription className="text-center">
-                  Don't have an account? <a href="/register">Sign up</a>
+                  Don&apos;t have an account? <a href="/register">Sign up</a>
                 </FieldDescription>
               </Field>
             </FieldGroup>
