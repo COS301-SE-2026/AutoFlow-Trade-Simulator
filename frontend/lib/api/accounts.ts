@@ -1,6 +1,7 @@
 import {
-    InternationalAccount, InternationalAccountSchema, InternationalAccountsResponseSchema, RegisterAccount,
-    RegisterAccountSchema
+    InternationalAccount, InternationalAccountSchema, InternationalAccountsResponseSchema,
+    RegisterLoginResponse,
+    RegisterLoginResponseSchema
 } from "../types/accounts";
 import {Currency} from "../types/currencies";
 import {apiClient} from "@/lib/api";
@@ -27,7 +28,7 @@ export async function createAccount(currencyCode:Currency, initialBalance:number
     return InternationalAccountSchema.parse(await res.json());
 }
 
-export async function register(fullName:string, email:string, password:string): Promise<RegisterAccount>{
+export async function register(fullName:string, email:string, password:string): Promise<RegisterLoginResponse>{
     const data = await apiClient('/auth/register', {
         method: 'POST',
         body: { full_name: fullName, email, password }
@@ -35,16 +36,16 @@ export async function register(fullName:string, email:string, password:string): 
 
     if(!data.ok)throw new Error(`Failed to register account: ${data.status}`);
 
-    return RegisterAccountSchema.parse(await data.json());
+    return RegisterLoginResponseSchema.parse(await data.json());
 }
 
-export async function login(fullName:string, email:string, password:string): Promise<RegisterAccount>{
-    const data = await apiClient('/auth/register', {
+export async function login(email:string, password:string): Promise<RegisterLoginResponse>{
+    const data = await apiClient('/auth/login', {
         method: 'POST',
-        body: { full_name: fullName, email, password }
+        body: { email, password }
     });
 
-    if(!data.ok)throw new Error(`Failed to register account: ${data.status}`);
+    if(!data.ok)throw new Error(`Failed to login to account: ${data.status}`);
 
-    return RegisterAccountSchema.parse(await data.json());
+    return RegisterLoginResponseSchema.parse(await data.json());
 }
