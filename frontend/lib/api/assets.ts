@@ -2,7 +2,7 @@ import { AssetSummary, AssetSummarySchema, AssetPricesResponseSchema, OHLCV, OHL
 
 export async function fetchAssetPrices(ticker: string, timeframe: string): Promise<OHLCV[]> 
 {
-  const res = await fetch(`/api/market-data/assets/${encodeURIComponent(ticker)}/prices?timeframe=${timeframe}`);
+  const res = await fetch(`api/market-data/assets/${encodeURIComponent(ticker)}/prices?timeframe=${timeframe}`);
   if (!res.ok) throw new Error(`Failed to fetch prices: ${res.status}`);
   const data = await res.json();
   return AssetPricesResponseSchema.parse(data);
@@ -10,7 +10,7 @@ export async function fetchAssetPrices(ticker: string, timeframe: string): Promi
 
 export async function fetchAssetSummary(ticker: string): Promise<AssetSummary> 
 {
-  const res = await fetch(`/api/market-data/assets/${encodeURIComponent(ticker)}/summary`);
+  const res = await fetch(`api/market-data/assets/${encodeURIComponent(ticker)}/summary`);
   if (!res.ok) throw new Error(`Failed to fetch asset summary: ${res.status}`);
   const data = await res.json();
   return AssetSummarySchema.parse(data);

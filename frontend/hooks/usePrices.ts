@@ -8,6 +8,13 @@ export function usePrices(ticker: string, timeframe: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!ticker)
+    {
+      setLoading(false);
+      setData([]);
+      return;
+    }
+
     const getPrices = async () => {
       setLoading(true);
       setError(null);
@@ -35,10 +42,7 @@ export function usePrices(ticker: string, timeframe: string) {
       }
     };
 
-    if (ticker) 
-    {
-      getPrices();
-    }
+    getPrices();
   }, [ticker, timeframe]);
 
   return { data, loading, error };

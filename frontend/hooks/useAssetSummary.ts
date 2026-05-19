@@ -4,10 +4,17 @@ import type { AssetSummary } from '@/lib/types/assets';
 
 export function useAssetSummary(ticker: string) {
   const [data, setData] = useState<AssetSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!ticker)
+    {
+      setLoading(false);
+      setData(null);
+      return;
+    }
+
     const getSummary = async () => {
       setLoading(true);
       setError(null);
@@ -35,10 +42,7 @@ export function useAssetSummary(ticker: string) {
       }
     };
 
-    if (ticker) 
-    {
-      getSummary();
-    }
+    getSummary();
   }, [ticker]);
 
   return { data, loading, error };
