@@ -15,8 +15,11 @@ export default async function HomePage() {
             The repo starts with Postgres in Docker, a small FastAPI backend, and a Next.js frontend that can talk to the backend health route.
           </p>
           <div className="actions">
-            <a className="button primary" href="/demo">
-              Open the demo route
+            <a className="button primary" href="/login">
+              Login Page
+            </a>
+            <a className="button primary" href="/register">
+              Register Page
             </a>
             <a className="button secondary" href="http://localhost:8000/health">
               Backend health
