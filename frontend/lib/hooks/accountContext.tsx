@@ -36,6 +36,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     async function create(currencyCode: Currency, initialBalance: number) {
         const newAccount = await createAccount(currencyCode, initialBalance);
         setAccounts((prev) => (prev ? [...prev, newAccount] : [newAccount]));
+        update(newAccount);
     }
 
     function update(updated: InternationalAccount) {
