@@ -1,5 +1,6 @@
 import { Card } from "../components/ui/card";
 import { getBackendHealth } from "../lib/api";
+import AssetPage from "../app/assets/[ticker]/page"
 
 export default async function HomePage() {
   const health = await getBackendHealth();
@@ -49,6 +50,9 @@ export default async function HomePage() {
               <span>Use the shared component flow for every new screen.</span>
             </div>
           </Card>
+        </section>
+        <section>
+          <AssetPage />
         </section>
       </div>
     </main>
