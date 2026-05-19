@@ -10,8 +10,18 @@ export interface Holdings {
     average_cost: number
 }
 
+export interface HoldingsWithCurrPrice {
+    asset_id: number,
+    ticker: string,
+    net_quantity: number,
+    average_cost: number,
+
+    current_price: number,
+    unrealised_pnl: number
+}
+
 export function useHoldings(account_id: number | null) {
-    const [Holdings, setHoldings] = useState<Holdings[]>([]);
+    const [holdings, setHoldings] = useState<HoldingsWithCurrPrice[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +33,19 @@ export function useHoldings(account_id: number | null) {
         setError(null);
         try {
             const response = await apiClient(`/portfolio/accounts/${account_id}/holdings`);
-            setHoldings(response.Holdings ?? response);
+
+            const holdingsWithPrice = await Promise.all(
+                response.holdings.map(async (h: Holdings) => {
+                    const summary = await apiClient(`/market-data/assets/${h.ticker}/summary`);
+                    return {
+                        ...h,
+                        current_price: summary.current_price,
+                        unrealised_pnl: (summary.current_price - h.average_cost) * h.net_quantity,
+                    };
+                })
+            );
+
+            setHoldings(holdingsWithPrice);
         } catch (error: any) {
             setError(error.message);
         } finally {
@@ -31,5 +53,5 @@ export function useHoldings(account_id: number | null) {
         }
     }, [account_id]);
     useEffect(() => { fetch(); }, [fetch]);
-    return { Holdings, loading, error, refetch: fetch }
+    return { holdings, loading, error, refetch: fetch }
 }
