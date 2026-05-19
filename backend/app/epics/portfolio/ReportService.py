@@ -35,6 +35,9 @@ class ReportGenService:
         db.add(db_report)
         db.flush()
 
+        if db_report.id is None:
+            raise HTTPException(status_code=500, detail="Failed to initialize row.")
+
         # Read the ticker file and get an appropriate symbol
         for symbol in Symbols:
             if symbol not in profiles:
@@ -49,7 +52,7 @@ class ReportGenService:
 
             # Keeping the generator execution INSIDE the loop block
             try:
-                historical_bars: List[Any] = self.market_service.generate_history(payload)
+                historical_bars: List[dict[str, Any]] = self.market_service.generate_history(payload)
 
                 if not historical_bars or len(historical_bars) < 2:
                     continue  # Incase there isnt enough data to warrant a generation
@@ -87,18 +90,23 @@ class ReportGenService:
                 period_low=period_low
             )
 
-        # Now acc add everything to the db
-        try:
-            db.add(db_section)
-            db.commit()
-            db.refresh(db_report)
-            return db_section
-        except Exception as e:
-            db.rollback()
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Failed to persist generated report: {str(e)}"
-            )
+            # Now acc add everything to the db
+            try:
+                db.add(db_section)
+                db.commit()
+                db.refresh(db_section)
+                return db_section
+            except Exception as e:
+                db.rollback()
+                raise HTTPException(
+                    status_code=500, 
+                    detail=f"Failed to persist generated report: {str(e)}"
+                )
+
+        raise HTTPException(
+            status_code=400,
+            detail="No valid market data is available"
+        )
     
     def get_user_report_history(self, user_id: int, db: Session) -> List[ReportSection]:
     #you need this to read the db

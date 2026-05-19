@@ -1,7 +1,7 @@
 
 from .MarketDataDTOs import MockOHLCV, EpicStatusDTO
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any, List
 from .generator import LCGPseudoRandomGenerator
 from .tickers import Symbols, intervals, default_start_date, profiles, PlaceholderTicker
 from fastapi import HTTPException
@@ -12,14 +12,14 @@ class MarketDataService:
     def __init__(self):
         self.lcg = LCGPseudoRandomGenerator(101)
 
-    def generate_history(self, payload: Optional[dict] = None) -> str:
+    def generate_history(self, payload: Optional[dict] = None) -> List[dict[str, Any]]:
         
         data = payload or {}
 
         #Do some validation on the symbol
         symbol = data.get("symbol") or self.lcg.choice(Symbols)
         if symbol not in profiles:
-            raise ValueError("Symbol '{symbol}' is not supported")
+            raise ValueError(f"Symbol '{symbol}' is not supported")
 
         profile = profiles[symbol]
 

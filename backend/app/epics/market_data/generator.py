@@ -15,6 +15,9 @@ class LCGPseudoRandomGenerator:
         if seed is None:
             self.x0 = int(time.time() * 1000) % self.m
 
+        if self.x0 is None:
+            self.x0 = 0
+
         self.x_prev = (self.a * self.x0 + self.c) % self.m
     
     #helper method to generate the number
