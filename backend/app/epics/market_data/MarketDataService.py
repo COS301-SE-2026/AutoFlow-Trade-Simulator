@@ -1,7 +1,10 @@
-from .MarketDataDTOs import EpicStatusDTO
+
+from .MarketDataDTOs import MockOHLCV, EpicStatusDTO
+from datetime import datetime
 from typing import Optional
 from .generator import LCGPseudoRandomGenerator
-from .tickers import Symbols, intervals, default_start_date, profiles
+from .tickers import Symbols, intervals, default_start_date, profiles, PlaceholderTicker
+from fastapi import HTTPException
 
 
 class MarketDataService:
@@ -35,3 +38,78 @@ class MarketDataService:
             epic="market_data",
             status="scaffolded",
         )
+
+    @staticmethod
+    def get_mock_ticker_data():
+        return PlaceholderTicker
+
+    def get_asset_prices_data(self, ticker: str, timeframe: str):
+
+        #Make the symbol name smth we can process
+        FormattedSymbol = ticker.upper().replace("-", "/")
+
+        #If its an invalid symbol throw the expected 404
+        if FormattedSymbol not in profiles:
+            raise HTTPException(
+                status_code=404,
+                detail="Invalid symbol"
+            )
+        
+        #Validate the times and throw the expected 422 invalid time stamp error
+        allowed_intervals = ["1d", "1w", "1m"]
+
+        if timeframe not in allowed_intervals:
+             raise HTTPException(
+                status_code=422,
+                detail="Invalid time"
+            )
+    
+        #Payload construction
+        payload = {
+            "symbol": FormattedSymbol,
+            "interval": timeframe,
+        }
+
+        RawData = self.generate_history(payload)
+        return RawData
+
+    def get_asset_summary_data(self, ticker: str):
+
+        #Exact same logic as the function above it when it comes to validating the ticker
+        FormattedSymbol = ticker.upper().replace("-", "/")
+        if FormattedSymbol not in profiles:
+            raise HTTPException(
+                status_code=404,
+                detail="Invalid symbol"
+            )
+    
+        #Payload construction
+        payload = {
+            "symbol" : FormattedSymbol,
+            "interval" : "1d",
+            "count" : 7 
+        }
+
+        #Leverage already exsisting logic
+        DailyHistory = self.generate_history(payload)
+
+        #Failed to generate the data
+        if not DailyHistory:
+            raise HTTPException(
+                status_code=500,
+                detail="Data failed to generate"
+            )
+
+        #Python has some really nice features lets use negative indexing
+        NewBar = DailyHistory[-1]
+
+        SummaryData = {
+            "ticker": FormattedSymbol,
+            "current_price": NewBar["close"],
+            "daily_high": NewBar["high"],
+            "daily_low": NewBar["low"],
+            "timestamp": NewBar["timestamp"]
+        }
+
+        return SummaryData
+
