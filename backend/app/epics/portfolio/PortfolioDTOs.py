@@ -38,3 +38,12 @@ class TransactionResponse(SQLModel):
 
 class TradeHistoryResponse(SQLModel):
     transactions:list[TransactionResponse]
+
+class Holding(SQLModel):
+    asset_id: int
+    ticker: str
+    net_quantity: float
+    average_cost: float 
+
+class HoldingResponse(SQLModel):
+    holdings: list[Holding]

@@ -1,13 +1,14 @@
 from decimal import Decimal
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
-
+from typing import List, Dict
+from collections import defaultdict
 
 from ..market_data.MarketDataService import MarketDataService
 from ..market_data.MarketDataDTOs import AssetSummary
 from ...models.transaction import Direction
 from ...models import Asset,InternationalAccount,User,Portfolio,Transaction,Currency
-from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, TransactionResponse
+from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, TransactionResponse, HoldingResponse, Holding
 
 
 class PortfolioService:
@@ -141,7 +142,50 @@ class PortfolioService:
         return response
 
 
+    def get_holdings(self,account_id:int,current_user:User) -> HoldingResponse:
+        # validate account and ownership (same checks as other methods)
+        account = self.session.get(InternationalAccount, account_id)
+        if account is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="There is no account with specified id")
 
+        portfolio = self.session.exec(select(Portfolio).where(Portfolio.user_id == current_user.id)).first()
+        assert portfolio is not None, "User should have a portfolio"
+
+        if account.portfolio_id != portfolio.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This account does not belong to the current user")
+
+        # Fetch all transactions for the account and aggregate in Python (avoids direct SQLAlchemy funcs)
+        transactions = self.session.exec(select(Transaction).where(Transaction.account_id == account_id)).all()
+
+        agg: Dict[int, Dict[str, float]] = defaultdict(lambda: {"net_qty": 0.0, "buy_qty": 0.0, "buy_cost": 0.0})
+
+        for tx in transactions:
+            aid = tx.asset_id
+            qty = float(tx.quantity)
+            if tx.direction == Direction.Buy:
+                agg[aid]["net_qty"] += qty
+                agg[aid]["buy_qty"] += qty
+                agg[aid]["buy_cost"] += float(tx.price_at_execution) * qty
+            else:
+                agg[aid]["net_qty"] -= qty
+
+        holdings_list: List[Holding] = []
+        for aid, vals in agg.items():
+            net_qty = vals["net_qty"]
+            if net_qty == 0:
+                continue
+
+            buy_qty = vals["buy_qty"]
+            buy_cost = vals["buy_cost"]
+            avg_cost = buy_cost / buy_qty if buy_qty > 0 else 0.0
+
+            asset = self.session.get(Asset, aid)
+            assert asset is not None, "Asset should not be null"
+            assert asset.id is not None, "Asset ID should not be none"
+
+            holdings_list.append(Holding(asset_id=asset.id, ticker=asset.ticker, net_quantity=net_qty, average_cost=avg_cost))
+
+        return HoldingResponse(holdings=holdings_list)
 
 
 
