@@ -14,14 +14,22 @@ class ReportGenService:
     def __init__(self):
         self.market_service = MarketDataService()
     
-    def generate_report(self, user_id: int, period: Period, db: Session) -> Report:
+    def generate_report(self, user_id: int, period_string: str, db: Session) -> Report:
         # Check the period to see what type of report will need to be created
-        count = 2 if period == Period.Daily else 7
+        allowed_periods = ["daily", "weekly"]
+        if period_string not in allowed_periods:
+            raise HTTPException(
+                status_code=422,
+                detail="Invalid time frame"
+            )
+        
+        report_period = Period.Daily if period_string == "daily" else Period.Weekly
+        count = 2 if report_period == Period.Daily else 7
 
         # The report row in the report table must exist before the acc report can be made
         db_report = Report(
             user_id=user_id,
-            period=period,
+            period=report_period,
             generated_at=datetime.now(timezone.utc)
         )
         db.add(db_report)
