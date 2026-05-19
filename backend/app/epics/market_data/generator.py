@@ -10,13 +10,9 @@ class LCGPseudoRandomGenerator:
         self.a = a
         self.c = c
         self.m = m
-        self.x0 = seed
 
-        if seed is None:
-            self.x0 = int(time.time() * 1000) % self.m
-
-        if self.x0 is None:
-            self.x0 = 0
+        computed_seed = int(time.time() * 1000) if seed is None else int(seed)
+        self.x0 = computed_seed % self.m
 
         self.x_prev = (self.a * self.x0 + self.c) % self.m
     

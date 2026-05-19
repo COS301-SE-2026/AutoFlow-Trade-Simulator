@@ -1,8 +1,7 @@
-from typing import List, Literal
+from typing import List, Literal, Annotated
 from fastapi import APIRouter, Depends, status, Body, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session
-from typing import Annotated
 
 from ...database import get_session
 from app.models.report import Report, Period
@@ -13,26 +12,32 @@ from ...models import User
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
+UNAUTHORIZED_RESPONSE = {
+    401: {
+        "description": "Unauthorized access due to invalid or missing credentials."
+    }
+}
 
-@router.post("/", response_model=ReportSection)
+
+@router.post("/", responses={**UNAUTHORIZED_RESPONSE})
 def create_report(
     current_user: Annotated[User, Depends(get_current_user)],
-    period: str = Body(..., embed=True),
-    db: Session = Depends(get_session),
-    service: ReportGenService = Depends()
-) -> ReportSection:
+    period: Annotated[str, Body(..., embed=True)], 
+    db: Annotated[Session, Depends(get_session)],  
+    service: Annotated[ReportGenService, Depends()]
+) -> ReportSection: 
     if current_user.id is None:
         raise HTTPException(status_code=401, detail="Invalid Identity")
 
     return service.generate_report(user_id=current_user.id, period_string=period, db=db)
 
 
-@router.get("/", response_model=List[ReportSection])
+@router.get("/", responses={**UNAUTHORIZED_RESPONSE})
 def get_report_history(
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_session),
-    service: ReportGenService = Depends()
-) -> List[ReportSection]:
+    db: Annotated[Session, Depends(get_session)], 
+    service: Annotated[ReportGenService, Depends()]
+) -> List[ReportSection]:  
     if current_user.id is None:
         raise HTTPException(status_code=401, detail="Invalid user authentication identity.")
 

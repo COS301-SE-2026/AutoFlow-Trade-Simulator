@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import List, Any
+from typing import List, Any, Optional
 from sqlmodel import Session, select
 from fastapi import HTTPException
 
@@ -14,6 +14,54 @@ class ReportGenService:
     def __init__(self):
         self.market_service = MarketDataService()
     
+    #Helper function to so qube stops crying
+    def _fetch_historical_bars(self, symbol: str, count: int) -> Optional[List[dict[str, Any]]]:
+        if symbol not in profiles:
+            return None
+
+        payload = {
+            "symbol": symbol,
+            "interval": "1d",
+            "count": count
+        }
+
+        try:
+            historical_bars = self.market_service.generate_history(payload)
+            if not historical_bars or len(historical_bars) < 2:
+                return None
+            return historical_bars
+        except Exception:
+            return None
+
+    #another helper function to help calculate the values
+    def _calculate_section_metrics(self, historical_bars: List[dict[str, Any]], report_id: int, symbol: str) -> ReportSection:
+        latest_bar = historical_bars[-1]
+        baseline_bar = historical_bars[0]
+
+        open_price = Decimal(str(baseline_bar.get("open", 0)))
+        close_price = Decimal(str(latest_bar.get("close", 0)))
+
+        period_high = Decimal(str(max(float(bar.get("high", 0)) for bar in historical_bars)))
+        period_low = Decimal(str(min(float(bar.get("low", 0)) for bar in historical_bars)))
+
+        baseline_close = float(baseline_bar.get("close", 0))
+        latest_close = float(latest_bar.get("close", 0))
+
+        if baseline_close != 0:
+            pct_change = ((latest_close - baseline_close) / baseline_close) * 100
+        else:
+            pct_change = 0.0
+
+        return ReportSection(
+            report_id=report_id,
+            ticker=symbol,
+            open_price=open_price,
+            close_price=close_price,
+            pct_change=float(pct_change),
+            period_high=period_high,
+            period_low=period_low
+        )
+
     def generate_report(self, user_id: int, period_string: str, db: Session) -> ReportSection:
         # Check the period to see what type of report will need to be created
         allowed_periods = ["daily", "weekly"]
@@ -40,55 +88,11 @@ class ReportGenService:
 
         # Read the ticker file and get an appropriate symbol
         for symbol in Symbols:
-            if symbol not in profiles:
+            historical_bars = self._fetch_historical_bars(symbol, count)
+            if not historical_bars:
                 continue
 
-            # construct the payload for the wonderful generation logic
-            payload = {
-                "symbol": symbol,
-                "interval": "1d",
-                "count": count
-            }
-
-            # Keeping the generator execution INSIDE the loop block
-            try:
-                historical_bars: List[dict[str, Any]] = self.market_service.generate_history(payload)
-
-                if not historical_bars or len(historical_bars) < 2:
-                    continue  # Incase there isnt enough data to warrant a generation
-
-            except Exception as e:
-                continue
-
-            # compute other metrics that are needed for the graph generation
-            latest_bar = historical_bars[-1]
-            baseline_bar = historical_bars[0]
-
-            open_price = Decimal(str(baseline_bar.get("open", 0)))
-            close_price = Decimal(str(latest_bar.get("close", 0)))
-
-            period_high = Decimal(str(max(float(bar.get("high", 0)) for bar in historical_bars)))
-            period_low = Decimal(str(min(float(bar.get("low", 0)) for bar in historical_bars)))
-
-            # make the pct_change
-            baseline_close = float(baseline_bar.get("close", 0))
-            latest_close = float(latest_bar.get("close", 0))
-
-            if baseline_close != 0:
-                pct_change = ((latest_close - baseline_close) / baseline_close) * 100
-            else:
-                pct_change = 0.0
-
-            # Build row for report section and do some appending
-            db_section = ReportSection(
-                report_id=db_report.id,
-                ticker=symbol,
-                open_price=open_price,
-                close_price=close_price,
-                pct_change=float(pct_change),
-                period_high=period_high,
-                period_low=period_low
-            )
+            db_section = self._calculate_section_metrics(historical_bars, db_report.id, symbol)
 
             # Now acc add everything to the db
             try:
