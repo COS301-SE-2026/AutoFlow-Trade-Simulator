@@ -14,3 +14,10 @@ export const InternationalAccountsResponseSchema = z.object({
 
 export type InternationalAccount = z.infer<typeof InternationalAccountSchema>;
 export type InternationalAccountsResponse = z.infer<typeof InternationalAccountsResponseSchema>;
+
+export const RegisterAccountSchema = z.object({
+   access_token: z.string(),
+   token_type: z.string(),
+});
+
+export type RegisterAccount = z.infer<typeof RegisterAccountSchema>;

@@ -20,6 +20,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {register} from "@/lib/api/accounts";
+import {RegisterAccount} from "@/lib/types/accounts";
 export function RegisterForm({
   className,
   ...props
@@ -56,13 +58,10 @@ export function RegisterForm({
 
     try
     {
-      const data = await apiClient('/auth/register', {
-        method: 'POST',
-        body: { full_name: fullName, email, password }
-      });
-      login(data.token, data.user);
+      const response:RegisterAccount = await register(fullName, email, password);
+      login(response.access_token, response.token_type);
 
-      router.push('/dashboard');
+      router.push('/');
     }
     catch(err: any)
     {
