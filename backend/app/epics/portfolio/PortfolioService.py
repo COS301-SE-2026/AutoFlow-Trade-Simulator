@@ -1,9 +1,10 @@
 from decimal import Decimal
 from fastapi import HTTPException, status
-from sqlalchemy.orm import session
 from sqlmodel import Session, select
 
 
+from ..market_data.MarketDataService import MarketDataService
+from ..market_data.MarketDataDTOs import AssetSummary
 from ...models.transaction import Direction
 from ...models import Asset,InternationalAccount,User,Portfolio,Transaction,Currency
 from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, TransactionResponse
@@ -32,7 +33,7 @@ class PortfolioService:
         return quantity
 
     def execute_trade(self,data:ExecuteTradeDTO,account_id:int,current_user:User)->ExecuteTradeResponseDTO:
-        account = self.session.get(InternationalAccount,account_id);
+        account = self.session.get(InternationalAccount,account_id)
         if account is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
 
@@ -50,9 +51,12 @@ class PortfolioService:
 
         #get account balance
         balance:Decimal =account.balance
-
-        #TODO update to use stock generation api
-        asset_price:Decimal= Decimal("0")
+        
+        # get asset price   
+        
+        market_service:MarketDataService= MarketDataService()
+        asset_summary:AssetSummary= market_service.get_asset_summary_data(data.ticker)
+        asset_price:Decimal=Decimal(asset_summary.current_price)
         total_cost = asset_price * Decimal(str(data.quantity))
 
          # get asset based on ticker
@@ -80,7 +84,7 @@ class PortfolioService:
 
             assert buy_transaction.id is not None, "Transaction id should not be none"
 
-            return ExecuteTradeResponseDTO(transaction_id=buy_transaction.id,account_id=account.id,ticker=asset.ticker,direction=buy_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=asset_price,total_cost=total_cost,executed_at=buy_transaction.executed_at,new_cash_balance=account.balance)
+            return ExecuteTradeResponseDTO(transaction_id=buy_transaction.id,account_id=account.id,ticker=asset.ticker,direction=buy_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=float(asset_price),total_cost=float(total_cost),executed_at=buy_transaction.executed_at,new_cash_balance=float(account.balance))
         
 
 
@@ -101,13 +105,13 @@ class PortfolioService:
             assert sell_transaction.id is not None, "Transaction id should not be none"
 
             new_position_quantity = self._get_position_quantity(account_id, asset.id)
-            return ExecuteTradeResponseDTO(transaction_id=sell_transaction.id,account_id=account.id,ticker=asset.ticker,direction=sell_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=asset_price,total_cost=total_cost,executed_at=sell_transaction.executed_at,new_cash_balance=account.balance)
+            return ExecuteTradeResponseDTO(transaction_id=sell_transaction.id,account_id=account.id,ticker=asset.ticker,direction=sell_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=float(asset_price),total_cost=float(total_cost),executed_at=sell_transaction.executed_at,new_cash_balance=float(account.balance))
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Unsupported trade direction")
         
     def get_transaction_history(self,account_id:int,current_user:User)->TradeHistoryResponse:
 
-        account = self.session.get(InternationalAccount,account_id);
+        account = self.session.get(InternationalAccount,account_id)
         if account is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
 
@@ -132,7 +136,7 @@ class PortfolioService:
             asset=self.session.get(Asset,transaction.asset_id)
             assert asset is not None,"Asset should not be null"
 
-            trade_history:TransactionResponse= TransactionResponse(account_id=transaction.account_id,price_at_execution=transaction.price_at_execution,quantity=transaction.quantity,executed_at=transaction.executed_at,direction=transaction.direction,asset_id=transaction.asset_id,account_currency_code=currency_code,asset_ticker=asset.ticker)
+            trade_history:TransactionResponse= TransactionResponse(account_id=transaction.account_id,price_at_execution=float(transaction.price_at_execution),quantity=transaction.quantity,executed_at=transaction.executed_at,direction=transaction.direction,asset_id=transaction.asset_id,account_currency_code=currency_code,asset_ticker=asset.ticker)
             response.transactions.append(trade_history)
         return response
 
