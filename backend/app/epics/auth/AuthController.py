@@ -18,7 +18,7 @@ def get_epic_status() -> EpicStatusDTO:
     return AuthService.get_status()
 
 @router.post("/login",response_model=LoginResponseDTO)
-def login(data:LoginDTO, service:AuthService=Depends(get_auth_service)):
+def login(data:LoginDTO, service:AuthService=Depends(get_auth_service)) -> LoginResponseDTO:
     return service.login(data=data)
 
 @router.post("/login/swagger", include_in_schema=False)
@@ -29,5 +29,5 @@ def login_swagger(
     return service.login(LoginDTO(email=form_data.username, password=form_data.password))
 
 @router.post("/register",response_model=RegistrationResponseDTO)
-def register(data:RegistrationDTO, service:AuthService=Depends(get_auth_service)):
+def register(data:RegistrationDTO, service:AuthService=Depends(get_auth_service)) -> RegistrationResponseDTO:
     return service.register(data=data)

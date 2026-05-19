@@ -1,7 +1,6 @@
 
 
 from datetime import datetime
-from decimal import Decimal
 from ...models.transaction import Direction
 from sqlmodel import SQLModel
 
@@ -21,10 +20,10 @@ class ExecuteTradeResponseDTO(SQLModel):
     ticker: str
     direction: Direction
     quantity: float
-    price_at_execution: Decimal
-    total_cost: Decimal
+    price_at_execution: float
+    total_cost: float
     executed_at: datetime
-    new_cash_balance: Decimal
+    new_cash_balance: float
     new_position_quantity: float
 
 class TransactionResponse(SQLModel):
@@ -34,7 +33,7 @@ class TransactionResponse(SQLModel):
     asset_id:int
     direction:Direction
     quantity:float
-    price_at_execution:Decimal
+    price_at_execution:float
     executed_at:datetime
 
 class TradeHistoryResponse(SQLModel):
