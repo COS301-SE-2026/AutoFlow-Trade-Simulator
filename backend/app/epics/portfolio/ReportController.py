@@ -20,13 +20,13 @@ def create_report(
     current_user: Annotated[User, Depends(get_current_user)] = None,
     service: ReportGenService = Depends()
 ) -> ReportSection:
-    return service.generate_report(user_id= current_user.id, period_string=period, db=db)
+    return service.generate_report(user_id=current_user.id, period_string=period, db=db)
 
 
 @router.get("/", response_model=List[ReportSection])
 def get_report_history(
     db: Session = Depends(get_session),
-    user_id: int = Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)] = None,
     service: ReportGenService = Depends()
 ) -> List[ReportSection]:
-    return service.get_user_report_history(user_id=user_id, db=db)
+    return service.get_user_report_history(user_id=current_user.id, db=db)
