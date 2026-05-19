@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../lib/hooks/useAuth';
-import { apiClient } from "../lib/api";
+import { useAuth } from '@/lib/hooks/useAuth';
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,8 +19,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {register} from "@/lib/api/accounts";
-import {RegisterAccount} from "@/lib/types/accounts";
 export function RegisterForm({
   className,
   ...props
@@ -33,7 +30,7 @@ export function RegisterForm({
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { register } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -58,8 +55,7 @@ export function RegisterForm({
 
     try
     {
-      const response:RegisterAccount = await register(fullName, email, password);
-      login(response.access_token, response.token_type);
+      register(fullName, email, password);
 
       router.push('/');
     }
