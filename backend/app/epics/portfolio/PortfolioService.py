@@ -13,6 +13,11 @@ from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseD
 
 class PortfolioService:
 
+    # Common error messages
+    ERROR_NO_ACCOUNT = "There is no account with specified id"
+    ERROR_USER_NO_PORTFOLIO = "User should have a portfolio"
+    ERROR_ACCOUNT_NOT_OWNER = "This account does not belong to the current user"
+
     def __init__(self,session:Session):
         self.session=session
 
@@ -36,19 +41,17 @@ class PortfolioService:
     def execute_trade(self,data:ExecuteTradeDTO,account_id:int,current_user:User)->ExecuteTradeResponseDTO:
         account = self.session.get(InternationalAccount,account_id)
         if account is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=self.ERROR_NO_ACCOUNT)
 
         assert account.id is not None,"Asset ID should not be none"
         account_id = account.id
 
         # if acount does not belong to user throw unauthorized
         portfolio = self.session.exec(select(Portfolio).where(Portfolio.user_id==current_user.id)).first()
-        assert portfolio is not None,"User should have a portfolio"
+        assert portfolio is not None, self.ERROR_USER_NO_PORTFOLIO
 
         if account.portfolio_id!= portfolio.id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This account does not belong to the current user")
-
-        
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=self.ERROR_ACCOUNT_NOT_OWNER)
 
         #get account balance
         balance:Decimal =account.balance
@@ -114,16 +117,16 @@ class PortfolioService:
 
         account = self.session.get(InternationalAccount,account_id)
         if account is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no account with specified id")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=self.ERROR_NO_ACCOUNT)
 
         assert account.id is not None,"Asset ID should not be none"
 
         # if acount does not belong to user throw unauthorized
         portfolio = self.session.exec(select(Portfolio).where(Portfolio.user_id==current_user.id)).first()
-        assert portfolio is not None,"User should have a portfolio"
+        assert portfolio is not None, self.ERROR_USER_NO_PORTFOLIO
 
         if account.portfolio_id!= portfolio.id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This account does not belong to the current user")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=self.ERROR_ACCOUNT_NOT_OWNER)
 
         #get account currency code
         currency=  self.session.get(Currency,account.currency_id)
@@ -146,13 +149,13 @@ class PortfolioService:
         # validate account and ownership (same checks as other methods)
         account = self.session.get(InternationalAccount, account_id)
         if account is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="There is no account with specified id")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=self.ERROR_NO_ACCOUNT)
 
         portfolio = self.session.exec(select(Portfolio).where(Portfolio.user_id == current_user.id)).first()
-        assert portfolio is not None, "User should have a portfolio"
+        assert portfolio is not None, self.ERROR_USER_NO_PORTFOLIO
 
         if account.portfolio_id != portfolio.id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This account does not belong to the current user")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=self.ERROR_ACCOUNT_NOT_OWNER)
 
         # Fetch all transactions for the account and aggregate in Python (avoids direct SQLAlchemy funcs)
         transactions = self.session.exec(select(Transaction).where(Transaction.account_id == account_id)).all()

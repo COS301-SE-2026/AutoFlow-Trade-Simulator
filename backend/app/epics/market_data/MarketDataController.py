@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query
 from typing import List
 
 from .MarketDataDTOs import EpicStatusDTO, MockOHLCV, AssetSummary
@@ -18,10 +18,12 @@ def get_mock_tickers() -> List[MockOHLCV]:
 
 #Generated data
 @router.get("/assets/{ticker:path}/prices", response_model=List[MockOHLCV])
-def get_asset_prices(ticker: str, timeframe: str = Query(...), service: MarketDataService = Depends()) -> List[MockOHLCV]:
+def get_asset_prices(ticker: str, timeframe: str = Query(...)) -> List[MockOHLCV]:
+    service:MarketDataService= MarketDataService()
     return service.get_asset_prices_data(ticker=ticker, timeframe=timeframe)
 
 #Latest daily aggregate
 @router.get("/assets/{ticker:path}/summary", response_model=AssetSummary)
-def get_asset_summary(ticker: str, service: MarketDataService = Depends()) -> AssetSummary:
+def get_asset_summary(ticker: str) -> AssetSummary:
+    service:MarketDataService= MarketDataService()
     return service.get_asset_summary_data(ticker)
