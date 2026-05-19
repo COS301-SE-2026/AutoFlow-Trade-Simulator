@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../lib/hooks/useAuth';
-import { apiClient } from "../lib/api";
+import { useAuth } from '@/lib/hooks/useAuth';
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,13 +36,9 @@ export function LoginForm({
     
     try
     {
-      const data = await apiClient('/auth/login', {
-        method: 'POST',
-        body: { email, password }
-      });
-      login(data.token, data.user);
+      login(email, password);
 
-      router.push('/dashboard');
+      router.push('/');
     }
     catch(err: any)
     {

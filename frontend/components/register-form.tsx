@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../lib/hooks/useAuth';
-import { apiClient } from "../lib/api";
+import { useAuth } from '@/lib/hooks/useAuth';
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,7 +30,7 @@ export function RegisterForm({
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { register } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -56,13 +55,9 @@ export function RegisterForm({
 
     try
     {
-      const data = await apiClient('/auth/register', {
-        method: 'POST',
-        body: { full_name: fullName, email, password }
-      });
-      login(data.token, data.user);
+      register(fullName, email, password);
 
-      router.push('/dashboard');
+      router.push('/');
     }
     catch(err: any)
     {
