@@ -14,7 +14,7 @@ class ReportGenService:
     def __init__(self):
         self.market_service = MarketDataService()
     
-    def generate_report(self, user_id: int, period_string: str, db: Session) -> Report:
+    def generate_report(self, user_id: int, period_string: str, db: Session) -> ReportSection:
         # Check the period to see what type of report will need to be created
         allowed_periods = ["daily", "weekly"]
         if period_string not in allowed_periods:
@@ -86,6 +86,8 @@ class ReportGenService:
             )
             db.add(db_section)
 
+            return db_section
+
         # Now acc add everything to the db
         try:
             db.commit()
@@ -98,12 +100,16 @@ class ReportGenService:
                 detail=f"Failed to persist generated report: {str(e)}"
             )
     
-    def get_user_report_history(self, user_id: int, db: Session) -> List[Report]:
-        #you need this to read the db
+    def get_user_report_history(self, user_id: int, db: Session) -> List[ReportSection]:
+    #you need this to read the db
         try:
-            statement = select(Report).where(Report.user_id == user_id)
-            reports = db.exec(statement).all()
-            return reports
+           statement = (
+                select(ReportSection)
+                .join(Report)
+                .where(Report.user_id == user_id)
+           )
+           sections = db.exec(statement).all()
+           return sections
         except Exception as e:
             raise HTTPException(
                 status_code=500,
