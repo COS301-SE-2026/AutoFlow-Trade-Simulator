@@ -17,10 +17,10 @@ router = APIRouter(prefix="/reports", tags=["Reports"])
 def create_report(
     period: str = Body(..., embed=True),
     db: Session = Depends(get_session),
-    user_id: int = Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)] = None,
     service: ReportGenService = Depends()
-) -> Report:
-    return service.generate_report(user_id=user_id, period_string=period, db=db)
+) -> ReportSection:
+    return service.generate_report(user_id= current_user.id, period_string=period, db=db)
 
 
 @router.get("/", response_model=List[ReportSection])

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import List
+from typing import List, Any
 from sqlmodel import Session, select
 from fastapi import HTTPException
 
@@ -49,7 +49,7 @@ class ReportGenService:
 
             # Keeping the generator execution INSIDE the loop block
             try:
-                historical_bars = self.market_service.generate_history(payload)
+                historical_bars: List[Any] = self.market_service.generate_history(payload)
 
                 if not historical_bars or len(historical_bars) < 2:
                     continue  # Incase there isnt enough data to warrant a generation
@@ -61,16 +61,18 @@ class ReportGenService:
             latest_bar = historical_bars[-1]
             baseline_bar = historical_bars[0]
 
-            open_price = Decimal(str(baseline_bar["open"]))
-            close_price = Decimal(str(latest_bar["close"]))
+            open_price = Decimal(str(baseline_bar.get("open", 0)))
+            close_price = Decimal(str(latest_bar.get("close", 0)))
 
-            period_high = Decimal(str(max(bar["high"] for bar in historical_bars)))
-            period_low = Decimal(str(min(bar["low"] for bar in historical_bars)))
+            period_high = Decimal(str(max(float(bar.get("high", 0)) for bar in historical_bars)))
+            period_low = Decimal(str(min(float(bar.get("low", 0)) for bar in historical_bars)))
 
             # make the pct_change
-            baseline_close = baseline_bar["close"]
+            baseline_close = float(baseline_bar.get("close", 0))
+            latest_close = float(latest_bar.get("close", 0))
+
             if baseline_close != 0:
-                pct_change = ((latest_bar["close"] - baseline_close) / baseline_close) * 100
+                pct_change = ((latest_close - baseline_close) / baseline_close) * 100
             else:
                 pct_change = 0.0
 
@@ -84,15 +86,13 @@ class ReportGenService:
                 period_high=period_high,
                 period_low=period_low
             )
-            db.add(db_section)
-
-            return db_section
 
         # Now acc add everything to the db
         try:
+            db.add(db_section)
             db.commit()
             db.refresh(db_report)
-            return db_report
+            return db_section
         except Exception as e:
             db.rollback()
             raise HTTPException(
@@ -108,7 +108,7 @@ class ReportGenService:
                 .join(Report)
                 .where(Report.user_id == user_id)
            )
-           sections = db.exec(statement).all()
+           sections = list(db.exec(statement).all())
            return sections
         except Exception as e:
             raise HTTPException(
