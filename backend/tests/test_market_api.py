@@ -52,3 +52,15 @@ def test_prices_unknown_ticker_404():
     res = client.get("/market-data/assets/NONSENSE/prices",
                      params={"timeframe": "1m"})
     assert res.status_code == 404
+
+
+def test_prices_invalid_timeframe_422():
+    res = client.get("/market-data/assets/BTC-USDT/prices",
+                     params={"timeframe": "NONSENSE"})
+    assert res.status_code == 422
+
+
+def test_summary_happy_path():
+    res = client.get("/market-data/assets/BTC-USDT/summary",
+                     params={"timeframe": "1m"})
+    assert res.status_code == 200
