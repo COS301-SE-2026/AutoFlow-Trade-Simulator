@@ -1,7 +1,6 @@
 import time
 from datetime import datetime, timedelta
 from .MarketDataDTOs import MockOHLCV
-import json
 
 #This is the random number generator for money
 class LCGPseudoRandomGenerator:

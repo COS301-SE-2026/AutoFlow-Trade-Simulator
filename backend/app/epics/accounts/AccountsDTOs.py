@@ -8,6 +8,7 @@ class AccountResponse(SQLModel):
     id: int
     portfolio_id:int
     currency_id:int
+    currency_code:str
     balance:Decimal
     created_at: datetime
 

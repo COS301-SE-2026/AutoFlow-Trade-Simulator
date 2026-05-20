@@ -30,7 +30,8 @@ class MarketDataService:
         base_price = data.get("base_price") or profile["base_price"]
 
         #No that all validation is done hand it to or LCG gen
-        return self.lcg.generate_market_history(symbol, interval, start_date, count, base_price)
+        raw_data = self.lcg.generate_market_history(symbol, interval, start_date, count, base_price)
+        return [MockOHLCV(**row) for row in raw_data]
 
     @staticmethod
     def get_status() -> EpicStatusDTO:
@@ -40,10 +41,10 @@ class MarketDataService:
         )
 
     @staticmethod
-    def get_mock_ticker_data():
-        return PlaceholderTicker
+    def get_mock_ticker_data() -> List[MockOHLCV]:
+        return [MockOHLCV(**data) for data in PlaceholderTicker]
 
-    def get_asset_prices_data(self, ticker: str, timeframe: str):
+    def get_asset_prices_data(self, ticker: str, timeframe: str) -> List[MockOHLCV]:
 
         #Make the symbol name smth we can process
         FormattedSymbol = ticker.upper().replace("-", "/")
@@ -73,7 +74,7 @@ class MarketDataService:
         RawData = self.generate_history(payload)
         return RawData
 
-    def get_asset_summary_data(self, ticker: str):
+    def get_asset_summary_data(self, ticker: str) -> AssetSummary:
 
         #Exact same logic as the function above it when it comes to validating the ticker
         FormattedSymbol = ticker.upper().replace("-", "/")
@@ -103,13 +104,11 @@ class MarketDataService:
         #Python has some really nice features lets use negative indexing
         NewBar = DailyHistory[-1]
 
-        SummaryData = {
-            "ticker": FormattedSymbol,
-            "current_price": NewBar["close"],
-            "daily_high": NewBar["high"],
-            "daily_low": NewBar["low"],
-            "timestamp": NewBar["timestamp"]
-        }
-
-        return SummaryData
+        return AssetSummary(
+            ticker=FormattedSymbol,
+            current_price=NewBar.close,
+            daily_high=NewBar.high,
+            daily_low=NewBar.low,
+            timestamp=NewBar.timestamp
+        )
 

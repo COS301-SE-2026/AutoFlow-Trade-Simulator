@@ -5,41 +5,30 @@ import {
     useEffect,
     useMemo,
     createContext,
-    useContext,
-    type ReactNode
 } from 'react';
-
-export interface User {
-    id: number;
-    email: string;
-    password_hash: string;
-    full_name: string;
-}
+import {login as apiLogin, register as apiRegister} from "@/lib/api/accounts"
+import {RegisterLoginResponse} from "@/lib/types/accounts";
 
 export interface AuthContextType {
-    user: User | null;
     token: string | null;
-    login: (token: string, user: User) => void;
+    login: (email: string, password:string) => void;
     logout: () => void;
+    register: (fullName:string, email: string, password:string) => void;
     isLoading: boolean;
-};
+}
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode })
 {
-    const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const storedToken = sessionStorage.getItem('token');
-        const storedUser = sessionStorage.getItem('user');
-        if (storedToken && storedUser)
+        if (storedToken)
         {
             setToken(storedToken);
-            setUser(JSON.parse(storedUser));
-            console.log("Token found:", storedToken);
         }
         else
         {
@@ -48,27 +37,30 @@ export function AuthProvider({ children }: { children: React.ReactNode })
         setIsLoading(false); 
     }, []);
     
-    const login = (newToken: string, newUser: User) => {
-        setToken(newToken);
-        setUser(newUser);
-        sessionStorage.setItem('token', newToken);
-        sessionStorage.setItem('user', JSON.stringify(newUser));
+    const login = async (email: string, password:string) => {
+        const data:RegisterLoginResponse = await apiLogin(email, password);
+        setToken(data.access_token);
+        sessionStorage.setItem('token', data.access_token);
     }
     
     const logout = () => {
         setToken(null);
-        setUser(null);
         sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
+    }
+
+    const register = async (fullName:string, email:string, password:string) => {
+        const data:RegisterLoginResponse = await apiRegister(fullName, email, password);
+        setToken(data.access_token);
+        sessionStorage.setItem('token', data.access_token);
     }
 
     const memoizedValue = useMemo(() => ({
-        user,
         token,
         login,
         logout,
+        register,
         isLoading
-    }), [user, token, isLoading]);
+    }), [token, isLoading]);
 
     return (<AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>);
 }
