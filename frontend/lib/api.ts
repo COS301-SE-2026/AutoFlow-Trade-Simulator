@@ -1,5 +1,13 @@
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+export class ApiError extends Error {
+  constructor( message: string, public status: number, public data?: any ) 
+  {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 export async function getBackendHealth(): Promise<{ status: string } | null> {
   try {
     const response = await fetch(`${apiUrl}/health`, { cache: "no-store" });
@@ -40,20 +48,29 @@ export async function apiClient(endpoint: string, options: any = {})
       body: options.body ? JSON.stringify(options.body) : undefined
   });
 
-  /*if (response.status === 401)
-  {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-
-    window.location.href = '/login';
-
-    throw new Error('Your session expired. Please log in again.');
-  }*/
-  
   if (!response.ok) 
   {
-    const error = await response.json();
-    throw new Error(error.message || 'API call failed');
+    let errorData: any;
+    try 
+    {
+      errorData = await response.json();
+    } 
+    catch 
+    {
+      errorData = {};
+    }
+
+    const errorMessage = errorData.message || `API request failed with status ${response.status}`;
+    const error = new ApiError(errorMessage, response.status, errorData);
+    
+    if (response.status === 401 && token && typeof window !== 'undefined') 
+    {
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+
+    throw error;
   }
 
   return response.json();

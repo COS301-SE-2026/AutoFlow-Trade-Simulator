@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchAssetSummary } from '@/lib/api/assets';
+import { ApiError } from '@/lib/api';
 import type { AssetSummary } from '@/lib/types/assets';
 
 export function useAssetSummary(ticker: string) {
@@ -26,7 +27,11 @@ export function useAssetSummary(ticker: string) {
       } 
       catch (e) 
       {
-        if (e instanceof Error) 
+        if (e instanceof ApiError && e.status === 401) 
+        {
+          setData(null);
+        } 
+        else if (e instanceof Error) 
         {
           setError(e.message);
         } 

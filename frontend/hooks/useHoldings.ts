@@ -1,6 +1,6 @@
 'use client';
 
-import { apiClient } from "@/lib/api";
+import { apiClient, ApiError } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 
 export interface Holdings {
@@ -47,7 +47,14 @@ export function useHoldings(account_id: number | null) {
 
             setHoldings(holdingsWithPrice);
         } catch (error: any) {
-            setError(error.message);
+            if (error instanceof ApiError && error.status === 401) 
+            {
+                setHoldings([]);
+            } 
+            else 
+            {
+                setError(error.message);
+            }
         } finally {
             setLoading(false);
         }

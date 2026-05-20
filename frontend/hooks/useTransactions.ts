@@ -1,6 +1,6 @@
 'use client';
 
-import { apiClient } from "@/lib/api";
+import { apiClient, ApiError } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 
 export interface Transactions {
@@ -29,7 +29,14 @@ export function useTransactions(account_id: number | null) {
             const response = await apiClient(`/portfolio/accounts/${account_id}/transactions`);
             setTransactions(response.transactions ?? response);
         } catch (error: any) {
-            setError(error.message);
+            if (error instanceof ApiError && error.status === 401) 
+            {
+                setTransactions([]);
+            } 
+            else 
+            {
+                setError(error.message);
+            }
         } finally {
             setLoading(false);
         }
