@@ -24,9 +24,6 @@ export default async function HomePage() {
             <a className="button secondary" href="http://localhost:8000/health">
               Backend health
             </a>
-            <a className="button primary" href="/assets/ETH-USDT">
-              Look at example ticker page
-            </a>
           </div>
           <div className="status">
             <span className="status-dot" />
@@ -35,14 +32,14 @@ export default async function HomePage() {
         </section>
 
         <section className="grid two">
-          <Card>
+          <Card className="card">
             <div className="badge">Next.js page routing</div>
             <h2>One home page, one demo route.</h2>
             <p className="muted">
               Keep the first frontend examples small so new pages can copy the pattern instead of inventing one.
             </p>
           </Card>
-          <Card>
+          <Card className="card">
             <div className="badge">Frontend config</div>
             <h2>NEXT_PUBLIC_API_URL drives backend calls.</h2>
             <p className="muted">
@@ -54,9 +51,11 @@ export default async function HomePage() {
             </div>
           </Card>
         </section>
-        <section>
-          <AssetPage />
-        </section>
+        <div className="actions flex justify-evenly">
+          <a className="button primary" href="/assets/ETH-USDT">
+            Look at example ticker page
+          </a>
+        </div>
       </div>
     </main>
   );

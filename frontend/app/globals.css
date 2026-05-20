@@ -68,7 +68,6 @@ main {
   border-radius: 28px;
   background: var(--panel);
   backdrop-filter: blur(12px);
-  box-shadow: var(--shadow);
 }
 
 .eyebrow {
@@ -219,7 +218,7 @@ h1 {
   }
 }
 
-@layer base {
+/* @layer base {
   .theme {
     --font-heading: var(--font-sans);
     --font-sans: var(--font-sans);
@@ -300,4 +299,4 @@ h1 {
   html {
     @apply font-sans;
   }
-}
+} */

@@ -12,6 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { Button } from '../ui/button';
+import { Label } from '../ui/label';
 import { usePrices } from '../../hooks/usePrices';
 
 type Timeframe = 'daily' | 'weekly' | 'monthly';
@@ -77,10 +78,11 @@ export default function PriceChart({ ticker }: PriceChartProps) {
  
     return (
       <>
-        <div>
-          <Button onClick={() => setTimeframe('daily')}>Daily</Button>
-          <Button onClick={() => setTimeframe('weekly')}>Weekly</Button>
-          <Button onClick={() => setTimeframe('monthly')}>Monthly</Button>
+        <div className='flex flex-row justify-evenly mt-5 mb-5 card'>
+          <Label className='text'>Select Chart Timeframe:</Label>
+          <Button className='bg-(--accent) button secondary' onClick={() => setTimeframe('daily')}>Daily</Button>
+          <Button className='button secondary' onClick={() => setTimeframe('weekly')}>Weekly</Button>
+          <Button className='button secondary' onClick={() => setTimeframe('monthly')}>Monthly</Button>
         </div>
         {
           loading ? (<ChartSkeleton />)
