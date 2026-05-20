@@ -15,7 +15,6 @@ router = APIRouter(prefix="/reports", tags=["Reports"])
 
 @router.post(
     "/",
-    response_model=ReportSection,
     responses={
         401: {"description": "Invalid Identity"},
         422: {"description": "Validation Error"}
