@@ -3,13 +3,20 @@ from sqlmodel import Session, select
 from ..auth.AuthDTOs import EpicStatusDTO
 from ...models import User, Portfolio
 from ...models.currency import Currency
-from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO, GetAccountDTO
+from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO
 from ...models import InternationalAccount
 
 
 class AccountsService:
     def __init__(self,session:Session):
         self.session=session
+
+
+    def find_currency_code(self,currency_id)->str:
+        currency= self.session.get(Currency,currency_id)
+        assert currency is not None,"Should not have a currency id with no currency"
+        return currency.code
+        
 
     def find_all(self,current_user:User)->AccountListResponse:
         #see if user has a portfolio
@@ -26,7 +33,7 @@ class AccountsService:
 
             assert result.id is not None
 
-            account:AccountResponse= AccountResponse(id=result.id,portfolio_id=result.portfolio_id,currency_id=result.currency_id,balance=result.balance,created_at=result.created_at,)
+            account:AccountResponse= AccountResponse(id=result.id,portfolio_id=result.portfolio_id,currency_id=result.currency_id,balance=result.balance,created_at=result.created_at,currency_code=self.find_currency_code(result.currency_id))
             accountsResponse.accounts.append(account)
 
         return accountsResponse
@@ -48,7 +55,7 @@ class AccountsService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Account does not belong to authenticated user")
 
         # return the account
-        return AccountResponse(id=account.id,portfolio_id=account.portfolio_id,currency_id=account.currency_id,balance=account.balance,created_at=account.created_at)
+        return AccountResponse(id=account.id,portfolio_id=account.portfolio_id,currency_id=account.currency_id,balance=account.balance,created_at=account.created_at,currency_code=self.find_currency_code(account.currency_id))
 
 
     
@@ -80,7 +87,7 @@ class AccountsService:
         #ensure it was created
         assert account.id is not None
 
-        return AccountResponse(id=account.id,portfolio_id=account.portfolio_id,currency_id=account.currency_id,balance=account.balance,created_at=account.created_at)
+        return AccountResponse(id=account.id,portfolio_id=account.portfolio_id,currency_id=account.currency_id,balance=account.balance,created_at=account.created_at,currency_code=self.find_currency_code(account.currency_id))
 
     @staticmethod
     def get_status()-> EpicStatusDTO:
