@@ -8,6 +8,7 @@ from app.epics.market_data.MarketDataService import MarketDataService
 from app.epics.market_data.tickers import Symbols, profiles
 from app.models.report import Report, Period
 from app.models.report_section import ReportSection
+from app.epics.market_data.MarketDataDTOs import MockOHLCV
 
 
 class ReportGenService:
@@ -15,7 +16,7 @@ class ReportGenService:
         self.market_service = MarketDataService()
     
     #Helper function to so qube stops crying
-    def _fetch_historical_bars(self, symbol: str, count: int) -> Optional[List[dict[str, Any]]]:
+    def _fetch_historical_bars(self, symbol: str, count: int) -> Optional[List[MockOHLCV]]:
         if symbol not in profiles:
             return None
 
@@ -34,18 +35,18 @@ class ReportGenService:
             return None
 
     #another helper function to help calculate the values
-    def _calculate_section_metrics(self, historical_bars: List[dict[str, Any]], report_id: int, symbol: str) -> ReportSection:
+    def _calculate_section_metrics(self, historical_bars: List[MockOHLCV], report_id: int, symbol: str) -> ReportSection:
         latest_bar = historical_bars[-1]
         baseline_bar = historical_bars[0]
 
-        open_price = Decimal(str(baseline_bar.get("open", 0)))
-        close_price = Decimal(str(latest_bar.get("close", 0)))
+        open_price = Decimal(str(baseline_bar.open or 0))
+        close_price = Decimal(str(latest_bar.close or 0))
 
-        period_high = Decimal(str(max(float(bar.get("high", 0)) for bar in historical_bars)))
-        period_low = Decimal(str(min(float(bar.get("low", 0)) for bar in historical_bars)))
+        period_high = Decimal(str(max(float(bar.high or 0) for bar in historical_bars)))
+        period_low = Decimal(str(min(float(bar.low or 0) for bar in historical_bars)))
 
-        baseline_close = float(baseline_bar.get("close", 0))
-        latest_close = float(latest_bar.get("close", 0))
+        baseline_close = float(baseline_bar.close or 0)
+        latest_close = float(latest_bar.close or 0)
 
         if baseline_close != 0:
             pct_change = ((latest_close - baseline_close) / baseline_close) * 100
@@ -97,7 +98,11 @@ class ReportGenService:
             if not historical_bars:
                 continue
 
-            db_section = self._calculate_section_metrics(historical_bars, db_report.id, symbol)
+            db_section = self._calculate_section_metrics(
+                historical_bars=historical_bars, 
+                report_id=db_report.id, 
+                symbol=symbol
+            )
 
             # Now acc add everything to the db
             try:
@@ -117,8 +122,8 @@ class ReportGenService:
             detail="No valid market data is available"
         )
     
+    #Db helper function
     def get_user_report_history(self, user_id: int, db: Session) -> List[ReportSection]:
-    #you need this to read the db
         try:
            statement = (
                 select(ReportSection)
