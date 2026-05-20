@@ -67,7 +67,8 @@ export async function apiClient(endpoint: string, options: any = {})
     {
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.replace('/login');
+      return new Promise(() => {});
     }
 
     throw error;

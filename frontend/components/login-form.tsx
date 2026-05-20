@@ -33,12 +33,13 @@ export function LoginForm({
 
   const handleSubmit = async () => {
     setIsLoading(true);
+    setError(null);
     
     try
     {
-      login(email, password);
+      await login(email, password);
 
-      router.push('/');
+      router.push('/authtest');
     }
     catch(err: any)
     {
