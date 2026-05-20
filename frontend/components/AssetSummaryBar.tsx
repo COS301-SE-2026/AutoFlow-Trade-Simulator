@@ -1,23 +1,49 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react';
-import {useAssetSummary} from '../hooks/useAssetSummary'
+import { useAssetSummary } from '../hooks/useAssetSummary';
+import { usePrices } from '@/hooks/usePrices';
 
 interface SummaryBarProps {
-    ticker: string;
+  ticker: string;
 }
 
-export default function AssetSummaryBar({ticker}: SummaryBarProps) {
-    const { data, loading } = useAssetSummary(ticker, 'daily');
+export default function AssetSummaryBar({ ticker }: SummaryBarProps) {
+  const { data, loading } = useAssetSummary(ticker);
+  const { data: prices } = usePrices(ticker, '1d');
 
-    return (
-        <>
-        <div className='card' style={{display: 'flex', flexDirection:'row', justifyContent:'space-evenly'}}>
-            <div>TICKER: {ticker}</div>
-            <div>DAILY PRICE:</div>
-            <div>DAILY HIGH:</div>
-            <div>DAILY LOW:</div>
+  if (loading)
+  {
+    return <div className="card">Loading summary...</div>;
+  }
+
+  if (!data)
+  {
+    return <div className="card">No summary data available</div>;
+  }
+
+  const openPrice = prices && prices.length > 0 ? prices[0].open : null;
+  const priceColor = openPrice && data.current_price > openPrice ? 'text-green-600' : 'text-red-600';
+
+  return (
+    <div className="bg-secondary rounded-lg p-6 border border-border">
+      <div className="flex flex-row gap-6 justify-evenly">
+        <div>
+          <p className="text-sm text-gray-600">Ticker</p>
+          <p className="text-2xl text-gray-900">{data.ticker}</p>
         </div>
-        </>
-    );
+        <div>
+          <p className="text-sm text-gray-600">Current Price</p>
+          <p className={`text-2xl ${priceColor}`}>R{data.current_price.toFixed(2)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Daily High</p>
+          <p className="text-2xl text-gray-900">R{data.daily_high.toFixed(2)}</p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Daily Low</p>
+          <p className="text-2xl text-gray-900">R{data.daily_low.toFixed(2)}</p>
+        </div>
+      </div>
+    </div>
+  );
 }

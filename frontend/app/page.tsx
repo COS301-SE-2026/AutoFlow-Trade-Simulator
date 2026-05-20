@@ -24,6 +24,9 @@ export default async function HomePage() {
             <a className="button secondary" href="http://localhost:8000/health">
               Backend health
             </a>
+            <a className="button primary" href="/assets/ETH-USDT">
+              Look at example ticker page
+            </a>
           </div>
           <div className="status">
             <span className="status-dot" />

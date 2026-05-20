@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const OHLCVSchema = z.object({
-  timestamp: z.string().datetime(),
+  timestamp: z.string(),
   symbol: z.string(),
   interval: z.string(),
   open: z.number().positive(),
