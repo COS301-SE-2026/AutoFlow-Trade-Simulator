@@ -63,6 +63,11 @@ class ReportGenService:
         )
 
     def generate_report(self, user_id: int, period_string: str, db: Session) -> ReportSection:
+
+        #check if a user id is really sent back
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid Identity")
+
         # Check the period to see what type of report will need to be created
         allowed_periods = ["daily", "weekly"]
         if period_string not in allowed_periods:

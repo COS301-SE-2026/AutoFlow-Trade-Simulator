@@ -12,14 +12,7 @@ from ...models import User
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
-UNAUTHORIZED_RESPONSE = {
-    401: {
-        "description": "Unauthorized access due to invalid or missing credentials."
-    }
-}
-
-
-@router.post("/", responses={**UNAUTHORIZED_RESPONSE})
+@router.post("/")
 def create_report(
     current_user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Body(..., embed=True)], 
@@ -32,7 +25,7 @@ def create_report(
     return service.generate_report(user_id=current_user.id, period_string=period, db=db)
 
 
-@router.get("/", responses={**UNAUTHORIZED_RESPONSE})
+@router.get("/")
 def get_report_history(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_session)], 
