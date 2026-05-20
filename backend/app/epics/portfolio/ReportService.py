@@ -10,6 +10,7 @@ from app.models.report import Report, Period
 from app.models.report_section import ReportSection
 from app.epics.market_data.MarketDataDTOs import MockOHLCV
 
+#I have to include some stuff for swagger to see here or qube throws a fit
 
 class ReportGenService:
     def __init__(self):
@@ -122,7 +123,7 @@ class ReportGenService:
             detail="No valid market data is available"
         )
     
-    #Db helper function
+    #Db helper 
     def get_user_report_history(self, user_id: int, db: Session) -> List[ReportSection]:
         try:
            statement = (

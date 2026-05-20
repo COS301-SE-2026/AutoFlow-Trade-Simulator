@@ -13,7 +13,14 @@ from ...models import User
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
-@router.post("/")
+@router.post(
+    "/",
+    response_model=ReportSection,
+    responses={
+        401: {"description": "Invalid Identity"},
+        422: {"description": "Validation Error"}
+    }
+)
 def create_report(
     current_user: Annotated[User, Depends(get_current_user)],
     period: Annotated[str, Body(..., embed=True)], 
@@ -26,7 +33,12 @@ def create_report(
     return service.generate_report(user_id=current_user.id, period_string=period, db=db)
 
 
-@router.get("/")
+@router.get(
+    "/",
+    responses={
+        401: {"description": "Invalid Identity"},
+    }
+)
 def get_report_history(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_session)], 
