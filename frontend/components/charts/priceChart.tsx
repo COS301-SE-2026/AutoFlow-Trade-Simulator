@@ -12,6 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { Button } from '../ui/button';
+import { Label } from '../ui/label';
 import { usePrices } from '../../hooks/usePrices';
 
 type Timeframe = 'daily' | 'weekly' | 'monthly';
@@ -31,7 +32,7 @@ const CustomTooltip = ({ active, payload }: any) => {
         padding: '8px',
         borderRadius: '4px',
       }}>
-        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>{data.date}</p>
+        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>{data.name}</p>
         <p style={{ margin: '2px 0', fontSize: '12px' }}>OPEN: R{data.open.toFixed(2)}</p>
         <p style={{ margin: '2px 0', fontSize: '12px' }}>HIGH: R{data.high.toFixed(2)}</p>
         <p style={{ margin: '2px 0', fontSize: '12px' }}>LOW: R{data.low.toFixed(2)}</p>
@@ -56,20 +57,32 @@ const ChartSkeleton = () => (
 const TIMEFRAMES: Timeframe[] = ['daily', 'weekly', 'monthly'];
  
 export default function PriceChart({ ticker }: PriceChartProps) {
+
+  const timeframeMap: Record<Timeframe, string> = {
+    daily: '1d',
+    weekly: '1w',
+    monthly: '1m',
+  };
+
   const [timeframe, setTimeframe] = useState<Timeframe>('daily');
-  const { data, loading } = usePrices(ticker, timeframe)
+  const { data, loading, error } = usePrices(ticker, timeframeMap[timeframe]);
+
+  console.log('usePrices data:', data);
+  console.log('usePrices loading:', loading);
+  console.log('usePrices error:', error);
 
   const chartData = data.map((item) => ({
     ...item,
-    name: item.date,
+    name: item.timestamp.split('T')[0],
   }));
  
     return (
       <>
-        <div>
-          <Button onClick={() => setTimeframe('daily')}>Daily</Button>
-          <Button onClick={() => setTimeframe('weekly')}>Weekly</Button>
-          <Button onClick={() => setTimeframe('monthly')}>Monthly</Button>
+        <div className='flex flex-row justify-evenly mt-5 mb-5 card'>
+          <Label className='text'>Select Chart Timeframe:</Label>
+          <Button className='bg-(--accent) button secondary' onClick={() => setTimeframe('daily')}>Daily</Button>
+          <Button className='button secondary' onClick={() => setTimeframe('weekly')}>Weekly</Button>
+          <Button className='button secondary' onClick={() => setTimeframe('monthly')}>Monthly</Button>
         </div>
         {
           loading ? (<ChartSkeleton />)
