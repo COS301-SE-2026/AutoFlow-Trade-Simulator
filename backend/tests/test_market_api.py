@@ -61,6 +61,11 @@ def test_prices_invalid_timeframe_422():
 
 
 def test_summary_happy_path():
-    res = client.get("/market-data/assets/BTC-USDT/summary",
-                     params={"timeframe": "1m"})
+    res = client.get("/market-data/assets/BTC-USDT/summary")
     assert res.status_code == 200
+    data = res.json()
+    assert "ticker" in data
+    assert "current_price" in data
+    assert "daily_high" in data
+    assert "daily_low" in data
+    assert "timestamp" in data
