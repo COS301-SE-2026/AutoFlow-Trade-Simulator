@@ -1,3 +1,4 @@
+import pytest
 from app.epics.market_data.generator import LCGPseudoRandomGenerator
 from datetime import datetime
 
@@ -69,3 +70,10 @@ def test_fixed_seed_same_output():
 
     for i in range(1, size):
         assert history_1[i] == history_2[i]
+
+
+def test_invalid_interval_raises():
+    lcg = LCGPseudoRandomGenerator(seed=42)
+    with pytest.raises(ValueError):
+        lcg.generate_market_history(
+            "BTC/USDT", "bad", datetime(2026, 1, 1), count=5, base_price=65000.0)
