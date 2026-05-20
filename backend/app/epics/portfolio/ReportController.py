@@ -2,6 +2,7 @@ from typing import List, Literal, Annotated
 from fastapi import APIRouter, Depends, status, Body, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session
+from fastapi import HTTPException
 
 from ...database import get_session
 from app.models.report import Report, Period
