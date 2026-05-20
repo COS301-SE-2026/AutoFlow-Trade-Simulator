@@ -13,6 +13,7 @@ import type { Currency } from "../types/currencies";
 
 type AccountContextType = {
     accounts: InternationalAccount[] | null;
+    activeAccount: InternationalAccount | null;
     isLoading: boolean;
     error: string | null;
     create: (currencyCode: Currency, initialBalance: number) => Promise<void>;
@@ -23,12 +24,18 @@ const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 export function AccountProvider({ children }: { children: ReactNode }) {
     const [accounts, setAccounts] = useState<InternationalAccount[] | null>(null);
+    const [activeAccount, setActiveAccount] = useState<InternationalAccount | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchAllInternationalAccounts()
-            .then(setAccounts)
+            .then((fetchedAccounts) => {
+                setAccounts(fetchedAccounts);
+                if (fetchedAccounts.length > 0) {
+                    setActiveAccount((prev) => prev ?? fetchedAccounts[0]);
+                }
+            })
             .catch((err) => setError(err.message))
             .finally(() => setIsLoading(false));
     }, []);
@@ -43,10 +50,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         setAccounts((prev) =>
             prev ? prev.map((a) => (a.id === updated.id ? updated : a)) : [updated]
         );
+        setActiveAccount(updated);
     }
 
     return (
-        <AccountContext.Provider value={{ accounts, isLoading, error, create, update }}>
+        <AccountContext.Provider value={{ accounts, activeAccount, isLoading, error, create, update }}>
     {children}
     </AccountContext.Provider>
     );
