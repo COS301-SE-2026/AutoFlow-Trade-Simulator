@@ -28,3 +28,21 @@ def test_prices_daily_happy_path():
     data = res.json()
     assert isinstance(data, list)
     assert len(data) > 0
+
+
+def test_prices_weekly_happy_path():
+    res = client.get("/market-data/assets/BTC-USDT/prices",
+                     params={"timeframe": "1w"})
+    assert res.status_code == 200
+    data = res.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+
+
+def test_prices_monthly_happy_path():
+    res = client.get("/market-data/assets/BTC-USDT/prices",
+                     params={"timeframe": "1m"})
+    assert res.status_code == 200
+    data = res.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
