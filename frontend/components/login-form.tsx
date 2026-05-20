@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../lib/hooks/useAuth';
-import { apiClient } from "../lib/api";
+//import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,20 +29,17 @@ export function LoginForm({
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const router = useRouter();
+  //const router = useRouter();
 
   const handleSubmit = async () => {
     setIsLoading(true);
     
     try
     {
-      const data = await apiClient('/auth/login', {
-        method: 'POST',
-        body: { email, password }
-      });
-      login(data.token, data.user);
+      login(email, password);
 
-      router.push('/dashboard');
+      //should not assume that it succeeds until we can improve the error handling
+      //router.push('/');
     }
     catch(err: any)
     {
@@ -101,7 +97,7 @@ export function LoginForm({
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </Button>
                 <FieldDescription className="text-center">
-                  Don't have an account? <a href="/register">Sign up</a>
+                  Don&apos;t have an account? <a href="/register">Sign up</a>
                 </FieldDescription>
               </Field>
             </FieldGroup>
