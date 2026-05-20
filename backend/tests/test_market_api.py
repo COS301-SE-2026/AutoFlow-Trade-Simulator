@@ -46,3 +46,9 @@ def test_prices_monthly_happy_path():
     data = res.json()
     assert isinstance(data, list)
     assert len(data) > 0
+
+
+def test_prices_unknown_ticker_404():
+    res = client.get("/market-data/assets/NONSENSE/prices",
+                     params={"timeframe": "1m"})
+    assert res.status_code == 404
