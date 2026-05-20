@@ -69,3 +69,8 @@ def test_summary_happy_path():
     assert "daily_high" in data
     assert "daily_low" in data
     assert "timestamp" in data
+
+
+def test_summary_unknown_ticker_404():
+    res = client.get("/market-data/assets/NONSENSE/summary")
+    assert res.status_code == 404
