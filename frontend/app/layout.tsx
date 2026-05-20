@@ -5,6 +5,7 @@ import { AuthProvider } from '../context/AuthContext';
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import {AccountProvider} from "@/lib/hooks/accountContext";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -22,9 +23,10 @@ export default function RootLayout({
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body>
         <AuthProvider>
-          <Navbar />
-          {children}
-
+          <AccountProvider>
+            <Navbar />
+            {children}
+          </AccountProvider>
         </AuthProvider>
       </body>
     </html>
