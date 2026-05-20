@@ -1,8 +1,9 @@
 'use client';
 
 import { Button} from './ui/button';
-import { Card } from './ui/card'
 import Link  from 'next/link';
+import {AccountProvider} from "@/lib/hooks/accountContext";
+import {AccountSelector} from "@/components/ui/intAccSwitcher";
 
 export function Navbar() {
     const navItems = [
@@ -25,6 +26,9 @@ export function Navbar() {
                     </Link>
                 </Button>
             ))}
+            <AccountProvider>
+                <AccountSelector/>
+            </AccountProvider>
         </nav>
     )
 }
