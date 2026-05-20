@@ -34,8 +34,8 @@ export function AccountSelector({
     }
 
     return (
-        <div className="space-y-2">
-            {label && <label>{label}</label>}
+        <div className="space-y-2 w-full max-w-md">
+            {label && <label className="text-lg font-medium">{label}</label>}
 
             <Select
                 value={activeAccount?.id.toString()}
@@ -43,18 +43,26 @@ export function AccountSelector({
                 required={required}
                 disabled={isLoading || !accounts?.length}
             >
-                <SelectTrigger>
+                <SelectTrigger className="p-4 text-lg h-auto">
                     <SelectValue placeholder={isLoading ? "Loading..." : placeholder}/>
                 </SelectTrigger>
 
-                <SelectContent style={{
-                    backgroundColor: 'var(--accent-strong)',
-                    color: 'var(--text)',
-                }}>
+                <SelectContent
+                    style={{
+                        backgroundColor: 'var(--accent-strong)',
+                        color: 'var(--text)',
+                    }}
+                    className="min-w-[var(--radix-select-trigger-width)] text-lg"
+                >
                     <SelectGroup>
                         {accounts?.map((account) => (
-                            <SelectItem key={account.id} value={account.id.toString()}>
-                                Acc #{account.id} - {account.balance}
+                            <SelectItem key={account.id} value={account.id.toString()} className="py-3 text-base">
+                                <img
+                                    src={`https://flagcdn.com/w20/${account.currency_code.substring(0, 2).toLowerCase()}.png`}
+                                    className="flag inline-block mr-2 w-5 h-auto"
+                                    alt=""
+                                />
+                                {account.currency_code} {account.balance}
                             </SelectItem>
                         ))}
                     </SelectGroup>

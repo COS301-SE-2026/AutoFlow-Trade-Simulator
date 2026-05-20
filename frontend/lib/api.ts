@@ -40,7 +40,7 @@ export async function apiClient(endpoint: string, options: any = {})
       body: options.body ? JSON.stringify(options.body) : undefined
   });
 
-  if (response.status === 401)
+  /*if (response.status === 401)
   {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
@@ -48,7 +48,7 @@ export async function apiClient(endpoint: string, options: any = {})
     window.location.href = '/login';
 
     throw new Error('Your session expired. Please log in again.');
-  }
+  }*/
   
   if (!response.ok) 
   {
