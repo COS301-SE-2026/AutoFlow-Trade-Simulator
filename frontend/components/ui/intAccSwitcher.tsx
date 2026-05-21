@@ -1,7 +1,15 @@
 "use client";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAccount } from "@/lib/hooks/accountContext";
-import type { InternationalAccount } from "@/lib/types/accounts";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {useAccount} from "@/lib/hooks/accountContext";
+import type {InternationalAccount} from "@/lib/types/accounts";
+import Image from "next/image";
 
 interface AccountSelectorProps {
     placeholder?: string;
@@ -47,9 +55,15 @@ export function AccountSelector({ placeholder = "Select account", label, onChang
                 }}>
                     <SelectGroup>
                         {accounts?.map((account) => (
-                            <SelectItem key={account.id} value={account.id.toString()} style={{ fontSize: '13.5px', fontWeight: 600 }} className="focus:bg-white/10">
-                                <img src={`https://flagcdn.com/w20/${account.currency_code.substring(0, 2).toLowerCase()}.png`} className="inline-block mr-2 w-5 h-auto" alt="" />
-                                {account.currency_code} · {account.balance}
+                            <SelectItem key={account.id} value={account.id.toString()} className="py-3 text-base">
+                                <Image
+                                    src={`https://flagcdn.com/w20/${account.currency_code.substring(0, 2).toLowerCase()}.png`}
+                                    className="flag inline-block mr-2 w-5 h-auto"
+                                    alt=""
+                                    width={20}
+                                    height={15}
+                                />
+                                {account.currency_code} {account.balance}
                             </SelectItem>
                         ))}
                     </SelectGroup>

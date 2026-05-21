@@ -1,6 +1,7 @@
 import { Card } from "../components/ui/card";
 import { getBackendHealth } from "../lib/api";
 import AssetPage from "../app/assets/[ticker]/page"
+import Link from "next/link";
 
 export default async function HomePage() {
   const health = await getBackendHealth();
@@ -15,12 +16,12 @@ export default async function HomePage() {
             The repo starts with Postgres in Docker, a small FastAPI backend, and a Next.js frontend that can talk to the backend health route.
           </p>
           <div className="actions">
-            <a className="button primary" href="/login">
+            <Link className="button primary" href="/login">
               Login Page
-            </a>
-            <a className="button primary" href="/register">
+            </Link>
+            <Link className="button primary" href="/register">
               Register Page
-            </a>
+            </Link>
             <a className="button secondary" href="http://localhost:8000/health">
               Backend health
             </a>
@@ -52,9 +53,9 @@ export default async function HomePage() {
           </Card>
         </section>
         <div className="actions flex justify-evenly">
-          <a className="button primary" href="/assets/ETH-USDT">
+          <Link className="button primary" href="/assets/ETH-USDT">
             Look at example ticker page
-          </a>
+          </Link>
         </div>
       </div>
     </main>

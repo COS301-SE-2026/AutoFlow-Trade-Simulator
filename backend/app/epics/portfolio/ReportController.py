@@ -1,11 +1,8 @@
-from typing import List, Literal, Annotated
-from fastapi import APIRouter, Depends, status, Body, HTTPException
-from pydantic import BaseModel
+from typing import List, Annotated
+from fastapi import APIRouter, Depends, Body, HTTPException
 from sqlmodel import Session
-from fastapi import HTTPException
 
 from ...database import get_session
-from app.models.report import Report, Period
 from app.models.report_section import ReportSection
 from .ReportService import ReportGenService
 from ...core.security import get_current_user

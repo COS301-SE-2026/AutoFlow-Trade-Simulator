@@ -1,6 +1,5 @@
 from .MarketDataDTOs import MockOHLCV, EpicStatusDTO, AssetSummary
-from datetime import datetime
-from typing import Optional, Any, List
+from typing import Optional, List
 from .generator import LCGPseudoRandomGenerator
 from .tickers import Symbols, intervals, default_start_date, profiles, PlaceholderTicker
 from fastapi import HTTPException
