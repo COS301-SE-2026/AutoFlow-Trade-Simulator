@@ -55,7 +55,7 @@ export function RegisterForm({
 
     try
     {
-      await register(fullName, email, password);
+      register(fullName, email, password);
 
       router.push('/authtest');
     }

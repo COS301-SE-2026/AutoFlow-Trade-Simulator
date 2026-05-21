@@ -38,7 +38,7 @@ export function LoginForm({
     
     try
     {
-      await login(email, password);
+      login(email, password);
 
       router.push('/authtest');
     }
