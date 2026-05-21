@@ -10,39 +10,53 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { useState } from 'react';
+import { Button } from './ui/button';
 
 export function ReportView({ }: {}) {
-    const { reports, loading, error } = useReports();
+    const { reports, loading, error, createReport } = useReports();
+    const [period, setPeriod] = useState<string>("daily");
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>report id</TableHead>
-                    <TableHead>ticker</TableHead>
-                    <TableHead>open price</TableHead>
-                    <TableHead>close price</TableHead>
-                    <TableHead>pct change</TableHead>
-                    <TableHead>period high</TableHead>
-                    <TableHead>period low</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {reports.map((r) => (
-                    <TableRow key={r.id}>
-                        <TableCell>{r.report_id}</TableCell>
-                        <TableCell>{r.ticker}</TableCell>
-                        <TableCell>{r.open_price}</TableCell>
-                        <TableCell>{r.close_price}</TableCell>
-                        <TableCell>{r.pct_change}</TableCell>
-                        <TableCell>{r.period_high}</TableCell>
-                        <TableCell>{r.period_low}</TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+        <>
+            <div>
+                <div>
+                    <Button onClick={() => setPeriod("daily")}>Daily</Button>
+                    <Button onClick={() => setPeriod("weekly")}>Weekly</Button>
+                    <Button onClick={() => createReport(period)}>Generate Report</Button>
+                </div>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>report id</TableHead>
+                            <TableHead>ticker</TableHead>
+                            <TableHead>open price</TableHead>
+                            <TableHead>close price</TableHead>
+                            <TableHead>pct change</TableHead>
+                            <TableHead>period high</TableHead>
+                            <TableHead>period low</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {reports.map((r) => (
+                            <TableRow key={r.id}>
+                                <TableCell>{r.report_id}</TableCell>
+                                <TableCell>{r.ticker}</TableCell>
+                                <TableCell>{r.open_price}</TableCell>
+                                <TableCell>{r.close_price}</TableCell>
+                                <TableCell>{r.pct_change}</TableCell>
+                                <TableCell>{r.period_high}</TableCell>
+                                <TableCell>{r.period_low}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+
+            </div>
+
+        </>
     );
 }
