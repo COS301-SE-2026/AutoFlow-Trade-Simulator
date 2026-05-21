@@ -60,15 +60,15 @@ def test_fixed_seed_same_output():
     seed = 42
     size = 10
 
-    lcg_1 = LCGPseudoRandomGenerator(seed)
+    lcg_1 = LCGPseudoRandomGenerator(seed=seed)
     history_1 = lcg_1.generate_market_history(
         "BTC/USDT", "1m", datetime(2026, 1, 1), count=size, base_price=65000.0)
 
-    lcg_2 = LCGPseudoRandomGenerator(seed)
+    lcg_2 = LCGPseudoRandomGenerator(seed=seed)
     history_2 = lcg_2.generate_market_history(
         "BTC/USDT", "1m", datetime(2026, 1, 1), count=size, base_price=65000.0)
 
-    for i in range(1, size):
+    for i in range(size):
         assert history_1[i] == history_2[i]
 
 

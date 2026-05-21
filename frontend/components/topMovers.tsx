@@ -6,7 +6,7 @@ import {Badge} from '@/components/ui/badge';
 import {fetchAssetPrices} from '@/lib/api/assets';
 import type {OHLCV} from '@/lib/types/assets';
 
-const TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'BTC'] as const;
+const TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'BTC/USDT'] as const;
 const TIMEFRAME = '1d';
 
 type MoverData = {
@@ -19,9 +19,7 @@ type MoverData = {
 };
 
 function buildMoverData(ticker: string, candles: OHLCV[]): MoverData | null {
-    console.log("in builder");
     if (candles.length === 0) return null;
-    console.log("still in builder");
 
     const today = candles[candles.length - 1];
 

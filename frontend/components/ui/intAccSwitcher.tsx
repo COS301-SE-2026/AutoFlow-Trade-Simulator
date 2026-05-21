@@ -18,43 +18,41 @@ interface AccountSelectorProps {
     required?: boolean;
 }
 
-export function AccountSelector({
-                                    placeholder = "Select account",
-                                    label,
-                                    onChange,
-                                    required,
-                                }: AccountSelectorProps) {
-    const {accounts, activeAccount, isLoading, update} = useAccount();
+const actionStyle = {
+    border: '1px solid rgba(105, 80, 161, 0.55)',
+    background: 'rgba(38, 34, 98, 0.45)',
+    color: '#fff',
+    borderRadius: '12px',
+    fontSize: '13.5px',
+    fontWeight: 700,
+} as const;
+
+export function AccountSelector({ placeholder = "Select account", label, onChange, required }: AccountSelectorProps) {
+    const { accounts, activeAccount, isLoading, update } = useAccount();
 
     function handleChange(id: string) {
         const account = accounts?.find((a) => a.id === Number(id));
-        if (account) {
-            update(account);
-            onChange?.(account);
-        }
+        if (account) { update(account); onChange?.(account); }
     }
 
     return (
-        <div className="space-y-2 w-full max-w-md">
-            {label && <label className="text-lg font-medium">{label}</label>}
-
-            <Select
-                value={activeAccount?.id.toString()}
-                onValueChange={handleChange}
-                required={required}
-                disabled={isLoading || !accounts?.length}
-            >
-                <SelectTrigger className="p-4 text-lg h-auto">
-                    <SelectValue placeholder={isLoading ? "Loading..." : placeholder}/>
+        <div>
+            {label && (
+                <label style={{ fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>
+                    {label}
+                </label>
+            )}
+            <Select value={activeAccount?.id.toString()} onValueChange={handleChange} required={required} disabled={isLoading || !accounts?.length}>
+                <SelectTrigger style={{ ...actionStyle, padding: '9px 14px', height: 'auto', minWidth: '160px' }} className="hover:border-purple-500/60">
+                    <SelectValue placeholder={isLoading ? "Loading..." : placeholder} />
                 </SelectTrigger>
-
-                <SelectContent
-                    style={{
-                        backgroundColor: 'var(--accent-strong)',
-                        color: 'var(--text)',
-                    }}
-                    className="min-w-[var(--radix-select-trigger-width)] text-lg"
-                >
+                <SelectContent style={{
+                    background: 'rgba(20, 20, 38, 0.95)',
+                    border: '1px solid rgba(105, 80, 161, 0.4)',
+                    backdropFilter: 'blur(16px)',
+                    color: '#fff',
+                    borderRadius: '12px',
+                }}>
                     <SelectGroup>
                         {accounts?.map((account) => (
                             <SelectItem key={account.id} value={account.id.toString()} className="py-3 text-base">

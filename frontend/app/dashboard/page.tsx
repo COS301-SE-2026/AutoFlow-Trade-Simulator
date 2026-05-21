@@ -12,6 +12,7 @@ import {TransactionLog} from "@/components/TransactionLog";
 import {TradingAuthPrompt} from "@/components/tradingAuthPrompt";
 import {HoldingsSummary} from "@/components/HoldingsSummary";
 import {Navbar} from '@/components/navbar';
+import {ReportView} from "@/components/ReportView";
 
 function PageSkeleton() {
     return (
@@ -78,7 +79,7 @@ export default function Dashboard() {
             <Navbar />
             <div className="flex min-h-screen bg-background">
                 <aside
-                    className="hidden lg:flex flex-col w-72 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">
+                    className="hidden lg:flex flex-col w-80 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">
                     <TopMovers/>
                 </aside>
 
@@ -126,9 +127,7 @@ export default function Dashboard() {
                     </TabsContent>
 
                     <TabsContent value="Report" className="w-full mt-4">
-                        <div className="flex items-center justify-center h-48 rounded-xl border border-dashed border-border/60 text-muted-foreground font-mono text-xs tracking-widest uppercase">
-                            Placeholder for Report
-                        </div>
+                        {activeAccount ? <ReportView/> : <TradingAuthPrompt />}
                     </TabsContent>
                 </Tabs>
             </div>
