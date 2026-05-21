@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
-import { usePrices } from '../../hooks/usePrices';
+import { usePrices } from '@/hooks/usePrices';
 
 type Timeframe = 'daily' | 'weekly' | 'monthly';
  
@@ -66,6 +66,10 @@ export default function PriceChart({ ticker }: PriceChartProps) {
 
   const [timeframe, setTimeframe] = useState<Timeframe>('daily');
   const { data, loading, error } = usePrices(ticker, timeframeMap[timeframe]);
+
+  //console.log('usePrices data:', data);
+  //console.log('usePrices loading:', loading);
+  //console.log('usePrices error:', error);
 
   const chartData = data.map((item) => ({
     ...item,

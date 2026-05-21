@@ -1,11 +1,9 @@
 'use client';
 
 import { Button} from './ui/button';
-import { Card } from './ui/card'
 import Link  from 'next/link';
 import {AccountProvider} from "@/lib/hooks/accountContext";
 import {AccountSelector} from "@/components/ui/intAccSwitcher";
-
 export function Navbar() {
 
     return (
@@ -33,7 +31,7 @@ export function Navbar() {
             </Button>
             <Button className='button secondary' style={{ margin: '0px 5px'}}>
                 <Link href='/#'>
-                    Learderboard
+                    Leaderboard
                 </Link>
             </Button>
             <Button className='button secondary' style={{ margin: '0px 5px'}}>

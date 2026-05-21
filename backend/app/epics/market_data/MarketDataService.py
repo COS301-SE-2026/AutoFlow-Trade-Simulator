@@ -1,6 +1,6 @@
-
 from .MarketDataDTOs import MockOHLCV, EpicStatusDTO, AssetSummary
-from typing import Optional, List
+from datetime import datetime
+from typing import Optional, Any, List
 from .generator import LCGPseudoRandomGenerator
 from .tickers import Symbols, intervals, default_start_date, profiles, PlaceholderTicker
 from fastapi import HTTPException
@@ -11,6 +11,7 @@ class MarketDataService:
     def __init__(self):
         self.lcg = LCGPseudoRandomGenerator(101)
 
+    # 1. Force the return type here to be List[MockOHLCV]
     def generate_history(self, payload: Optional[dict] = None) -> List[MockOHLCV]:
         
         data = payload or {}
@@ -100,7 +101,7 @@ class MarketDataService:
                 detail="Data failed to generate"
             )
 
-        #Python has some really nice features lets use negative indexing
+        # Pyright now knows this is a MockOHLCV object, allowing attribute access safely
         NewBar = DailyHistory[-1]
 
         return AssetSummary(
@@ -110,4 +111,3 @@ class MarketDataService:
             daily_low=NewBar.low,
             timestamp=NewBar.timestamp
         )
-
