@@ -31,13 +31,13 @@ export function ReportView({ }: {}) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>report id</TableHead>
-                            <TableHead>ticker</TableHead>
-                            <TableHead>open price</TableHead>
-                            <TableHead>close price</TableHead>
-                            <TableHead>pct change</TableHead>
-                            <TableHead>period high</TableHead>
-                            <TableHead>period low</TableHead>
+                            <TableHead>Report ID</TableHead>
+                            <TableHead>Ticker</TableHead>
+                            <TableHead>Open Price</TableHead>
+                            <TableHead>Close Price</TableHead>
+                            <TableHead>PCT Change</TableHead>
+                            <TableHead>Period High</TableHead>
+                            <TableHead>Period Low</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
