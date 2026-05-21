@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { ApiError } from '@/lib/api';
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +27,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
@@ -43,7 +44,14 @@ export function LoginForm({
     }
     catch(err: any)
     {
-      setError(err.message);
+      if (err instanceof ApiError && err.status === 401) 
+      {
+        setError('Incorrect email or password. Please try again.');
+      } 
+      else 
+      {
+        setError(err?.message || 'Failed to sign in. Please try again.');
+      }
     }
     finally
     {

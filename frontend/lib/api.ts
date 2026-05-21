@@ -63,7 +63,8 @@ export async function apiClient(endpoint: string, options: any = {})
     const errorMessage = errorData.message || `API request failed with status ${response.status}`;
     const error = new ApiError(errorMessage, response.status, errorData);
     
-    if (response.status === 401 && token && typeof window !== 'undefined') 
+    const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register');
+    if (response.status === 401 && token && !isAuthEndpoint && typeof window !== 'undefined') 
     {
       sessionStorage.removeItem('token');
       sessionStorage.removeItem('user');
