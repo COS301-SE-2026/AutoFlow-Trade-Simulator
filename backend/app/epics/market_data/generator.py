@@ -10,10 +10,12 @@ class LCGPseudoRandomGenerator:
         self.c = c
         self.m = m
 
-        computed_seed = int(time.time() * 1000) if seed is None else int(seed)
-        self.x0 = computed_seed % self.m
+        if seed is None:
+            computed_seed = int(time.time() * 1000)
+        else:
+            computed_seed = (int(seed) * 2654435761) & 0xFFFFFFFF
 
-        self.x_prev = (self.a * self.x0 + self.c) % self.m
+        self.x_prev = computed_seed % self.m
     
     #helper method to generate the number
     def generate_number(self):
@@ -44,6 +46,9 @@ class LCGPseudoRandomGenerator:
 
         return random_date.isoformat()
 
+    #Python was shifting params so the test was failing so there was not float drift...
+    #Well its future proofed code now!
+
     def generate_market_history(self, symbol: str, interval: str, start_date: datetime, count: int, base_price: float):
 
         #To check what time interval data we are generating
@@ -58,34 +63,51 @@ class LCGPseudoRandomGenerator:
 
         history = []
         current_time = start_date
-        current_open = base_price
+        internal_price = float(base_price)
+
+        #mathematically isloated
+        local_x = self.x_prev
 
         for _ in range(count):
+            #Excplicitly advance the sequence.
+            local_x = (self.a * local_x + self.c) % self.m
+            close_rand = (local_x / self.m) * 2.0 - 1.0
+
+            local_x = (self.a * local_x + self.c) % self.m
+            high_rand = local_x / self.m
+
+            local_x = (self.a * local_x + self.c) % self.m
+            low_rand = local_x / self.m
+
+            local_x = (self.a * local_x + self.c) % self.m
+            vol_rand = local_x / self.m
+
             #Simulate market volatility
-            volatility = current_open * 0.03
+            volatility = internal_price * 0.03
 
             #calculate the close based on the open
-            current_close = self.generate_currency(current_open - volatility, current_open + volatility)
+            raw_close = internal_price + (close_rand * volatility)
     
-            current_high = max(current_open, current_close) + self.generate_currency(0, volatility * 0.5) # must be higher than low
-            current_low = min(current_open, current_close) - self.generate_currency(0, volatility * 0.5) # must be in the dirt or lower than high
+            raw_high = max(internal_price, raw_close) + (high_rand * (volatility * 0.5)) # must be higher than low
+            raw_low = min(internal_price, raw_close) - (low_rand * (volatility * 0.5)) # must be in the dirt or lower than high
 
             #generate random trading volume
-            volume = self.generate_currency(100, 5000)
+            raw_volume = 100.0 + (vol_rand * 4900.0)
 
             dto = MockOHLCV(
                 timestamp = current_time.isoformat(),
                 symbol = symbol,
                 interval = interval,
-                open = round(current_open, 2),
-                high = round(current_high, 2),
-                low = round(current_low, 2),
-                close = round(current_close, 2),
-                volume = volume
+                open = round(internal_price, 2),
+                high = round(raw_high, 2),
+                low = round(raw_low, 2),
+                close = round(raw_close, 2),
+                volume = round(raw_volume, 2)
             )
             history.append(dto.model_dump())
 
-            current_open = current_close
+            internal_price = raw_close
             current_time += time_jump
 
+        self.x_prev = local_x
         return history
