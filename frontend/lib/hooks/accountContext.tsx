@@ -11,6 +11,7 @@ import { fetchAllInternationalAccounts, createAccount } from "../api/accounts";
 import type { InternationalAccount } from "../types/accounts";
 import type { Currency } from "../types/currencies";
 import { ApiError } from "../api";
+import {useAuth} from "@/lib/hooks/useAuth";
 
 type AccountContextType = {
     accounts: InternationalAccount[] | null;
@@ -24,23 +25,23 @@ type AccountContextType = {
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 export function AccountProvider({ children }: { children: ReactNode }) {
+    const { token } = useAuth();
+
     const [accounts, setAccounts] = useState<InternationalAccount[] | null>(null);
     const [activeAccount, setActiveAccount] = useState<InternationalAccount | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        let token: any;
-        if (typeof window !== 'undefined')
-        {
-            token = sessionStorage.getItem('token');
-        }
-        else
-        {
-            token = null;
+        if (!token) {
+            setAccounts(null);
+            setActiveAccount(null);
             setIsLoading(false);
             return;
         }
+
+        setIsLoading(true);
+        setError(null);
 
         fetchAllInternationalAccounts()
             .then((fetchedAccounts) => {
@@ -50,18 +51,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
                 }
             })
             .catch((err) => {
-                if (err instanceof ApiError && err.status === 401) 
-                {
+                if (err instanceof ApiError && err.status === 401) {
                     setAccounts(null);
                     setActiveAccount(null);
-                } 
-                else 
-                {
+                } else {
                     setError(err.message);
                 }
             })
             .finally(() => setIsLoading(false));
-    }, []);
+    }, [token]);
 
     async function create(currencyCode: Currency, initialBalance: number) {
         const newAccount = await createAccount(currencyCode, initialBalance);
