@@ -1,10 +1,20 @@
 'use client';
 
-import { Button} from './ui/button';
-import Link  from 'next/link';
-import {AccountProvider} from "@/lib/hooks/accountContext";
-import {AccountSelector} from "@/components/ui/intAccSwitcher";
+import { Button } from './ui/button';
+import Link from 'next/link';
+import { AccountProvider } from "@/lib/hooks/accountContext";
+import { AccountSelector } from "@/components/ui/intAccSwitcher";
+import { useRouter } from 'next/navigation';
+import {useAuth} from "@/lib/hooks/useAuth";
+
 export function Navbar() {
+    const { logout } = useAuth();
+    const router = useRouter();
+
+    const handleLogout = () => {
+        logout();
+        router.push('/login');
+    };
 
     return (
         <nav style={{
@@ -42,6 +52,14 @@ export function Navbar() {
             <AccountProvider>
                 <AccountSelector/>
             </AccountProvider>
+            <Button
+                className='button secondary'
+                variant="destructive"
+                style={{ margin: '0px 5px' }}
+                onClick={handleLogout}
+            >
+                Log Out
+            </Button>
         </nav>
-    )
+    );
 }
