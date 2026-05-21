@@ -10,6 +10,7 @@ import {
 import { fetchAllInternationalAccounts, createAccount } from "../api/accounts";
 import type { InternationalAccount } from "../types/accounts";
 import type { Currency } from "../types/currencies";
+import { ApiError } from "../api";
 
 type AccountContextType = {
     accounts: InternationalAccount[] | null;
@@ -29,6 +30,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let token: any;
+        if (typeof window !== 'undefined')
+        {
+            token = sessionStorage.getItem('token');
+        }
+        else
+        {
+            token = null;
+            setIsLoading(false);
+            return;
+        }
+
         fetchAllInternationalAccounts()
             .then((fetchedAccounts) => {
                 setAccounts(fetchedAccounts);
@@ -36,7 +49,17 @@ export function AccountProvider({ children }: { children: ReactNode }) {
                     setActiveAccount((prev) => prev ?? fetchedAccounts[0]);
                 }
             })
-            .catch((err) => setError(err.message))
+            .catch((err) => {
+                if (err instanceof ApiError && err.status === 401) 
+                {
+                    setAccounts(null);
+                    setActiveAccount(null);
+                } 
+                else 
+                {
+                    setError(err.message);
+                }
+            })
             .finally(() => setIsLoading(false));
     }, []);
 

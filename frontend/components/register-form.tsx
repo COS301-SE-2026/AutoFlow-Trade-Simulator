@@ -57,7 +57,7 @@ export function RegisterForm({
     {
       register(fullName, email, password);
 
-      router.push('/');
+      router.push('/authtest');
     }
     catch(err: any)
     {

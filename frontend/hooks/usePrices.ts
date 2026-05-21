@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchAssetPrices } from '@/lib/api/assets';
+import { ApiError } from '@/lib/api';
 import type { OHLCV } from '@/lib/types/assets';
 
 export function usePrices(ticker: string, timeframe: string) {
@@ -26,7 +27,11 @@ export function usePrices(ticker: string, timeframe: string) {
       } 
       catch (e) 
       {
-        if (e instanceof Error) 
+        if (e instanceof ApiError && e.status === 401) 
+        {
+          setData([]);
+        } 
+        else if (e instanceof Error) 
         {
           setError(e.message);
         } 
