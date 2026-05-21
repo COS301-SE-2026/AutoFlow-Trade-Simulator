@@ -9,28 +9,35 @@ from fastapi import HTTPException
 class MarketDataService:
 
     def __init__(self):
-        self.lcg = LCGPseudoRandomGenerator(101)
+        pass
 
     # 1. Force the return type here to be List[MockOHLCV]
     def generate_history(self, payload: Optional[dict] = None) -> List[MockOHLCV]:
         
         data = payload or {}
 
+        #make a seed based off the symbol
+        temp_lcg = LCGPseudoRandomGenerator(seed=101)
+
         #Do some validation on the symbol
-        symbol = data.get("symbol") or self.lcg.choice(Symbols)
+        symbol = data.get("symbol") or temp_lcg.choice(Symbols)
         if symbol not in profiles:
             raise ValueError(f"Symbol '{symbol}' is not supported")
 
         profile = profiles[symbol]
 
+        #make the seed based of the symbol
+        symbol_seed = abs(hash(symbol)) % (2**31)
+        ticker_lcg = LCGPseudoRandomGenerator(seed=symbol_seed)
+
         #Do validation on the intervals date count and base price
-        interval = data.get("interval") or self.lcg.choice(intervals)
+        interval = data.get("interval") or temp_lcg.choice(intervals)
         start_date = data.get("start_date") or default_start_date
         count = data.get("count") or 5
         base_price = data.get("base_price") or profile["base_price"]
 
         #No that all validation is done hand it to or LCG gen
-        raw_data = self.lcg.generate_market_history(symbol, interval, start_date, count, base_price)
+        raw_data = temp_lcg.generate_market_history(symbol, interval, start_date, count, base_price)
         return [MockOHLCV(**row) for row in raw_data]
 
     @staticmethod

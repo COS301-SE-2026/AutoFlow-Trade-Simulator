@@ -11,9 +11,8 @@ class LCGPseudoRandomGenerator:
         self.m = m
 
         computed_seed = int(time.time() * 1000) if seed is None else int(seed)
-        self.x0 = computed_seed % self.m
 
-        self.x_prev = (self.a * self.x0 + self.c) % self.m
+        self.x_prev = computed_seed % self.m
     
     #helper method to generate the number
     def generate_number(self):
