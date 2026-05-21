@@ -79,7 +79,7 @@ export default function Dashboard() {
             <Navbar />
             <div className="flex min-h-screen bg-background">
                 <aside
-                    className="hidden lg:flex flex-col w-72 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">
+                    className="hidden lg:flex flex-col w-80 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">
                     <TopMovers/>
                 </aside>
 

@@ -11,6 +11,7 @@ import { fetchAllInternationalAccounts, createAccount } from "../api/accounts";
 import type { InternationalAccount } from "../types/accounts";
 import type { Currency } from "../types/currencies";
 import { ApiError } from "../api";
+import {useAuth} from "@/lib/hooks/useAuth";
 
 type AccountContextType = {
     accounts: InternationalAccount[] | null;
@@ -25,6 +26,8 @@ const AccountContext = createContext<AccountContextType | undefined>(undefined);
 const activeAccountKey = 'activeAccountId';
 
 export function AccountProvider({ children }: { children: ReactNode }) {
+    const { token } = useAuth();
+
     const [accounts, setAccounts] = useState<InternationalAccount[] | null>(null);
     const [activeAccount, setActiveAccount] = useState<InternationalAccount | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +35,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
-        if (!token) { setIsLoading(false); return; }
+        if (!token) {
+            setAccounts(null);
+            setActiveAccount(null);
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
 
         fetchAllInternationalAccounts()
             .then((fetchedAccounts) => {
@@ -54,7 +65,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
                 }
             })
             .finally(() => setIsLoading(false));
-    }, []);
+    }, [token]);
 
     async function create(currencyCode: Currency, initialBalance: number) {
         const newAccount = await createAccount(currencyCode, initialBalance);
