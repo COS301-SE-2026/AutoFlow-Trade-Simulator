@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { ApiError } from '@/lib/api';
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -55,13 +56,20 @@ export function RegisterForm({
 
     try
     {
-      register(fullName, email, password);
+      await register(fullName, email, password);
 
-      router.push('/authtest');
+      router.push('/dashboard');
     }
     catch(err: any)
     {
-      setError(err.message);
+      if (err instanceof ApiError && err.status === 401)
+      {
+        setError('Email already exists. Please use a different email.');
+      }
+      else
+      {
+        setError(err?.message || 'Failed to create account. Please try again.');
+      }
     }
     finally
     {

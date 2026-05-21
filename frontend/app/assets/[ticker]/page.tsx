@@ -5,6 +5,7 @@ import { usePrices } from '@/hooks/usePrices';
 import { useAssetSummary } from '@/hooks/useAssetSummary';
 import AssetSummaryBar from '@/components/AssetSummaryBar';
 import PriceChart from '@/components/charts/priceChart';
+import {Navbar} from '@/components/navbar';
 
 export default function AssetPage() {
   const params = useParams();
@@ -19,11 +20,13 @@ export default function AssetPage() {
 
   return (
     <div>
-      <h1>{ticker}</h1>
-      <AssetSummaryBar ticker={ticker} />
-      <div>
-        <PriceChart ticker={ticker} />
-      </div>
+      <Navbar />
+        
+        <h1>{ticker}</h1>
+        <AssetSummaryBar ticker={ticker} />
+        <div>
+          <PriceChart ticker={ticker} />
+        </div>
     </div>
   );
 }

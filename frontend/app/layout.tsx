@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Navbar } from '../components/navbar';
 import { AuthProvider } from '../context/AuthContext';
 import "./globals.css";
 import { Geist } from "next/font/google";
@@ -24,7 +23,6 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <AccountProvider>
-            <Navbar />
             {children}
           </AccountProvider>
         </AuthProvider>
