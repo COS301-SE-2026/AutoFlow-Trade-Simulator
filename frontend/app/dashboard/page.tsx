@@ -11,6 +11,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {TransactionLog} from "@/components/TransactionLog";
 import {TradingAuthPrompt} from "@/components/tradingAuthPrompt";
 import {HoldingsSummary} from "@/components/HoldingsSummary";
+import {Navbar} from '@/components/navbar';
 
 function PageSkeleton() {
     return (
@@ -74,6 +75,7 @@ export default function Dashboard() {
 
     return (
         <div>
+            <Navbar />
             <div className="flex min-h-screen bg-background">
                 <aside
                     className="hidden lg:flex flex-col w-72 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">

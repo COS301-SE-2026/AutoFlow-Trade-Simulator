@@ -38,9 +38,9 @@ export function LoginForm({
     
     try
     {
-      login(email, password);
+      await login(email, password);
 
-      router.push('/authtest');
+      router.push('/dashboard');
     }
     catch(err: any)
     {
