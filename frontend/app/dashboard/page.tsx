@@ -12,6 +12,7 @@ import {TransactionLog} from "@/components/TransactionLog";
 import {TradingAuthPrompt} from "@/components/tradingAuthPrompt";
 import {HoldingsSummary} from "@/components/HoldingsSummary";
 import {Navbar} from '@/components/navbar';
+import {ReportView} from "@/components/ReportView";
 
 function PageSkeleton() {
     return (
@@ -126,9 +127,7 @@ export default function Dashboard() {
                     </TabsContent>
 
                     <TabsContent value="Report" className="w-full mt-4">
-                        <div className="flex items-center justify-center h-48 rounded-xl border border-dashed border-border/60 text-muted-foreground font-mono text-xs tracking-widest uppercase">
-                            Placeholder for Report
-                        </div>
+                        {activeAccount ? <ReportView/> : <TradingAuthPrompt />}
                     </TabsContent>
                 </Tabs>
             </div>

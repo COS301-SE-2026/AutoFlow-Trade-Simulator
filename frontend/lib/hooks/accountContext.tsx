@@ -22,6 +22,7 @@ type AccountContextType = {
 };
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
+const activeAccountKey = 'activeAccountId';
 
 export function AccountProvider({ children }: { children: ReactNode }) {
     const [accounts, setAccounts] = useState<InternationalAccount[] | null>(null);
@@ -30,33 +31,25 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        let token: any;
-        if (typeof window !== 'undefined')
-        {
-            token = sessionStorage.getItem('token');
-        }
-        else
-        {
-            token = null;
-            setIsLoading(false);
-            return;
-        }
+        const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
+        if (!token) { setIsLoading(false); return; }
 
         fetchAllInternationalAccounts()
             .then((fetchedAccounts) => {
                 setAccounts(fetchedAccounts);
                 if (fetchedAccounts.length > 0) {
-                    setActiveAccount((prev) => prev ?? fetchedAccounts[0]);
+                    const savedId = sessionStorage.getItem(activeAccountKey);
+                    const savedAccount = savedId
+                        ? fetchedAccounts.find((a) => a.id === Number(savedId))
+                        : null;
+                    setActiveAccount(savedAccount ?? fetchedAccounts[0]);
                 }
             })
             .catch((err) => {
-                if (err instanceof ApiError && err.status === 401) 
-                {
+                if (err instanceof ApiError && err.status === 401) {
                     setAccounts(null);
                     setActiveAccount(null);
-                } 
-                else 
-                {
+                } else {
                     setError(err.message);
                 }
             })
@@ -74,6 +67,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             prev ? prev.map((a) => (a.id === updated.id ? updated : a)) : [updated]
         );
         setActiveAccount(updated);
+        sessionStorage.setItem(activeAccountKey, String(updated.id));
+        window.location.reload();
     }
 
     return (
