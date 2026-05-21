@@ -26,9 +26,6 @@ class MarketDataService:
 
         profile = profiles[symbol]
 
-        #make the seed based of the symbol
-        symbol_seed = abs(hash(symbol)) % (2**31)
-
         #Do validation on the intervals date count and base price
         interval = data.get("interval") or temp_lcg.choice(intervals)
         start_date = data.get("start_date") or default_start_date
