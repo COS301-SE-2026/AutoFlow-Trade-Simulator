@@ -87,29 +87,31 @@ export default function PriceChart({ ticker }: PriceChartProps) {
         {
           loading ? (<ChartSkeleton />)
           : (
-          <ResponsiveContainer width="100%" aspect={1.618}>
-            <LineChart
-              data={chartData}
-              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-              <XAxis dataKey="name" stroke="#ffffff" />
-              <YAxis stroke="#ffffff" tickFormatter={(v) => `R${v}`} width={70} />
-              <Tooltip
-                cursor={{ stroke: '#9ca3af' }}
-                content={<CustomTooltip />}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="close"
-                stroke="#6950a1"
-                strokeWidth={4}
-                dot={{ fill: '#6950a1' }}
-                activeDot={{ r: 8, stroke: '#1c75bc' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div style={{width:'100%', height:"400px", padding:"20px"}}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
+                <XAxis dataKey="name" stroke="#ffffff" />
+                <YAxis stroke="#ffffff" tickFormatter={(v) => `R${v}`} width={70} />
+                <Tooltip
+                  cursor={{ stroke: '#9ca3af' }}
+                  content={<CustomTooltip />}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="close"
+                  stroke="#6950a1"
+                  strokeWidth={4}
+                  dot={{ fill: '#6950a1' }}
+                  activeDot={{ r: 8, stroke: '#1c75bc' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
           )
         }
       </>
