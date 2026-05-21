@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import List, Any, Optional
+from typing import List, Optional
 from sqlmodel import Session, select
 from fastapi import HTTPException
 

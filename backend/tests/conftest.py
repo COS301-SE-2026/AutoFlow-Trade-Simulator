@@ -1,3 +1,8 @@
+from sqlmodel import SQLModel, Session, create_engine
+from app.database import get_session
+from app.main import app
+import pytest
+
 import os
 from pathlib import Path
 import sys
@@ -11,11 +16,6 @@ os.environ.setdefault("SECRET_KEY", "test-secret")
 os.environ.setdefault("ALGORITHM", "HS256")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
-
-from sqlmodel import SQLModel, Session, create_engine
-from app.database import get_session
-from app.main import app
-import pytest
 
 test_engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
 
