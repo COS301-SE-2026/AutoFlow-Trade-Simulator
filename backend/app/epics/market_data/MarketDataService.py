@@ -28,7 +28,6 @@ class MarketDataService:
 
         #make the seed based of the symbol
         symbol_seed = abs(hash(symbol)) % (2**31)
-        ticker_lcg = LCGPseudoRandomGenerator(seed=symbol_seed)
 
         #Do validation on the intervals date count and base price
         interval = data.get("interval") or temp_lcg.choice(intervals)
