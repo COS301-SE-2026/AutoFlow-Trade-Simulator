@@ -13,13 +13,12 @@ export interface Reports {
     period_low: string
 }
 
-export function useReports(account_id: number | null) {
+export function useReports() {
     const [reports, setReports] = useState<Reports[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fetchReports = useCallback(async () => {
-        if (!account_id) return;
         setLoading(true);
         setError(null);
         try {
@@ -30,7 +29,7 @@ export function useReports(account_id: number | null) {
         } finally {
             setLoading(false);
         }
-    }, [account_id]);
+    }, []);
 
     const createReport = async (period: string) => {
         setLoading(true);
