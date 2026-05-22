@@ -68,7 +68,6 @@ main {
   border-radius: 28px;
   background: var(--panel);
   backdrop-filter: blur(12px);
-  box-shadow: var(--shadow);
 }
 
 .eyebrow {
@@ -198,6 +197,11 @@ h1 {
   background: var(--green-light);
 }
 
+[data-highlighted] {
+  background-color: var(--accent-light) !important;
+  color: var(--text) !important;
+}
+
 @media (max-width: 720px) {
   main {
     width: min(100vw - 1rem, 1100px);
@@ -214,7 +218,7 @@ h1 {
   }
 }
 
-@layer base {
+/* @layer base {
   .theme {
     --font-heading: var(--font-sans);
     --font-sans: var(--font-sans);
@@ -295,4 +299,4 @@ h1 {
   html {
     @apply font-sans;
   }
-}
+} */

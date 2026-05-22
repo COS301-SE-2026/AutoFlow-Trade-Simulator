@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import logging
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 from sqlmodel import SQLModel
 
@@ -13,6 +14,7 @@ from .epics.portfolio.PortfolioController import router as portfolio_router
 from .epics.ui.UiController import router as ui_router
 from .epics.auth.AuthController import router as auth_router
 from .epics.accounts.AccountsController import router as accounts_router
+from .epics.portfolio.ReportController import router as report_router
 
 
 @asynccontextmanager
@@ -28,6 +30,14 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="AutoFlow Trade Simulator", lifespan=lifespan)
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Frontend URLs
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(core_router)
 app.include_router(market_data_router)
@@ -35,3 +45,4 @@ app.include_router(ui_router)
 app.include_router(portfolio_router)
 app.include_router(auth_router)
 app.include_router(accounts_router)
+app.include_router(report_router)
