@@ -4,6 +4,14 @@ import path from "node:path";
 const nextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(process.cwd(), ".."),
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'flagcdn.com',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {
