@@ -20,7 +20,7 @@ user_data = [
     {
         "email": "alice@example.com",
         "full_name": "Alice Smith",
-        "password_hash": "$2b$12$7CfMIP5Sbo8Ofo09i582v.y1yBTnTyU1X10RPgOPlXO77wW1kOlwO",
+        "password_hash": "hashed_password_1",
     },
     {"email": "bob@example.com", "full_name": "Bob Jones", "password_hash": "hashed_password_2"},
     {
