@@ -20,7 +20,7 @@ user_data = [
     {
         "email": "alice@example.com",
         "full_name": "Alice Smith",
-        "password_hash": "$2b$12$EixZaYVK1fsbw1V2p4e2zu23P5g3u81E/i..J.bQL3J3D8.2wzR/a",
+        "password_hash": "$2b$12$7CfMIP5Sbo8Ofo09i582v.y1yBTnTyU1X10RPgOPlXO77wW1kOlwO",
     },
     {"email": "bob@example.com", "full_name": "Bob Jones", "password_hash": "hashed_password_2"},
     {
@@ -50,10 +50,10 @@ asset_data = [
     {"ticker": "GOOGL", "name": "Alphabet Inc.", "asset_type": "STOCK"},
     {"ticker": "MSFT", "name": "Microsoft Corporation", "asset_type": "STOCK"},
     {"ticker": "TSLA", "name": "Tesla Inc.", "asset_type": "STOCK"},
-    {"ticker": "BTC", "name": "Bitcoin", "asset_type": "CRYPTO"},
-    {"ticker": "ETH", "name": "Ethereum", "asset_type": "CRYPTO"},
-    {"ticker": "SOL", "name": "Solana", "asset_type": "CRYPTO"},
-    {"ticker": "DOT", "name": "Polkadot", "asset_type": "CRYPTO"},
+    {"ticker": "BTC/USDT", "name": "Bitcoin", "asset_type": "CRYPTO"},
+    {"ticker": "ETH/USDT", "name": "Ethereum", "asset_type": "CRYPTO"},
+    {"ticker": "SOL/USDT", "name": "Solana", "asset_type": "CRYPTO"},
+    {"ticker": "DOT/USDT", "name": "Polkadot", "asset_type": "CRYPTO"},
     {"ticker": "AMZN", "name": "Amazon.com Inc.", "asset_type": "STOCK"},
     {"ticker": "NVDA", "name": "NVIDIA Corporation", "asset_type": "STOCK"},
     {"ticker": "META", "name": "Meta Platforms Inc.", "asset_type": "STOCK"},
@@ -103,7 +103,7 @@ report_section_data = [
     },
     {
         "report_id": 1,
-        "ticker": "BTC",
+        "ticker": "BTC/USDT",
         "open_price": 65000.00,
         "close_price": 68000.00,
         "pct_change": 4.62,
@@ -112,7 +112,7 @@ report_section_data = [
     },
     {
         "report_id": 1,
-        "ticker": "ETH",
+        "ticker": "ETH/USDT",
         "open_price": 3400.00,
         "close_price": 3435.40,
         "pct_change": 1.04,
