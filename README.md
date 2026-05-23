@@ -91,7 +91,7 @@ AutoFlow is an interactive learning experience that provides a virtual trading a
       <sub>A final-year computer science student who enjoys problem-solving and acquiring new skills. Interested in back-end business logic and database design.</sub>
       <br><br><br>
       <a href="https://github.com/u24614582"><img src="https://skillicons.dev/icons?i=github" width="28" /></a>&nbsp;
-      <a href="https://www.linkedin.com/in/dillon-kung/"><img src="https://skillicons.dev/icons?i=linkedin" width="28" /></a>
+      <a href="https://www.linkedin.com/in/dillon-kung-a55975406/"><img src="https://skillicons.dev/icons?i=linkedin" width="28" /></a>
       <br><br>
     </td>
   </tr>
