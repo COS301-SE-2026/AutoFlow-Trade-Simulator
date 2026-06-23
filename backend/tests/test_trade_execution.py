@@ -50,4 +50,31 @@ def test_execute_buy_trade() -> None:
     }, headers={"Authorization": f"Bearer {token}"})
     
     assert response.status_code == 200
-        
+
+
+def test_execute_sell_trade() -> None:
+    seed_asset()
+    seed_currency()
+    token = get_token()
+    create_response = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token}"})
+    account_id = create_response.json()["id"]
+    
+    # buy stock
+    response_buy = client.post(f"/portfolio/accounts/{account_id}", json={
+        "ticker": "AAPL",
+        "direction": "buy",
+        "quantity": 1
+    }, headers={"Authorization": f"Bearer {token}"})
+    
+    # sell that stock
+    response_sell = client.post(f"/portfolio/accounts/{account_id}", json={
+        "ticker": "AAPL",
+        "direction": "sell",
+        "quantity": 1
+    }, headers={"Authorization": f"Bearer {token}"})
+    
+    assert response_sell.status_code == 200
+
