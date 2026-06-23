@@ -78,3 +78,53 @@ def test_execute_sell_trade() -> None:
     
     assert response_sell.status_code == 200
 
+
+def test_buy_insufficient_balance() -> None:
+    seed_asset()
+    seed_currency()
+    token = get_token()
+    create_response = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "0.00"
+    }, headers={"Authorization": f"Bearer {token}"})
+    account_id = create_response.json()["id"]
+    
+    # buy stock
+    response = client.post(f"/portfolio/accounts/{account_id}", json={
+        "ticker": "AAPL",
+        "direction": "buy",
+        "quantity": 1
+    }, headers={"Authorization": f"Bearer {token}"})
+        
+    assert response.status_code == 400
+
+
+def test_sell_more_than_owned() -> None:
+    seed_asset()
+    seed_currency()
+    token = get_token()
+    create_response = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token}"})
+    account_id = create_response.json()["id"]
+    
+    num_buy = 1
+    num_sell = 2
+    
+    # buy stock
+    response_buy = client.post(f"/portfolio/accounts/{account_id}", json={
+        "ticker": "AAPL",
+        "direction": "buy",
+        "quantity": num_buy
+    }, headers={"Authorization": f"Bearer {token}"})
+    
+    # sell that stock
+    response_sell = client.post(f"/portfolio/accounts/{account_id}", json={
+        "ticker": "AAPL",
+        "direction": "sell",
+        "quantity": num_sell
+    }, headers={"Authorization": f"Bearer {token}"})
+    
+    assert response_sell.status_code == 400
+
