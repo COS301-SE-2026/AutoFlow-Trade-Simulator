@@ -128,3 +128,74 @@ def test_sell_more_than_owned() -> None:
     
     assert response_sell.status_code == 400
 
+
+def test_trade_wrong_account() -> None:
+    seed_asset()
+    seed_currency()
+
+    token_1 = get_token("test_user_number_1@email.com")
+    token_2 = get_token("test_user_number_2@email.com")
+
+    create_response_1 = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token_1}"})
+    account_id_1 = create_response_1.json()["id"]
+
+    create_response_2 = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token_2}"})
+    account_id_2 = create_response_2.json()["id"]
+    
+    # trade with mismatched token
+    response = client.post(f"/portfolio/accounts/{account_id_1}", json={
+        "ticker": "AAPL",
+        "direction": "buy",
+        "quantity": 1
+    }, headers={"Authorization": f"Bearer {token_2}"})
+    assert response.status_code == 403
+
+
+def test_get_transaction_history() -> None:
+    seed_asset()
+    seed_currency()
+    token = get_token()
+    create_response = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token}"})
+    account_id = create_response.json()["id"]
+    
+    response = client.get(f"/portfolio/accounts/{account_id}/transactions", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+
+
+def test_get_holdings_after_buy() -> None:
+    seed_asset()
+    seed_currency()
+    token = get_token()
+    create_response = client.post("/accounts", json={
+        "currency_code": "ZAR",
+        "initial_balance": "1000.00"
+    }, headers={"Authorization": f"Bearer {token}"})
+    account_id = create_response.json()["id"]
+    
+    # quantity before buy
+    response_before_buy = client.get(f"/portfolio/accounts/{account_id}/holdings", headers={"Authorization": f"Bearer {token}"})
+    holdings_before = response_before_buy.json()["holdings"]
+    net_quantity_before = holdings_before[0]["net_quantity"] if holdings_before else 0
+    
+    response_buy = client.post(f"/portfolio/accounts/{account_id}", json={
+        "ticker": "AAPL",
+        "direction": "buy",
+        "quantity": 1
+    }, headers={"Authorization": f"Bearer {token}"})
+    
+    # quantity after buying 1
+    response_after_buy = client.get(f"/portfolio/accounts/{account_id}/holdings", headers={"Authorization": f"Bearer {token}"})
+    holdings_after = response_after_buy.json()["holdings"]
+    net_quantity_after = holdings_after[0]["net_quantity"] if holdings_after else 0
+    
+    assert net_quantity_before == 0
+    assert net_quantity_after == 1
