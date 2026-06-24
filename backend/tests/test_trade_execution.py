@@ -32,8 +32,8 @@ def seed_currency(code: str = "ZAR") -> None:
         currency = Currency(code=code, name="South African rand")
         session.add(currency)
         session.commit()
-
-def test_execute_buy_trade() -> None:
+        
+def create_trade_setup(email: str = "test@example.com"):
     seed_asset()
     seed_currency()
     token = get_token()
@@ -42,6 +42,11 @@ def test_execute_buy_trade() -> None:
         "initial_balance": "1000.00"
     }, headers={"Authorization": f"Bearer {token}"})
     account_id = create_response.json()["id"]
+    return token, account_id
+
+
+def test_execute_buy_trade() -> None:
+    token, account_id = create_trade_setup()
     
     response = client.post(f"/portfolio/accounts/{account_id}", json={
         "ticker": "AAPL",
@@ -53,14 +58,7 @@ def test_execute_buy_trade() -> None:
 
 
 def test_execute_sell_trade() -> None:
-    seed_asset()
-    seed_currency()
-    token = get_token()
-    create_response = client.post("/accounts", json={
-        "currency_code": "ZAR",
-        "initial_balance": "1000.00"
-    }, headers={"Authorization": f"Bearer {token}"})
-    account_id = create_response.json()["id"]
+    token, account_id = create_trade_setup()
     
     # buy stock
     response_buy = client.post(f"/portfolio/accounts/{account_id}", json={
@@ -80,34 +78,20 @@ def test_execute_sell_trade() -> None:
 
 
 def test_buy_insufficient_balance() -> None:
-    seed_asset()
-    seed_currency()
-    token = get_token()
-    create_response = client.post("/accounts", json={
-        "currency_code": "ZAR",
-        "initial_balance": "0.00"
-    }, headers={"Authorization": f"Bearer {token}"})
-    account_id = create_response.json()["id"]
+    token, account_id = create_trade_setup()
     
     # buy stock
     response = client.post(f"/portfolio/accounts/{account_id}", json={
         "ticker": "AAPL",
         "direction": "buy",
-        "quantity": 1
+        "quantity": 999999999
     }, headers={"Authorization": f"Bearer {token}"})
         
     assert response.status_code == 400
 
 
 def test_sell_more_than_owned() -> None:
-    seed_asset()
-    seed_currency()
-    token = get_token()
-    create_response = client.post("/accounts", json={
-        "currency_code": "ZAR",
-        "initial_balance": "1000.00"
-    }, headers={"Authorization": f"Bearer {token}"})
-    account_id = create_response.json()["id"]
+    token, account_id = create_trade_setup()
     
     num_buy = 1
     num_sell = 2
@@ -158,28 +142,14 @@ def test_trade_wrong_account() -> None:
 
 
 def test_get_transaction_history() -> None:
-    seed_asset()
-    seed_currency()
-    token = get_token()
-    create_response = client.post("/accounts", json={
-        "currency_code": "ZAR",
-        "initial_balance": "1000.00"
-    }, headers={"Authorization": f"Bearer {token}"})
-    account_id = create_response.json()["id"]
+    token, account_id = create_trade_setup()
     
     response = client.get(f"/portfolio/accounts/{account_id}/transactions", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
 
 
 def test_get_holdings_after_buy() -> None:
-    seed_asset()
-    seed_currency()
-    token = get_token()
-    create_response = client.post("/accounts", json={
-        "currency_code": "ZAR",
-        "initial_balance": "1000.00"
-    }, headers={"Authorization": f"Bearer {token}"})
-    account_id = create_response.json()["id"]
+    token, account_id = create_trade_setup()
     
     # quantity before buy
     response_before_buy = client.get(f"/portfolio/accounts/{account_id}/holdings", headers={"Authorization": f"Bearer {token}"})
