@@ -16,7 +16,7 @@ class MarketDataCache(SQLModel, table=True):
     open_price: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
     high_price: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
     low_price: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
-    official_close: Optional[Decimal] = Field(default=None, max_digits=18, decimal_plaaces=4)
+    official_close: Optional[Decimal] = Field(default=None, max_digits=18, decimal_places=4)
     trading_status: str = Field(default="Trading", nullable=False)
     exchange_timestamp: datetime = Field(nullable=False)
     updated_at: datetime = Field(nullable=False)
