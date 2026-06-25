@@ -28,16 +28,22 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>{error}</p>;
-
     const numPages = Math.ceil(transactions.length / pageSize);
 
     const transactionLogPage = useMemo(() => {
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
-        return transactions.slice(startIndex, endIndex);
+        const temp = transactions.slice(startIndex, endIndex);
+
+        const padding = pageSize - temp.length;
+        if (padding > 0) {
+            return [...temp, ...Array(padding).fill(null)]
+        }
+        return temp;
     }, [transactions, currentPage])
+
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>{error}</p>;
 
     return (
         <div>
@@ -53,16 +59,24 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {transactionLogPage.map((t) => (
-                        <TableRow key={t.asset_id + t.executed_at}>
-                            <TableCell>{t.asset_ticker}</TableCell>
-                            <TableCell>{t.direction}</TableCell>
-                            <TableCell>{t.quantity}</TableCell>
-                            <TableCell>{t.price_at_execution}</TableCell>
-                            <TableCell>{t.quantity * t.price_at_execution}</TableCell>
-                            <TableCell>{new Date(t.executed_at).toLocaleString()}</TableCell>
-                        </TableRow>
-                    ))}
+                    {transactionLogPage.map((t, index) =>
+                        t === null ? (
+                            <TableRow key={`empty-${index}`}>
+                                <TableCell>
+                                    -
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            <TableRow key={t.asset_id + t.executed_at}>
+                                <TableCell>{t.asset_ticker}</TableCell>
+                                <TableCell>{t.direction}</TableCell>
+                                <TableCell>{t.quantity}</TableCell>
+                                <TableCell>{t.price_at_execution}</TableCell>
+                                <TableCell>{t.quantity * t.price_at_execution}</TableCell>
+                                <TableCell>{new Date(t.executed_at).toLocaleString()}</TableCell>
+                            </TableRow>
+                        )
+                    )}
                 </TableBody>
             </Table>
 
