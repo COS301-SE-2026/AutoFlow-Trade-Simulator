@@ -81,38 +81,63 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
 
     return (
         <div>
-            <Input
-                placeholder="Search by ticker..."
-                value={tickerFilter}
-                onChange={(e) => setTickerFilter(e.target.value)}
-            />
+            <div>
+                <Input
+                    placeholder="Search by ticker..."
+                    value={tickerFilter}
+                    onChange={(e) => setTickerFilter(e.target.value)}
 
-            <Input
-                placeholder="Start date"
-                type="date"
-                value={dateStartFilter}
-                onChange={(e) => setDateStartFilter(e.target.value)}
-            />
-            <Input
-                placeholder="End date"
-                type="date"
-                value={dateEndFilter}
-                onChange={(e) => setDateEndFilter(e.target.value)}
-            />
+                    className="pl-9 w-[400px]"
+                    style={{
+                        backgroundColor: 'var(--panel)',
+                        borderColor: 'var(--border)',
+                        color: 'var(--text)',
+                    }}
+                />
 
-            <Select
-                value={directionFilter}
-                onValueChange={(value: 'all' | 'buy' | 'sell') => setDirectionFilter(value)}
-            >
-                <SelectTrigger>
-                    <SelectValue placeholder="Direction" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value='all'>All</SelectItem>
-                    <SelectItem value='buy'>Buy</SelectItem>
-                    <SelectItem value='sell'>Sell</SelectItem>
-                </SelectContent>
-            </Select>
+                <div className="flex gap-2">
+                    <Input
+                        placeholder="Start date"
+                        type="date"
+                        value={dateStartFilter}
+                        onChange={(e) => setDateStartFilter(e.target.value)}
+
+                        className="w-[150px]"
+                        style={{
+                            backgroundColor: 'var(--panel)',
+                            borderColor: 'var(--border)',
+                            color: 'var(--text)',
+                        }}
+                    />
+                    <Input
+                        placeholder="End date"
+                        type="date"
+                        value={dateEndFilter}
+                        onChange={(e) => setDateEndFilter(e.target.value)}
+
+                        className="w-[150px]"
+                        style={{
+                            backgroundColor: 'var(--panel)',
+                            borderColor: 'var(--border)',
+                            color: 'var(--text)',
+                        }}
+                    />
+                </div>
+
+                <Select
+                    value={directionFilter}
+                    onValueChange={(value: 'all' | 'buy' | 'sell') => setDirectionFilter(value)}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Direction" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value='all'>All</SelectItem>
+                        <SelectItem value='buy'>Buy</SelectItem>
+                        <SelectItem value='sell'>Sell</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
 
             <Table>
                 <TableHeader>
@@ -136,7 +161,9 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
                         ) : (
                             <TableRow key={t.asset_id + t.executed_at}>
                                 <TableCell>{t.asset_ticker}</TableCell>
-                                <TableCell>{t.direction}</TableCell>
+                                <TableCell>
+                                    <span className="capitalize" style={{ color: t.direction === 'buy' ? 'var(--green)' : 'var(--red)' }}> {t.direction}</span>
+                                </TableCell>
                                 <TableCell>{t.quantity}</TableCell>
                                 <TableCell>{t.price_at_execution}</TableCell>
                                 <TableCell>{t.quantity * t.price_at_execution}</TableCell>
@@ -147,10 +174,11 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
                 </TableBody>
             </Table>
 
-            <span>Page {currentPage} of {numPages}</span>
-
-            <Button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))} disabled={currentPage === 1}>prev</Button>
-            <Button onClick={() => setCurrentPage(prev => Math.min(prev + 1, numPages))} disabled={currentPage === numPages}>next</Button>
+            <div className='flex justify-center gap-4'>
+                <Button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))} disabled={currentPage === 1}>prev</Button>
+                Page {currentPage} of {numPages}
+                <Button onClick={() => setCurrentPage(prev => Math.min(prev + 1, numPages))} disabled={currentPage === numPages}>next</Button>
+            </div>
         </div>
     );
 }
