@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, X } from "lucide-react";
 import { useMemo, useState } from 'react';
 
 export function TransactionLog({ accountId }: { accountId: number | null }) {
@@ -28,25 +30,90 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
 
+    const [tickerFilter, setTickerFilter] = useState('');
+    const [directionFilter, setDirectionFilter] = useState<'all' | 'buy' | 'sell'>('all');
+    const [dateStartFilter, setDateStartFilter] = useState('');
+    const [dateEndFilter, setDateEndFilter] = useState('');
+
+    const filteredTransaction = useMemo(() => {
+        let temp = transactions;
+        if (temp === null) {
+            temp = [];
+        }
+
+        if (tickerFilter !== '') {
+            temp = temp.filter(t => t.asset_ticker.toLocaleLowerCase().includes(tickerFilter.toLocaleLowerCase()));
+        }
+
+        if (directionFilter !== 'all') {
+            temp = temp.filter(t => t.direction === directionFilter);
+        }
+
+        if (dateStartFilter !== '') {
+            temp = temp.filter(t => new Date(t.executed_at) >= new Date(dateStartFilter));
+        }
+
+        if (dateEndFilter !== '') {
+            temp = temp.filter(t => new Date(t.executed_at) <= new Date(dateEndFilter));
+        }
+
+        setCurrentPage(1);
+
+        return temp;
+    }, [transactions, tickerFilter, directionFilter, dateStartFilter, dateEndFilter]);
+
     const numPages = Math.ceil(transactions.length / pageSize);
 
-    const transactionLogPage = useMemo(() => {
+    const pagedTransactions = useMemo(() => {
         const startIndex = (currentPage - 1) * pageSize;
         const endIndex = startIndex + pageSize;
-        const temp = transactions.slice(startIndex, endIndex);
+        const temp = filteredTransaction.slice(startIndex, endIndex);
 
         const padding = pageSize - temp.length;
         if (padding > 0) {
             return [...temp, ...Array(padding).fill(null)]
         }
         return temp;
-    }, [transactions, currentPage])
+    }, [filteredTransaction, currentPage])
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
     return (
         <div>
+            <Input
+                placeholder="Search by ticker..."
+                value={tickerFilter}
+                onChange={(e) => setTickerFilter(e.target.value)}
+            />
+
+            <Input
+                placeholder="Start date"
+                type="date"
+                value={dateStartFilter}
+                onChange={(e) => setDateStartFilter(e.target.value)}
+            />
+            <Input
+                placeholder="End date"
+                type="date"
+                value={dateEndFilter}
+                onChange={(e) => setDateEndFilter(e.target.value)}
+            />
+
+            <Select
+                value={directionFilter}
+                onValueChange={(value: 'all' | 'buy' | 'sell') => setDirectionFilter(value)}
+            >
+                <SelectTrigger>
+                    <SelectValue placeholder="Direction" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value='all'>All</SelectItem>
+                    <SelectItem value='buy'>Buy</SelectItem>
+                    <SelectItem value='sell'>Sell</SelectItem>
+                </SelectContent>
+            </Select>
+
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -59,7 +126,7 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {transactionLogPage.map((t, index) =>
+                    {pagedTransactions.map((t, index) =>
                         t === null ? (
                             <TableRow key={`empty-${index}`}>
                                 <TableCell>
