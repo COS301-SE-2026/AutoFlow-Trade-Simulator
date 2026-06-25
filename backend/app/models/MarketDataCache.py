@@ -3,8 +3,8 @@ from typing import Optional
 from decimal import Decimal
 from sqlmodel import Field, SQLModel
 
-class MarketDataCache(SQLModel, talbe=True):
-    asset_id: int = Field(foreign_key="asset.id", primary_key=True)
+class MarketDataCache(SQLModel, table=True):
+    asset_id: int = Field(primary_key=True)
 
     #Market data common terms
     last_price: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
