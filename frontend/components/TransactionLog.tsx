@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export function TransactionLog({ accountId }: { accountId: number | null }) {
     const { transactions, loading, error } = useTransactions(accountId);
@@ -33,10 +33,11 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
 
     const numPages = Math.ceil(transactions.length / pageSize);
 
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-
-    const transactionLogPage = transactions.slice(startIndex, endIndex);
+    const transactionLogPage = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return transactions.slice(startIndex, endIndex);
+    }, [transactions, currentPage])
 
     return (
         <div>
@@ -64,6 +65,8 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
                     ))}
                 </TableBody>
             </Table>
+
+            <span>Page {currentPage} of {numPages}</span>
 
             <Button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))} disabled={currentPage === 1}>prev</Button>
             <Button onClick={() => setCurrentPage(prev => Math.min(prev + 1, numPages))} disabled={currentPage === numPages}>next</Button>
