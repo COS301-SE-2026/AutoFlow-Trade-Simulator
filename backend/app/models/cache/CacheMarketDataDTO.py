@@ -9,7 +9,7 @@ class CacheMarketDataDTO(SQLModel):
     bid_price: Decimal
     ask_price: Decimal
     bid_size: int
-    ask_price: int
+    ask_size: int
     total_volume: int
     open_price: Decimal
     high_price: Decimal
