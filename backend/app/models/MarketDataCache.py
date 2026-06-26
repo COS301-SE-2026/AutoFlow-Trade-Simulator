@@ -4,6 +4,7 @@ from decimal import Decimal
 from sqlmodel import Field, SQLModel
 
 class MarketDataCache(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True, autoincrement=True)
     asset_id: int = Field(primary_key=True)
 
     #Market data common terms
@@ -19,5 +20,3 @@ class MarketDataCache(SQLModel, table=True):
     official_close: Optional[Decimal] = Field(default=None, max_digits=18, decimal_places=4)
     trading_status: str = Field(default="Trading", nullable=False)
     exchange_timestamp: datetime = Field(nullable=False)
-    updated_at: datetime = Field(nullable=False)
-    expires_at: datetime = Field(index=True, nullable=False)
