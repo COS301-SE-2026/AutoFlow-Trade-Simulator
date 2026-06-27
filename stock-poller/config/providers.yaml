@@ -1,0 +1,142 @@
+massive:
+  base_url: "https://api.massive.com"
+  auth_location: header
+  auth_param_name: "X-Api-Key"
+  api_key_env_var: "MASSIVE_KEY"
+  seconds_per_request: 12
+  requests_per_min: 5
+  asset_classes:
+    stocks: 2.5
+    options: 2.5
+  rest:
+    batch_limits:
+      stocks: 1000
+      options: 1000
+    credit_system: false
+
+itick:
+  base_url: "https://api.itick.org"
+  auth_location: header
+  auth_param_name: "X-Api-Key"
+  api_key_env_var: "ITICK_KEY"
+  seconds_per_request: 12
+  requests_per_min: 5
+  asset_classes:
+    indices: 2.5
+    futures: 2.5
+  rest:
+    batch_limits: 10
+    credit_system: false
+
+twelve_data:
+  base_url: "https://api.twelvedata.com"
+  auth_location: query
+  auth_param_name: "apikey"
+  api_key_env_var: "TWELVEDATA_KEY"
+  seconds_per_request: 29.25
+  requests_per_min: 8
+  asset_classes:
+    indices: 2.051282051
+  rest:
+    batch_limits: 1
+    credit_system: true
+    credit_cost_per_symbol: 1
+    credits_replenishment:
+      amount: 800
+      period: day
+
+vectrade:
+  base_url: "https://api.vectrade.io"
+  auth_location: header
+  auth_param_name: "X-API-Key"
+  api_key_env_var: "VECTRADE_KEY"
+  seconds_per_request: 46.80
+  requests_per_min: 20
+  requests_per_month: 10000
+  asset_classes:
+    options: 1.282051282
+  rest:
+    batch_limits:
+      options: 50
+    credit_system: false
+
+eod_historical:
+  base_url: "https://eodhistoricaldata.com/api"
+  auth_location: query
+  auth_param_name: "api_token"
+  api_key_env_var: "EOD_KEY"
+  seconds_per_request: 2340.00
+  requests_per_min: 20
+  asset_classes:
+    stocks: 0.025641026
+    currencies: 0.020833333
+  rest:
+    batch_limits: 1
+    credit_system: false
+
+finnhub:
+  base_url: "https://finnhub.io/api/v1"
+  auth_location: query
+  auth_param_name: "token"
+  api_key_env_var: "FINNHUB_KEY"
+  seconds_per_request: 1
+  requests_per_min: 60
+  asset_classes:
+    currencies: 30
+    crypto: 30
+  rest:
+    batch_limits:
+      quotes: 1
+    credit_system: false
+
+fcs:
+  base_url: "https://api.fcsapi.com"
+  auth_location: header
+  auth_param_name: "X-Api-Key"
+  api_key_env_var: "FCS_KEY"
+  seconds_per_request: 3312.00
+  requests_per_min: 3
+  requests_per_month: 500
+  asset_classes:
+    futures: 0.018115942
+  rest:
+    batch_limits: 300
+    credit_system: true
+    credit_cost_per_symbol: 0.003333334
+    credits_replenishment:
+      amount: 500
+      period: month
+
+coinmarketcap:
+  base_url: "https://pro-api.coinmarketcap.com/v1"
+  auth_location: header
+  auth_param_name: "X-CMC_PRO_API_KEY"
+  api_key_env_var: "COINMARKETCAP_KEY"
+  seconds_per_request: 178.56
+  requests_per_min: 50
+  requests_per_month: 15000
+  asset_classes:
+    crypto: 0.336021505
+  rest:
+    batch_limits: ~
+    credit_system: true
+    credit_cost_per_symbol: 0.005
+    credits_replenishment:
+      amount: 15000
+      period: month
+
+coingecko:
+  base_url: "https://api.coingecko.com/api/v3"
+  auth_location: query
+  auth_param_name: "x_cg_demo_api_key"
+  api_key_env_var: "COINGECKO_KEY"
+  seconds_per_request: 267.84
+  requests_per_min: 30
+  requests_per_month: 10000
+  asset_classes:
+    crypto: 0.224014337
+  rest:
+    batch_limits:
+      simple_price: 515
+      coins_markets: 250
+    credit_system: false
