@@ -9,9 +9,9 @@ This report establishes the performance baseline for the AutoFlow Trade Simulato
 - **Lighthouse audits** for key frontend pages
 - **k6 load testing** for critical API endpoints
 
-All tests were run against the local development environment (`http://localhost:3001` for frontend, `http://localhost:8000` for API).
+All tests were run against the local environment (`http://localhost:8000` for the API). Frontend Lighthouse audits were originally run against the frontend started with `npm run dev` (Next.js development mode), which is unoptimised and unminified and therefore not representative of real-world performance. The Lighthouse audits were re-run against the frontend started with `npm run start` (production build, `http://localhost:3000`), and the results below have been updated accordingly. The k6 API load test results are unaffected by the frontend serving mode, since they test the backend directly, and have been left as originally measured (re-confirmed by a second run, see §3.4–3.6).
 
-**Overall Status:** ⚠️ Several performance issues identified that require attention in future sprints.
+**Overall Status:** ⚠️ Frontend performance is now strong on production build, but the API still has significant reliability and latency issues under load that require attention.
 
 ---
 
@@ -26,44 +26,47 @@ All tests were run against the local development environment (`http://localhost:
 | Throttling | Simulated |
 | Mode | Navigation |
 | Lighthouse Version | 13.4.0 |
+| Frontend serving mode | Production build (`npm run start`), `http://localhost:3000` |
+
+> **Note:** An initial round of audits was run against `npm run dev` (development mode). Development mode serves unminified, unbundled JavaScript with extra dev-only instrumentation, which inflated bundle sizes and main-thread work and produced misleadingly poor scores (e.g. Dashboard Performance score of 38). All scores below reflect the corrected, production-build re-run.
 
 ### 2.2 Score Summary
 
 | Page | Performance | Accessibility | Best Practices | SEO |
 |------|-------------|---------------|----------------|-----|
-| Home (`/`) | 70 | 95 | 100 | 100 |
-| Login (`/login`) | 70 | 96 | 100 | 100 |
-| Register (`/register`) | 70 | 96 | 100 | 100 |
-| Dashboard (`/dashboard`) | 38 | 91 | 100 | 100 |
+| Home (`/`) | 100 | 95 | 100 | 100 |
+| Login (`/login`) | 100 | 96 | 100 | 100 |
+| Register (`/register`) | 100 | 96 | 100 | 100 |
+| Dashboard (`/dashboard`) | 83 | 91 | 100 | 100 |
 
 ### 2.3 Core Web Vitals
 
 | Page | FCP (ms) | LCP (ms) | TBT (ms) | CLS |
 |------|----------|----------|----------|-----|
-| Home (`/`) | 261 | 408 | 1,492 | 0.00 |
-| Login (`/login`) | 250 | 393 | 1,504 | 0.00 |
-| Register (`/register`) | 267 | 610 | 1,564 | 0.00 |
-| Dashboard (`/dashboard`) | 294 | **6,257** | **3,537** | 0.087 |
+| Home (`/`) | 224 | 344 | 42 | 0.00 |
+| Login (`/login`) | 235 | 574 | 47 | 0.00 |
+| Register (`/register`) | 230 | 582 | 58 | 0.00 |
+| Dashboard (`/dashboard`) | 218 | **983** | **317** | 0.087 |
 
 ### 2.4 Dashboard Performance Breakdown
 
-The Dashboard page (`/dashboard`) shows significant performance issues:
+The Dashboard page (`/dashboard`) is still the weakest-performing page, though the picture is far less severe than the original dev-mode audit suggested:
 
 | Subpart | Duration |
 |---------|----------|
-| Time to First Byte | 127ms |
-| Element Render Delay | **5,431ms** |
+| Time to First Byte | 10ms |
+| Element Render Delay | **1,030ms** |
 
 **Root Causes Identified:**
 
 | Issue | Impact |
 |-------|--------|
-| Large JavaScript bundles | 7.6MB (main-app.js + dashboard/page.js) |
-| Long main-thread tasks | 1,451ms and 1,392ms tasks |
-| Unused JavaScript | 145 KiB estimated savings |
-| Missing source maps | Large first-party JS files lack source maps |
-| Render-blocking CSS | Layout CSS blocks initial render (82ms wasted) |
-| Legacy JavaScript | ~22 KiB of polyfills/transforms for modern features |
+| Unused JavaScript | 71 KiB estimated savings |
+| Main-thread work | 2.1s total main-thread work (script evaluation, style/layout) |
+| Total page weight | 345 KiB (down from the 7.6MB seen under `npm run dev`) |
+| Layout shift (CLS) | 0.087 — still within "needs improvement" range, caused by late-loading chart/select elements |
+
+The previously reported issues (7.6MB JS bundles, 1.4s+ long tasks, missing source maps, render-blocking CSS, legacy polyfills) were artifacts of running Lighthouse against the unoptimised `npm run dev` server and are **not present** in the production build. The remaining Dashboard bottleneck is the **~1s element render delay** on the LCP element (a chart timeframe selector), most likely caused by client-side data fetching/hydration before the chart can render — this should still be optimised via code-splitting and lazy loading of chart components.
 
 ### 2.5 Accessibility Issues
 
@@ -82,6 +85,8 @@ All pages have colour contrast failures:
 | Login (`/login`) | `lighthouse-login.html` | `lighthouse-login.json` |
 | Register (`/register`) | `lighthouse-register.html` | `lighthouse-register.json` |
 | Dashboard (`/dashboard`) | `lighthouse-dashboard.html` | `lighthouse-dashboard.json` |
+
+*Reports listed above reflect the production-build (`npm run start`) re-run, captured 2026-06-30.*
 
 ---
 
@@ -137,19 +142,28 @@ All pages have colour contrast failures:
 | HTTP Request Duration | 213.94ms | 73.64ms | 696.53ms | **924.44ms** | 2.76s |
 | Expected Response | 240.85ms | 90.62ms | 751.72ms | **975.5ms** | 2.76s |
 
+**Confirmation re-run:** The k6 test was re-run independently of the Lighthouse frontend-mode fix (since k6 hits the backend directly at `localhost:8000` and is unaffected by `npm run dev` vs `npm run start`). Results were consistent with — and slightly worse than — the original run:
+
+| Metric | Average | Median | p90 | p95 | Max |
+|--------|---------|--------|-----|-----|-----|
+| HTTP Request Duration | 435.91ms | 210.99ms | 1.2s | **1.64s** | 3.3s |
+| Expected Response | 484.73ms | 261.92ms | 1.29s | **1.78s** | 3.3s |
+
+This confirms the API latency and error-rate issues are a genuine backend problem, not an artifact of how the frontend was started.
+
 ### 3.5 Error Rate
 
 | Metric | Actual | Threshold | Status |
 |--------|--------|-----------|--------|
-| Error Rate | **15.78%** | < 1% | ❌ **FAILED** |
+| Error Rate | **15.78%** (both runs) | < 1% | ❌ **FAILED** |
 | Successful Checks | 100% | - | ✅ |
 
 ### 3.6 Threshold Status
 
-| Threshold | Target | Actual | Status |
-|-----------|--------|--------|--------|
-| p95 Response Time | < 500ms | 924.44ms | ❌ **FAILED** |
-| Error Rate | < 1% | 15.78% | ❌ **FAILED** |
+| Threshold | Target | Actual (Run 1) | Actual (Run 2) | Status |
+|-----------|--------|-----------------|-----------------|--------|
+| p95 Response Time | < 500ms | 924.44ms | 1.64s | ❌ **FAILED** |
+| Error Rate | < 1% | 15.78% | 15.78% | ❌ **FAILED** |
 
 ### 3.7 Observations
 
@@ -185,16 +199,16 @@ Based on baseline results and industry standards, the following thresholds are r
 
 | Metric | Current | Target | Critical |
 |--------|---------|--------|----------|
-| Lighthouse Performance | 38-70 | > 85 | < 70 |
+| Lighthouse Performance | 83-100 | > 85 | < 70 |
 | Lighthouse Accessibility | 91-96 | > 95 | < 85 |
 | Lighthouse Best Practices | 100 | > 90 | < 80 |
 | Lighthouse SEO | 100 | > 90 | < 80 |
-| LCP (Dashboard) | 6,257ms | < 2,500ms | > 4,000ms |
-| LCP (Other pages) | 393-610ms | < 2,500ms | > 4,000ms |
-| TBT (Dashboard) | 3,537ms | < 300ms | > 600ms |
-| TBT (Other pages) | 1,492-1,564ms | < 300ms | > 600ms |
+| LCP (Dashboard) | 983ms | < 2,500ms | > 4,000ms |
+| LCP (Other pages) | 344-582ms | < 2,500ms | > 4,000ms |
+| TBT (Dashboard) | 317ms | < 300ms | > 600ms |
+| TBT (Other pages) | 42-58ms | < 300ms | > 600ms |
 | CLS | 0-0.087 | < 0.1 | > 0.25 |
-| API p95 Response Time | 924ms | < 500ms | > 1,000ms |
+| API p95 Response Time | 924ms-1.64s | < 500ms | > 1,000ms |
 | API Error Rate | 15.78% | < 1% | > 5% |
 
 These thresholds will be enforced in CI/CD pipelines starting Sprint 4.
@@ -207,12 +221,13 @@ These thresholds will be enforced in CI/CD pipelines starting Sprint 4.
 
 | Priority | Issue | Recommendation | Owner |
 |----------|-------|----------------|-------|
-| **Critical** | Dashboard LCP 6.3s | Code-split chart components; lazy load Recharts | Frontend (Michael) |
 | **Critical** | API error rate 15.78% | Debug auth failures under load; verify account_id=6 exists | Backend (Grant) |
-| **High** | TBT high on all pages | Reduce JavaScript bundle size; defer non-critical scripts | Frontend (Michael) |
-| **High** | API p95 > 500ms | Identify slow endpoints; add caching; optimise queries | Backend (Caitanyah) |
+| **Critical** | API p95 924ms-1.64s | Identify slow endpoints; add caching; optimise queries | Backend (Caitanyah) |
+| **High** | Dashboard render delay ~1s | Code-split chart components; lazy load Recharts | Frontend (Michael) |
+| **High** | Dashboard TBT 317ms | Reduce client-side script work on Dashboard; defer non-critical scripts | Frontend (Michael) |
 | **Medium** | Colour contrast failures | Update colour palette to meet WCAG AA standards | Frontend (Michael) |
-| **Medium** | Unused JavaScript | Tree-shake unused code; remove unused dependencies | Frontend (Michael) |
+| **Medium** | Unused JavaScript (Dashboard) | Tree-shake unused code; remove unused dependencies | Frontend (Michael) |
+| ~~Resolved~~ | ~~Lighthouse scores measured on `npm run dev`~~ | Always benchmark Lighthouse against `npm run start` (production build), never `npm run dev` | N/A |
 
 ### 5.2 Sprint 4 Actions (CI/CD Integration)
 
@@ -233,26 +248,26 @@ These thresholds will be enforced in CI/CD pipelines starting Sprint 4.
 
 ## 6. Conclusion
 
-The baseline has been successfully established:
+The baseline has been successfully established (and corrected after discovering the original Lighthouse audits were run against `npm run dev` instead of the production build):
 
 | Category | Status | Summary |
 |----------|--------|---------|
-| **Lighthouse (Home/Login/Register)** | ⚠️ | Scores of 70 — needs improvement |
-| **Lighthouse (Dashboard)** | ❌ | Score of 38 — poor performance, LCP 6.3s |
-| **k6 API Tests** | ❌ | 15.78% error rate, p95 924ms |
+| **Lighthouse (Home/Login/Register)** | ✅ | Perfect Performance scores of 100 on production build |
+| **Lighthouse (Dashboard)** | ⚠️ | Score of 83 — good, but still the weakest page; ~1s render delay on chart element |
+| **k6 API Tests** | ❌ | 15.78% error rate, p95 924ms–1.64s across two runs |
 
 **Key Takeaways:**
-- The **Dashboard page is the biggest performance bottleneck** — requires immediate attention
-- **API error rate under load is unacceptable** — needs investigation and fixes
+- The original Dashboard score of 38 and the 7.6MB bundle figures were measurement artifacts of testing against `npm run dev`; on the production build (`npm run start`) the Dashboard scores 83 with a 345 KiB total page weight
+- The **Dashboard page is still the relative frontend bottleneck**, but the remaining issue is a ~1s element render delay, not bundle size — code-splitting/lazy-loading the chart is still recommended
+- **API error rate and latency under load are unacceptable** and are confirmed to be a genuine backend issue, independent of frontend serving mode — needs investigation and fixes
 - **Performance thresholds should be enforced in CI** from Sprint 4 onwards
 - **Accessibility issues** (colour contrast) need addressing
 
 **Next Steps:**
-1. Debug k6 failures (investigate 15.78% error rate)
-2. Optimise Dashboard page load (LCP, TBT)
-3. Implement code splitting and lazy loading
-4. Integrate performance tests into CI/CD pipeline (Sprint 4)
-5. Re-run baseline after major feature additions
+1. Debug k6 failures (investigate 15.78% error rate and rising p95 latency under load)
+2. Optimise Dashboard chart render delay (lazy load Recharts)
+3. Integrate performance tests into CI/CD pipeline (Sprint 4), always using a production build for Lighthouse
+4. Re-run baseline after major feature additions
 
 ---
 
