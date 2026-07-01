@@ -1,6 +1,6 @@
 import yaml
 import asyncio
-from adapters import MassiveAdapter, TwelveDataAdapter
+from adapters import MassiveAdapter, TwelveDataAdapter, FinnhubAdapter
 from base_adapter import TickerRingBuffer
 
 async def main():
@@ -15,7 +15,8 @@ async def main():
     # 2. Instantiate workers, passing the shared memory pools into them
     workers = [
         MassiveAdapter(config=config_root["massive"], pools=shared_pools),
-        TwelveDataAdapter(config=config_root["twelve_data"], pools=shared_pools)
+        TwelveDataAdapter(config=config_root["twelve_data"], pools=shared_pools),
+        FinnhubAdapter(config=config_root["finnhub"], pools=shared_pools),
     ]
 
     # Spin up all data pipelines to operate simultaneously
