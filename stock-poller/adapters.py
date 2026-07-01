@@ -63,3 +63,36 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
             else:
                 response.raise_for_status()
 
+class FinnhubAdapter(BaseMarketDataAdapter):
+    """
+    Handles standard Forex and Crypto quotes via URL query parameter authentication.
+    Note: Finnhub does not support native batching for quotes on basic tiers.
+    """
+    def __init__(self, config: dict, pools: dict):
+        super().__init__(provider_name="finnhub", config=config)
+        self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FINNHUB_KEY")
+        self.pools = pools
+
+    async def fetch_and_store(self):
+        async with httpx.AsyncClient() as client:
+            for asset_class in ["currencies", "crypto"]:
+                # Process 1 ticker at a time per loop cycle due to batch limits
+                symbols = await self.pools[asset_class].dequeue_batch(1)
+                if not symbols:
+                    continue
+
+                target_symbol = symbols[0]
+                params = {
+                    self.config["auth_param_name"]: self.api_key,
+                    "symbol": target_symbol
+                }
+
+                # Finnhub dynamic endpoint structure layout
+                endpoint = "forex/rates" if asset_class == "currencies" else "crypto/candle"
+                url = f"{self.base_url}/{endpoint}"
+
+                response = await client.get(url, params=params, timeout=10.0)
+                if response.status_code == 200:
+                    self.save_to_lake(asset_class=asset_class, payload=response.json())
+                else:
+                    response.raise_for_status()
