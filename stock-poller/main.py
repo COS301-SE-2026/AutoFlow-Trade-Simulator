@@ -1,6 +1,6 @@
 import yaml
 import asyncio
-from adapters import MassiveAdapter, TwelveDataAdapter, FinnhubAdapter, CoinMarketCapAdapter, CoinGeckoAdapter
+from adapters import MassiveAdapter, TwelveDataAdapter, FinnhubAdapter, CoinMarketCapAdapter, CoinGeckoAdapter, EodHistoricalAdapter
 from base_adapter import TickerRingBuffer
 
 async def main():
@@ -18,7 +18,8 @@ async def main():
         TwelveDataAdapter(config=config_root["twelve_data"], pools=shared_pools),
         FinnhubAdapter(config=config_root["finnhub"], pools=shared_pools),
         CoinMarketCapAdapter(config=config_root["coinmarketcap"], pools=shared_pools),
-        CoinGeckoAdapter(config=config_root["coingecko"], pools=shared_pools)
+        CoinGeckoAdapter(config=config_root["coingecko"], pools=shared_pools),
+        EodHistoricalAdapter(config=config_root["eod_historical"], pools=shared_pools)
     ]
 
     # Spin up all data pipelines to operate simultaneously

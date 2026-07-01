@@ -152,3 +152,31 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
                 self.save_to_lake(asset_class="crypto", payload=response.json())
             else:
                 response.raise_for_status()
+
+class EodHistoricalAdapter(BaseMarketDataAdapter):
+    """
+    Handles slow, high-latency historical/delayed stock and currency tracks.
+    """
+    def __init__(self, config: dict, pools: dict):
+        super().__init__(provider_name="eod_historical", config=config)
+        self.api_key = os.getenv(config["api_key_env_var"], "MOCK_EOD_KEY")
+        self.pools = pools
+
+    async def fetch_and_store(self):
+        async with httpx.AsyncClient() as client:
+            for asset_class in ["stocks", "currencies"]:
+                symbols = await self.pools[asset_class].dequeue_batch(1)
+                if not symbols:
+                    continue
+
+                target_symbol = symbols[0]
+                params = {self.config["auth_param_name"]: self.api_key, "fmt": "json"}
+
+                # Format: /real-time/AAPL.US
+                url = f"{self.base_url}/real-time/{target_symbol}"
+
+                response = await client.get(url, params=params, timeout=12.0)
+                if response.status_code == 200:
+                    self.save_to_lake(asset_class=asset_class, payload=response.json())
+                else:
+                    response.raise_for_status()
