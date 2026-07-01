@@ -180,3 +180,36 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
                     self.save_to_lake(asset_class=asset_class, payload=response.json())
                 else:
                     response.raise_for_status()
+
+class VectradeAdapter(BaseMarketDataAdapter):
+    """
+    Handles bulk options tracking using Header-based token security.
+    Pulls batch slices of option contract tickers sequentially.
+    """
+    def __init__(self, config: dict, pools: dict):
+        super().__init__(provider_name="vectrade", config=config)
+        self.headers = {config["auth_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
+        self.pools = pools
+
+    async def fetch_and_store(self):
+        # Extract the specialized allocation limit for options strings
+        batch_limit = self.config["rest"]["batch_limits"]["options"]
+
+        # Pull the next sequential chunk of option tickers from the ring buffer
+        symbols = await self.pools["options"].dequeue_batch(batch_limit)
+        if not symbols:
+            return
+
+        async with httpx.AsyncClient() as client:
+            # Vectrade accepts an array or JSON body mapping for targeted updates
+            payload_body = {
+                "contracts": symbols,
+                "snapshot": True
+            }
+            url = f"{self.base_url}/v1/options/quotes"
+
+            response = await client.post(url, headers=self.headers, json=payload_body, timeout=15.0)
+            if response.status_code == 200:
+                self.save_to_lake(asset_class="options", payload=response.json())
+            else:
+                response.raise_for_status()
