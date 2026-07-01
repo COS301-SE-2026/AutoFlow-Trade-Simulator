@@ -1,9 +1,10 @@
 from decimal import Decimal
 from sqlmodel import Field, SQLModel
 from datetime import datetime
+from typing import Optional
 
 class MarketDataCache(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True, autoincrement=True)
+    id: int = Field(default=None, primary_key=True)
     asset_id: int = Field(primary_key=True)
 
     #Market data common terms
