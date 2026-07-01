@@ -6,6 +6,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 import logging
 import random
+from typing import List, Union
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -22,7 +23,7 @@ class BaseMarketDataAdapter(ABC):
         self.storage_root = os.getenv("DATA_LAKE_ROOT", "./storage/raw_harvest")
 
     def _get_compressed_file_path(self, asset_class: str) -> str:
-        now = datetime.utcnow()
+        now = datetime.now()
         partition_dir = os.path.join(
             self.storage_root,
             f"provider={self.provider_name}",
@@ -37,7 +38,7 @@ class BaseMarketDataAdapter(ABC):
         file_path = self._get_compressed_file_path(asset_class)
 
         envelope = {
-            "harvested_at": datetime.utcnow().isoformat() + "Z",
+            "harvested_at": datetime.now().isoformat() + "Z",
             "raw_payload": payload
         }
 
@@ -71,3 +72,25 @@ class BaseMarketDataAdapter(ABC):
             elapsed = asyncio.get_event_loop().time() - start_time
             sleep_time = max(0, self.seconds_per_request - elapsed)
             await asyncio.sleep(sleep_time)
+
+class TickerRingBuffer:
+    """
+    A concurrency-safe circular pointer structure that rotates
+    ticker slices across parallel API workers.
+    """
+    def __init__(self, tickers: List[str]):
+        self.tickers = tickers
+        self._index = 0
+        self._lock = asyncio.Lock()  # Prevents parallel workers from grabbing the same tickers
+
+    async def dequeue_batch(self, batch_size: int) -> List[str]:
+        if not self.tickers:
+            return []
+
+        async with self._lock:
+            batch = []
+            for _ in range(batch_size):
+                batch.append(self.tickers[self._index])
+                # Circular rotation loop
+                self._index = (self._index + 1) % len(self.tickers)
+            return batch

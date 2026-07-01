@@ -1,17 +1,21 @@
 import yaml
 import asyncio
 from adapters import MassiveAdapter, TwelveDataAdapter
+from base_adapter import TickerRingBuffer
 
 async def main():
-    # Load updated market-calibrated configuration values
     with open("config.yaml", "r") as f:
         config_root = yaml.safe_load(f)
 
-    # Instantiate concrete workers mapping directly to custom classes
+    # 1. Initialize the shared ring buffers for each asset class
+    shared_pools = {}
+    for asset_class, symbols in config_root.get("ticker_pools", {}).items():
+        shared_pools[asset_class] = TickerRingBuffer(symbols)
+
+    # 2. Instantiate workers, passing the shared memory pools into them
     workers = [
-        MassiveAdapter(config=config_root["massive"]),
-        TwelveDataAdapter(config=config_root["twelve_data"])
-        # Add remaining child classes here
+        MassiveAdapter(config=config_root["massive"], pools=shared_pools),
+        TwelveDataAdapter(config=config_root["twelve_data"], pools=shared_pools)
     ]
 
     # Spin up all data pipelines to operate simultaneously
