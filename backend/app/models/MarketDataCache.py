@@ -1,5 +1,6 @@
 from decimal import Decimal
 from sqlmodel import Field, SQLModel
+from datetime import datetime
 
 class MarketDataCache(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True, autoincrement=True)
