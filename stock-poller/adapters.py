@@ -121,3 +121,34 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
                 self.save_to_lake(asset_class="crypto", payload=response.json())
             else:
                 response.raise_for_status()
+
+class CoinGeckoAdapter(BaseMarketDataAdapter):
+    """
+    Handles Crypto asset indexing tracking via demo query strings.
+    Supports high-volume comma separated IDs.
+    """
+    def __init__(self, config: dict, pools: dict):
+        super().__init__(provider_name="coingecko", config=config)
+        self.api_key = os.getenv(config["api_key_env_var"], "MOCK_GECKO_KEY")
+        self.pools = pools
+
+    async def fetch_and_store(self):
+        # Pull 250 elements simultaneously matching their coins_markets capability
+        batch_limit = self.config["rest"]["batch_limits"]["coins_markets"]
+        symbols = await self.pools["crypto"].dequeue_batch(batch_limit)
+        if not symbols:
+            return
+
+        async with httpx.AsyncClient() as client:
+            params = {
+                self.config["auth_param_name"]: self.api_key,
+                "vs_currency": "usd",
+                "ids": ",".join(symbols).lower()
+            }
+            url = f"{self.base_url}/coins/markets"
+
+            response = await client.get(url, params=params, timeout=10.0)
+            if response.status_code == 200:
+                self.save_to_lake(asset_class="crypto", payload=response.json())
+            else:
+                response.raise_for_status()
