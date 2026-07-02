@@ -13,6 +13,7 @@ import {TradingAuthPrompt} from "@/components/tradingAuthPrompt";
 import {HoldingsSummary} from "@/components/HoldingsSummary";
 import {Navbar} from '@/components/navbar';
 import {ReportView} from "@/components/ReportView";
+import BuySellForm from '@/components/BuySellForm';
 
 function PageSkeleton() {
     return (
@@ -93,6 +94,10 @@ export default function Dashboard() {
 
                     <div className="h-[500px] rounded-xl border border-border/60 bg-card overflow-hidden">
                         <PriceChart ticker={ticker}/>
+                    </div>
+
+                    <div>
+                        <BuySellForm price={100} onBuy={() => {return}} onSell={() => {return}} />
                     </div>
 
                     <div className="lg:hidden">

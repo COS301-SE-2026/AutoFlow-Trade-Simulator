@@ -67,10 +67,6 @@ export default function PriceChart({ ticker }: PriceChartProps) {
   const [timeframe, setTimeframe] = useState<Timeframe>('daily');
   const { data, loading, error } = usePrices(ticker, timeframeMap[timeframe]);
 
-  //console.log('usePrices data:', data);
-  //console.log('usePrices loading:', loading);
-  //console.log('usePrices error:', error);
-
   const chartData = data.map((item) => ({
     ...item,
     name: item.timestamp.split('T')[0],
