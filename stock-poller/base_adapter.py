@@ -89,7 +89,15 @@ class TickerRingBuffer:
 
         async with self._lock:
             batch = []
-            for _ in range(batch_size):
+
+            total_tickers = len(self.tickers)
+
+            if total_tickers == 0:
+                return batch
+
+            effective_limit = min(batch_size, total_tickers)
+
+            for _ in range(effective_limit):
                 batch.append(self.tickers[self._index])
                 # Circular rotation loop
                 self._index = (self._index + 1) % len(self.tickers)
