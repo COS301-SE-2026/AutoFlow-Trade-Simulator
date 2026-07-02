@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export function TransactionLog({ accountId }: { accountId: number | null }) {
     const { transactions, loading, error } = useTransactions(accountId);
@@ -57,12 +57,14 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
             temp = temp.filter(t => new Date(t.executed_at) <= new Date(dateEndFilter));
         }
 
-        setCurrentPage(1);
-
         return temp;
     }, [transactions, tickerFilter, directionFilter, dateStartFilter, dateEndFilter]);
 
-    const numPages = Math.ceil(transactions.length / pageSize);
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [transactions, tickerFilter, directionFilter, dateStartFilter, dateEndFilter]);
+
+    const numPages = Math.max(Math.ceil(filteredTransaction.length / pageSize), 1);
 
     const pagedTransactions = useMemo(() => {
         const startIndex = (currentPage - 1) * pageSize;
@@ -175,7 +177,7 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
             </Table>
 
             <div className='flex justify-center gap-4'>
-                <Button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))} disabled={currentPage === 1}>prev</Button>
+                <Button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>prev</Button>
                 Page {currentPage} of {numPages}
                 <Button onClick={() => setCurrentPage(prev => Math.min(prev + 1, numPages))} disabled={currentPage === numPages}>next</Button>
             </div>
