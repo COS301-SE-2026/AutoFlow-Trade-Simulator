@@ -1,10 +1,10 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = __ENV.NEXT_PUBLIC_API_URL;
 const TEST_USER = {
-    email: 'user@example.com',
-    password: '1234567890'
+    email: __ENV.TEST_USER_EMAIL,
+    password: __ENV.TEST_USER_PASSWORD
 }
 const ACCOUNT_ID = 6;
 
