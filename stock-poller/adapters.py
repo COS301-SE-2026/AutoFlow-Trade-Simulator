@@ -213,3 +213,31 @@ class VectradeAdapter(BaseMarketDataAdapter):
                 self.save_to_lake(asset_class="options", payload=response.json())
             else:
                 response.raise_for_status()
+#ITick API key has expired, nevertheless, I will leave this adapter here in case the situation changes
+"""class ITickAdapter(BaseMarketDataAdapter):
+    def __init__(self, config: dict, pools: dict):
+        super().__init__(provider_name="itick", config=config)
+        self.api_key = os.getenv(config["api_key_env_var"], "MOCK_ITICK_KEY")
+        self.headers = {config["auth_param_name"]: self.api_key}
+        self.pools = pools
+
+    async def fetch_and_store(self):
+        async with httpx.AsyncClient() as client:
+            # Loop through the asset classes configured for Itick (futures, indices)
+            for asset_class in self.config["asset_classes"].keys():
+                batch_limit = self.config["rest"]["batch_limits"]
+
+                # Fetch the next chunk of tokens from the specific asset ring buffer
+                symbols = await self.pools[asset_class].dequeue_batch(batch_limit)
+                if not symbols:
+                    continue
+
+                # ITick accepts a comma-separated query parameter for batch ticker queries
+                symbol_string = ",".join(symbols)
+                url = f"{self.base_url}/{asset_class}/ticks?region=US&codes={symbol_string}"
+
+                response = await client.get(url, headers=self.headers, timeout=10.0)
+                if response.status_code == 200:
+                    self.save_to_lake(asset_class=asset_class, payload=response.json())
+                else:
+                    response.raise_for_status()"""

@@ -23,7 +23,7 @@ itick:
   requests_per_min: 5
   asset_classes:
     indices: 2.5
-    futures: 2.5
+    future: 2.5
   rest:
     batch_limits: 10
     credit_system: false
