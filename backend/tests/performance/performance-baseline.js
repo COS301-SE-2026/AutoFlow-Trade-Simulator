@@ -22,7 +22,7 @@ export const options = {
     }
 };
 
-export default function () {
+export default function performanceTest() {
     const loginPayload = JSON.stringify(TEST_USER);
     const loginRes = http.post(`${BASE_URL}/auth/login`, loginPayload, { headers: { 'Content-Type': 'application/json' } });
 
