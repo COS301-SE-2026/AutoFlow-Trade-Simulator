@@ -90,19 +90,21 @@ finnhub:
     credit_system: false
 
 fcs:
-  base_url: "https://api.fcsapi.com"
-  auth_location: header
-  auth_param_name: "X-Api-Key"
+  base_url: "https://api-v4.fcsapi.com/forex"
+  auth_location: query
+  auth_param_name: "access_key"
   api_key_env_var: "FCS_KEY"
-  seconds_per_request: 3312.00
+  seconds_per_request: 5356.80
   requests_per_min: 3
   requests_per_month: 500
   asset_classes:
-    futures: 0.018115942
+    commodities: 0.011200717
   rest:
     batch_limits: 300
     credit_system: true
-    credit_cost_per_symbol: 0.003333334
+    credit_cost_per_request: 1
+    query_filters:
+      type: "commodity"
     credits_replenishment:
       amount: 500
       period: month
@@ -140,3 +142,33 @@ coingecko:
       simple_price: 515
       coins_markets: 250
     credit_system: false
+
+ticker_pools:
+  stocks:
+    - AAPL
+    - MSFT
+    - NVDA
+    - AMD
+  options:
+    - AAPL260717C00200000
+    - TSLA260821P00180000
+  indices:
+    - SPX
+    - NDX
+    - DJI
+  futures:
+    - ES=F
+    - NQ=F
+  currencies:
+    - EUR/USD
+    - USD/JPY
+  crypto:
+    - BTC/USD
+    - ETH/USD
+    - SOL/USD
+  commodities:
+    - XAUUSD
+    - SILVER
+    - OSX
+    - BRENT
+    - NGAS

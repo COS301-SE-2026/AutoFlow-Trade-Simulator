@@ -241,3 +241,35 @@ class VectradeAdapter(BaseMarketDataAdapter):
                     self.save_to_lake(asset_class=asset_class, payload=response.json())
                 else:
                     response.raise_for_status()"""
+
+class FCSAdapter(BaseMarketDataAdapter):
+    """
+    Handles bulk commodity tracking via query parameter authentication
+    and mandatory static endpoint filtering keys.
+    """
+    def __init__(self, config: dict, pools: dict):
+        super().__init__(provider_name="fcs", config=config)
+        self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FCS_KEY")
+        self.pools = pools
+
+    async def fetch_and_store(self):
+        batch_limit = self.config["rest"]["batch_limits"]
+        symbols = await self.pools["commodities"].dequeue_batch(batch_limit)
+        if not symbols:
+            return
+
+        async with httpx.AsyncClient() as client:
+            params = {
+                self.config["auth_param_name"]: self.api_key,
+                "symbol": ",".join(symbols),
+                "type": self.config["rest"]["query_filters"]["type"] # Injects 'commodity' string dynamically
+            }
+
+            # Formats cleanly to: https://api-v4.fcsapi.com/forex/latest
+            url = f"{self.base_url}/latest"
+
+            response = await client.get(url, params=params, timeout=12.0)
+            if response.status_code == 200:
+                self.save_to_lake(asset_class="commodities", payload=response.json())
+            else:
+                response.raise_for_status()
