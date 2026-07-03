@@ -97,7 +97,7 @@ export default function Dashboard() {
                     </div>
 
                     <div>
-                        <BuySellForm price={100} onBuy={() => {return}} onSell={() => {return}} />
+                        <BuySellForm price={100} accountBalance={450} currentHoldings={5000} onBuy={() => {return}} onSell={() => {return}} />
                     </div>
 
                     <div className="lg:hidden">
