@@ -89,7 +89,6 @@ classDiagram
 
     class MarketCondition {
         int id (PK)
-        int asset_id (FK)
         datetime date
         enumeration condition
     }
@@ -103,4 +102,3 @@ classDiagram
     Transaction "1" --> "1" Direction : uses
     MarketDataCache "1" --> "1" HistPrice : has
     User "1" --> "*" Greeks : has
-    Asset "1" --> "1" MarketCondition: has

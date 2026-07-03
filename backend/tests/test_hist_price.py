@@ -3,14 +3,16 @@ from decimal import Decimal
 import pytest
 import os
 from dotenv import load_dotenv
-from sqlmodel import Session, SQLModel, create_engine, select
+from sqlmodel import Session, create_engine, select
 from app.models.HistPrice import HistPrice
 
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
+_db_url = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
+if not _db_url:
     raise ValueError("Could not find database URL")
+
+DATABASE_URL: str = _db_url
 
 #Try to connect to the db if you cant connect kill the connection and rollback
 #Upon sucessfull test rollback and kill the connection
