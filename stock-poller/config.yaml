@@ -3,15 +3,13 @@ massive:
   auth_location: header
   auth_param_name: "X-Api-Key"
   api_key_env_var: "MASSIVE_KEY"
-  seconds_per_request: 12
+  seconds_per_request: 12.00
   requests_per_min: 5
   asset_classes:
-    stocks: 2.5
-    options: 2.5
+    stocks: 5.0
   rest:
     batch_limits:
-      stocks: 1000
-      options: 1000
+      stocks: 1
     credit_system: false
 
 itick:
@@ -149,9 +147,6 @@ ticker_pools:
     - MSFT
     - NVDA
     - AMD
-  options:
-    - AAPL260717C00200000
-    - TSLA260821P00180000
   indices:
     - SPX
     - NDX
@@ -163,9 +158,9 @@ ticker_pools:
     - EUR/USD
     - USD/JPY
   crypto:
-    - BTC/USD
-    - ETH/USD
-    - SOL/USD
+    - BTC
+    - ETH
+    - SOL
   commodities:
     - XAUUSD
     - SILVER

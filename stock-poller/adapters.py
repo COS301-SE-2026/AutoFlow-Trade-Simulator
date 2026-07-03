@@ -6,29 +6,36 @@ class MassiveAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict):
         super().__init__(provider_name="massive", config=config)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_MASSIVE_KEY")
-        self.headers = {config["auth_param_name"]: self.api_key}
+        self.base_params = {"apiKey": self.api_key, "adjusted": "true"}
         self.pools = pools
 
     async def fetch_and_store(self):
+        if "stocks" not in self.config["asset_classes"]:
+            return
+
+        batch_limit = self.config["rest"]["batch_limits"].get("stocks", 1)
+        symbols = await self.pools["stocks"].dequeue_batch(batch_limit)
+
+        if not symbols:
+            return
+
+        ticker = symbols[0].upper()
+        url = f"{self.base_url}/v2/aggs/ticker/{ticker}/prev"
+
         async with httpx.AsyncClient() as client:
-            # Loop through the asset classes configured for Massive (stocks, options)
-            for asset_class in self.config["asset_classes"].keys():
-                batch_limit = self.config["rest"]["batch_limits"][asset_class]
+            try:
+                response = await client.get(url, params=self.base_params, timeout=10.0)
 
-                # Fetch the next chunk of tokens from the specific asset ring buffer
-                symbols = await self.pools[asset_class].dequeue_batch(batch_limit)
-                if not symbols:
-                    continue
-
-                # Massive accepts a comma-separated query parameter for batch tokens
-                symbol_string = ",".join(symbols)
-                url = f"{self.base_url}/v1/quotes/{asset_class}?symbols={symbol_string}"
-
-                response = await client.get(url, headers=self.headers, timeout=10.0)
                 if response.status_code == 200:
-                    self.save_to_lake(asset_class=asset_class, payload=response.json())
+                    payload = response.json()
+                    if payload.get("resultsCount", 0) > 0:
+                        self.save_to_lake(asset_class="stocks", payload=payload)
+                elif response.status_code == 429:
+                    print(f"WARN: Rate limit exceeded while fetching {ticker}. Pacing window check required.")
                 else:
                     response.raise_for_status()
+            except Exception as e:
+                print(f"ERROR: Failed to harvest daily stock OHLCV data for {ticker}: {str(e)}")
 
 
 class TwelveDataAdapter(BaseMarketDataAdapter):
@@ -201,18 +208,15 @@ class VectradeAdapter(BaseMarketDataAdapter):
             return
 
         async with httpx.AsyncClient() as client:
-            # Vectrade accepts an array or JSON body mapping for targeted updates
-            payload_body = {
-                "contracts": symbols,
-                "snapshot": True
-            }
-            url = f"{self.base_url}/v1/options/quotes"
+            for sym in symbols:
+                url = f"{self.base_url}/v1/vq/options/{sym}/chain"
 
-            response = await client.post(url, headers=self.headers, json=payload_body, timeout=15.0)
-            if response.status_code == 200:
-                self.save_to_lake(asset_class="options", payload=response.json())
-            else:
-                response.raise_for_status()
+                response = await client.get(url, headers=self.headers, timeout=15.0)
+                if response.status_code == 200:
+                    self.save_to_lake(asset_class="options", payload=response.json())
+                else:
+                    response.raise_for_status()
+
 #ITick API key has expired, nevertheless, I will leave this adapter here in case the situation changes
 """class ITickAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict):
