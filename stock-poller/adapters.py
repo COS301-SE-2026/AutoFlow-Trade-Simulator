@@ -58,11 +58,10 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
         async with httpx.AsyncClient() as client:
             params = {
                 self.config["auth_param_name"]: self.api_key,
-                "interval": "1min",
                 "symbol": selected_symbol
             }
 
-            url = f"{self.base_url}/price"
+            url = f"{self.base_url}/etfs"
             response = await client.get(url, params=params, timeout=10.0)
 
             if response.status_code == 200:
@@ -171,51 +170,69 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
 
     async def fetch_and_store(self):
         async with httpx.AsyncClient() as client:
-            for asset_class in ["stocks", "currencies"]:
-                symbols = await self.pools[asset_class].dequeue_batch(1)
-                if not symbols:
-                    continue
+            asset_class = "currencies"
 
-                target_symbol = symbols[0]
-                params = {self.config["auth_param_name"]: self.api_key, "fmt": "json"}
+            batch_limit = self.config["rest"]["batch_limits"]
+            raw_symbols = await self.pools[asset_class].dequeue_batch(batch_limit)
+            if not raw_symbols:
+                return
 
-                # Format: /real-time/AAPL.US
-                url = f"{self.base_url}/real-time/{target_symbol}"
+            symbols = []
+            for sym in raw_symbols:
+                cleaned = sym.replace("/", "")
+                if ".FOREX" not in cleaned.upper():
+                    cleaned = f"{cleaned}.FOREX"
+                symbols.append(cleaned)
 
+            # EODHD batch syntax: /real-time/{main_ticker}?s={ticker2},{ticker3}
+            main_ticker = symbols[0]
+            params = {
+                self.config["auth_param_name"]: self.api_key,
+                "fmt": "json"
+            }
+
+            if len(symbols) > 1:
+                params["s"] = ",".join(symbols[1:])
+
+            url = f"{self.base_url}/real-time/{main_ticker}"
+
+            try:
                 response = await client.get(url, params=params, timeout=12.0)
                 if response.status_code == 200:
                     self.save_to_lake(asset_class=asset_class, payload=response.json())
                 else:
                     response.raise_for_status()
+            except Exception as e:
+                print(f"ERROR: EodHistorical batch forex fetch failed for {symbols}: {str(e)}")
 
 class VectradeAdapter(BaseMarketDataAdapter):
-    """
-    Handles bulk options tracking using Header-based token security.
-    Pulls batch slices of option contract tickers sequentially.
-    """
     def __init__(self, config: dict, pools: dict):
         super().__init__(provider_name="vectrade", config=config)
         self.headers = {config["auth_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
         self.pools = pools
 
     async def fetch_and_store(self):
-        # Extract the specialized allocation limit for options strings
-        batch_limit = self.config["rest"]["batch_limits"]["options"]
+        if "stocks" not in self.config["asset_classes"]:
+            return
 
-        # Pull the next sequential chunk of option tickers from the ring buffer
-        symbols = await self.pools["options"].dequeue_batch(batch_limit)
+        batch_limit = self.config["rest"]["batch_limits"]["stocks"]
+
+        symbols = await self.pools["vectrade_stocks"].dequeue_batch(batch_limit)
         if not symbols:
             return
 
-        async with httpx.AsyncClient() as client:
-            for sym in symbols:
-                url = f"{self.base_url}/v1/vq/options/{sym}/chain"
+        params = {"symbols": ",".join(symbols)}
+        url = f"{self.base_url}/v1/vq/quotes/batch"
 
-                response = await client.get(url, headers=self.headers, timeout=15.0)
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(url, headers=self.headers, params=params, timeout=15.0)
                 if response.status_code == 200:
-                    self.save_to_lake(asset_class="options", payload=response.json())
+                    self.save_to_lake(asset_class="stocks", payload=response.json())
                 else:
                     response.raise_for_status()
+            except Exception as e:
+                print(f"ERROR: Vectrade batch stocks quotes fetch failed: {str(e)}")
 
 #ITick API key has expired, nevertheless, I will leave this adapter here in case the situation changes
 """class ITickAdapter(BaseMarketDataAdapter):

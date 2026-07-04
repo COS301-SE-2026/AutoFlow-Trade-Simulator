@@ -34,7 +34,7 @@ twelve_data:
   seconds_per_request: 29.25
   requests_per_min: 8
   asset_classes:
-    indices: 2.051282051
+    etfs: 2.051282051
   rest:
     batch_limits: 1
     credit_system: true
@@ -52,14 +52,14 @@ vectrade:
   requests_per_min: 20
   requests_per_month: 10000
   asset_classes:
-    options: 1.282051282
+    stocks: 1.282051282
   rest:
     batch_limits:
-      options: 50
+      stocks: 50
     credit_system: false
 
 eod_historical:
-  base_url: "https://eodhistoricaldata.com/api"
+  base_url: "https://eodhd.com/api"
   auth_location: query
   auth_param_name: "api_token"
   api_key_env_var: "EOD_KEY"
@@ -147,6 +147,10 @@ ticker_pools:
     - MSFT
     - NVDA
     - AMD
+  vectrade_stocks:
+    - AAPL
+    - TSLA
+    - NVDA
   indices:
     - SPX
     - NDX
