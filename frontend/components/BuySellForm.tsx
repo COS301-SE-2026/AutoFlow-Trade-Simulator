@@ -43,7 +43,7 @@ export default function BuySellForm({
             }
         };
 
-        const handleSumbit = (e: React.SubmitEvent) => {
+        const handleSubmit = (e: React.SubmitEvent) => {
             e.preventDefault();
             const qty = parseFloat(quantity);
             if (!(qty) || qty <= 0) { return; }
@@ -105,7 +105,7 @@ export default function BuySellForm({
         return (
             <>
             <div className="flex flex-col rounded-xl shadow-sm border border-white p-4 w-full">
-                <form onSubmit={handleSumbit}>
+                <form onSubmit={handleSubmit}>
                     <div className="border border-solid border-[var(--border)] bg-[rgba(20,20,32,0.6)] flex flex-row items-center justify-evenly rounded-xl">
                     <button onClick={() => setMode('buy')} 
                         className={`rounded-xl px-10 py-3 m-2 bg-green-500 text-white shadow-sm
@@ -217,11 +217,39 @@ export default function BuySellForm({
                             <label>Current: {currentPrice.toFixed(2)}</label>
                         </div>
                     )}
-                    <div className='flex justify-evenly'>
-                        <div>
-                            <label className='text-xl m-3'>Price: {currentPrice.toFixed(2)}</label>
-                            <label className='text-xl m-3'>Total: {totalCost.toFixed(2)}</label>
+                    <div className='border border-[var(--border)] rounded-xl bg-[rgba(20,20,32,0.3)] p-4 m-3'>
+                        <div className='flex flex-col gap-3'>
+                            <div className='flex justify-between items-center'>
+                                <span className='text-lg'>Available Balance</span>
+                                <span className='text-xl font-bold text-green-400'>{accountBalance.toFixed(2)}</span>
+                            </div>
+                            <div className='flex justify-between items-center'>
+                                <span className='text-lg'>Current Holdings</span>
+                                <span className='text-xl font-bold text-blue-400'>{currentHoldings.toFixed(4)} units</span>
+                            </div>
+                            <div className='border-b border-[var(--border)] my-1'></div>
+                            <div className='flex justify-between items-center'>
+                                <span className='text-lg'>Price per unit</span>
+                                <span className='text-xl font-bold'>{currentPrice.toFixed(2)}</span>
+                            </div>
+                            <div className='flex justify-between items-center'>
+                                <span className='text-lg'>Estimated Total:</span>
+                                <span className='text-xl font-bold'>{totalCost.toFixed(2)}</span>
+                            </div>
+                            {quantity && parseFloat(quantity) > 0 && (
+                                <div className='flex justify-between items-center'>
+                                    <span className='text-lg'>Quantity</span>
+                                    <span className='text-xl font-bold text-green-400'>{quantity} units</span>
+                                </div>
+                            )}
+                            {!isValid() && quantity && parseFloat(quantity) > 0 && (
+                                <div className='text-red-500 text-center mt-2'>
+                                    {mode === 'buy' ? 'Insufficient Balance' : 'Insufficient holdings'}
+                                </div>
+                            )}
                         </div>
+                    </div>
+                    <div className='flex justify-evenly'>
                         {orderType === 'stop-loss' && mode === 'sell' && stopPrice && (
                             <div className='text-center'>
                                 Stop-Loss triggered at {parseFloat(stopPrice).toFixed(2)}
@@ -232,10 +260,15 @@ export default function BuySellForm({
                                 Limit order at {parseFloat(limitPrice).toFixed(2)}
                             </div>
                         )}
+                        {orderType === 'market' && (
+                            <div className='text-center'>
+                                Market order at current price
+                            </div>
+                        )}
                     </div>
                     <button
                         type='submit'
-                        className={`w-full p-2 self-center border border-[var(--border)] rounded-xl
+                        className={`w-full p-2 self-center border border-[var(--border)] rounded-xl mt-3
                             ${mode === 'buy' ? 'bg-green-600' : 'bg-red-600'}
                             ${!isValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
                         disabled={!isValid()}
