@@ -87,6 +87,12 @@ classDiagram
         datetime timestamp
     }
 
+    class MarketCondition {
+        int id (PK)
+        datetime date
+        enumeration condition
+    }
+
     User "1" --> "*" Portfolio : owns
     Portfolio "1" --> "*" InternationalAccount : contains
     InternationalAccount "1" --> "*" Transaction : records
