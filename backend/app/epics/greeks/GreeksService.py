@@ -1,11 +1,24 @@
 import math
-from .GreeksDTOs import EpicStatusDTO, GreekValues
-from scipy.stats import norm
+
+from fastapi import HTTPException, status
+from sqlmodel import Session, select
+
+from ...models.HistPrice import HistPrice
+from ...models.greeks import Greeks
+from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues
 
 class GreeksService:
-    
-    def __init__(self):
-        pass
+
+    def __init__(self, session: Session):
+        self.session = session
+
+    @staticmethod
+    def _normal_pdf(value: float) -> float:
+        return math.exp(-0.5 * value ** 2) / math.sqrt(2 * math.pi)
+
+    @staticmethod
+    def _normal_cdf(value: float) -> float:
+        return 0.5 * (1.0 + math.erf(value / math.sqrt(2.0)))
     
     @staticmethod
     def get_status() -> EpicStatusDTO:
@@ -30,9 +43,9 @@ class GreeksService:
         """
         d1= GreeksService.calc_d1(current_price,strike_price,time_to_expire,interest_rate,sigma)
         if option_type == "call":
-            return norm.cdf(d1)
+            return GreeksService._normal_cdf(d1)
         elif option_type == "put":
-            return norm.cdf(d1) - 1
+            return GreeksService._normal_cdf(d1) - 1
         raise ValueError("option_type must be 'call' or 'put'")
 
     @staticmethod
@@ -42,7 +55,7 @@ class GreeksService:
         Identical for calls and puts.
         """
         d1 = GreeksService.calc_d1(current_price, strike_price, time_to_expire, interest_rate, sigma)
-        return norm.pdf(d1) / (current_price * sigma * math.sqrt(time_to_expire))
+        return GreeksService._normal_pdf(d1) / (current_price * sigma * math.sqrt(time_to_expire))
 
     @staticmethod
     def theta(current_price:float,strike_price:float,time_to_expire:float,interest_rate:float,sigma:float,option_type:str="call")-> float:
@@ -52,12 +65,12 @@ class GreeksService:
         """
         d1 = GreeksService.calc_d1(current_price, strike_price, time_to_expire, interest_rate, sigma)
         d2 = GreeksService.calc_d2(current_price, strike_price, time_to_expire, interest_rate, sigma)
-        term1 = -(current_price * norm.pdf(d1) * sigma) / (2 * math.sqrt(time_to_expire))
+        term1 = -(current_price * GreeksService._normal_pdf(d1) * sigma) / (2 * math.sqrt(time_to_expire))
         if option_type == "call":
-            term2 = interest_rate * strike_price * math.exp(-interest_rate * time_to_expire) * norm.cdf(d2)
+            term2 = interest_rate * strike_price * math.exp(-interest_rate * time_to_expire) * GreeksService._normal_cdf(d2)
             return term1 - term2
         elif option_type == "put":
-            term2 = interest_rate * strike_price * math.exp(-interest_rate * time_to_expire) * norm.cdf(-d2)
+            term2 = interest_rate * strike_price * math.exp(-interest_rate * time_to_expire) * GreeksService._normal_cdf(-d2)
             return term1 + term2
         raise ValueError("option_type must be 'call' or 'put'")
 
@@ -70,7 +83,7 @@ class GreeksService:
         Divide by 100 to express as price change per 1 vol *point* (e.g. 20% -> 21%).
         """
         d1 = GreeksService.calc_d1(current_price, strike_price, time_to_expire, interest_rate, sigma)
-        return current_price * norm.pdf(d1) * math.sqrt(time_to_expire)
+        return current_price * GreeksService._normal_pdf(d1) * math.sqrt(time_to_expire)
     
 
     @staticmethod
@@ -81,12 +94,76 @@ class GreeksService:
         """
         d2 = GreeksService.calc_d2(current_price, strike_price, time_to_expire, interest_rate, sigma)
         if option_type == "call":
-            return strike_price * time_to_expire * math.exp(-interest_rate * time_to_expire) * norm.cdf(d2)
+            return strike_price * time_to_expire * math.exp(-interest_rate * time_to_expire) * GreeksService._normal_cdf(d2)
         elif option_type == "put":
-            return -strike_price * time_to_expire * math.exp(-interest_rate * time_to_expire) * norm.cdf(-d2)
+            return -strike_price * time_to_expire * math.exp(-interest_rate * time_to_expire) * GreeksService._normal_cdf(-d2)
         raise ValueError("option_type must be 'call' or 'put'")
 
-    @staticmethod
-    def get_greeks(symbol:str)->GreekValues:
-        
-        
+    
+    def get_greeks(self, symbol: str) -> GreekValues:
+        normalized_symbol = symbol.upper()
+
+        greek_rows = self.session.exec(
+            select(Greeks).where(Greeks.symbol == normalized_symbol)
+        ).all()
+
+        greek_row = max(greek_rows, key=lambda row: row.timestamp, default=None)
+
+        if greek_row is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No greeks data found for symbol '{normalized_symbol}'",
+            )
+
+        return GreekValues(
+            delta=float(greek_row.delta),
+            gamma=float(greek_row.gamma),
+            theta=float(greek_row.theta),
+            vega=float(greek_row.vega),
+            rho=float(greek_row.rho),
+        )
+
+    def get_history(self, symbol: str) -> HistPriceHistoryResponse:
+        normalized_symbol = symbol.upper()
+
+        price_rows = self.session.exec(
+            select(HistPrice).where(HistPrice.symbol == normalized_symbol)
+        ).all()
+
+        if not price_rows:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No historical prices found for symbol '{normalized_symbol}'",
+            )
+
+        history = [
+            HistPriceHistoryItem(
+                asset_id=row.asset_id,
+                symbol=row.symbol,
+                volume=row.volume,
+                open_price=row.open_price,
+                high_price=row.high_price,
+                low_price=row.low_price,
+                official_close=row.offical_close,
+                timestamp=row.date,
+            )
+            for row in sorted(price_rows, key=lambda row: row.date)
+        ]
+
+        return HistPriceHistoryResponse(symbol=normalized_symbol, history=history)
+    
+    def calc_greeks(self,current_price: float, strike_price: float, time_to_expire: float, interest_rate: float, sigma: float, option_type: str = "call") -> GreekValues:
+        delta = GreeksService.delta(current_price, strike_price, time_to_expire, interest_rate, sigma, option_type)
+        gamma = GreeksService.gamma(current_price, strike_price, time_to_expire, interest_rate, sigma)
+        theta = GreeksService.theta(current_price, strike_price, time_to_expire, interest_rate, sigma, option_type)
+        vega = GreeksService.vega(current_price, strike_price, time_to_expire, interest_rate, sigma)
+        rho = GreeksService.rho(current_price, strike_price, time_to_expire, interest_rate, sigma, option_type)
+
+        return GreekValues(
+            delta=delta,
+            gamma=gamma,
+            theta=theta,
+            vega=vega,
+            rho=rho)
+
+

@@ -7,6 +7,8 @@ from .stock_asset import StockAsset
 from .transaction import Transaction, Direction
 from .report import Report, Period
 from .report_section import ReportSection
+from .greeks import Greeks
+from .HistPrice import HistPrice
 
 __all__ = [
     "User",
@@ -20,4 +22,6 @@ __all__ = [
 	"Report",
     "Period",
 	"ReportSection",
+	"Greeks",
+	"HistPrice",
 ]
