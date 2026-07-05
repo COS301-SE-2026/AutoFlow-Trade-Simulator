@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  data-harvester:
+    build: .
+    container_name: market_data_harvester
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./storage/raw_harvest:/app/storage/raw_harvest
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - MOCK_MODE=false
+      - DATA_LAKE_ROOT=/app/storage/raw_harvest
+      - MASSIVE_KEY=${MASSIVE_KEY}
+      - TWELVEDATA_KEY=${TWELVEDATA_KEY}
