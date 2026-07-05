@@ -1,0 +1,98 @@
+classDiagram
+    class User {
+        int id (PK)
+        string email (UNIQUE)
+        string password_hash
+        string full_name
+    }
+
+    class Portfolio {
+        int id (PK)
+        int user_id (FK)
+        decimal cash_balance
+        string name
+    }
+
+    class InternationalAccount {
+        int id (PK)
+        int portfolio_id (FK)
+        int currency_id (FK)
+        decimal balance
+        datetime created_at
+    }
+
+    class Currency {
+        int id (PK)
+        string code (max 3)
+        string name
+    }
+
+    class Asset {
+        int id (PK)
+        string ticker
+        string name
+        string asset_type
+    }
+
+    class StockAsset {
+        int id (PK)
+        int asset_id (FK)
+    }
+
+    class Transaction {
+        int id (PK)
+        int account_id (FK)
+        int asset_id (FK)
+        Direction direction
+        float quantity
+        decimal price_at_execution
+        datetime executed_at
+    }
+
+    class Direction {
+        <<enumeration>>
+        BUY
+        SELL
+    }
+
+    class MarketDataCache{
+       int id (PK)
+       int asset_id (PK)
+       decimal last_price
+       decimal ask_price
+       int bid_size
+       int ask_size
+       string trading_status
+    }
+
+    class HistPrice{
+       int asset_id (PK) (FK)
+       int volume
+       decimal open_price
+       decimal high_price
+       decimal low_price
+       Optinal decimal offical_close
+       string symbol
+       datetime date
+    }
+
+    class Greeks{
+        int user_id (FK) (PK)
+        string symbol
+        decimal delta
+        decimal gamma
+        decimal theta
+        decimal vega
+        decimal rho
+        datetime timestamp
+    }
+
+    User "1" --> "*" Portfolio : owns
+    Portfolio "1" --> "*" InternationalAccount : contains
+    InternationalAccount "1" --> "*" Transaction : records
+    Currency "1" --> "*" InternationalAccount : denominated_in
+    Asset "1" --> "*" Transaction : executes
+    Asset "1" --> "*" StockAsset : specializes
+    Transaction "1" --> "1" Direction : uses
+    MarketDataCache "1" --> "1" HistPrice : has
+    User "1" --> "*" Greeks : has
