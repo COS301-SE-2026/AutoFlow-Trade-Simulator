@@ -178,3 +178,4 @@ class TestUserServiceDelete:
 cd backend
 pytest tests/test_user_service.py -v
 ```
+
