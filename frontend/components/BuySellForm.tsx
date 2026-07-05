@@ -181,9 +181,57 @@ export default function BuySellForm({
                     <p className='card'>
                         {getOrderTypeDescription()}
                     </p>
+                    {orderType === 'limit' && (
+                        <div className='card flex justify-center items-center m-2 gap-2'>
+                            <label>Limit Price:</label>
+                            <input
+                                type='text'
+                                placeholder='Enter limit price'
+                                value={limitPrice}
+                                onChange={(e) => {
+                                    if (e.target.value === '' || /[\d]+([.]\d+)?/.test(e.target.value)) {
+                                        setLimitPrice(e.target.value);
+                                    }
+                                }}
+                                className='ml-3 border border-[var(--border)] rounded-xl p-2 w-32'
+                            >
+                            </input>
+                            <label>Current Price: {currentPrice.toFixed(2)}</label>
+                        </div>
+                    )}
+                    {orderType === 'stop-loss' && mode === 'sell' && (
+                        <div className='card flex justify-center items-center m-2 gap-2'>
+                            <label>Stop Price:</label>
+                            <input
+                                type='text'
+                                placeholder='Enter stop price'
+                                value={limitPrice}
+                                onChange={(e) => {
+                                    if (e.target.value === '' || /[\d]+([.]\d+)?/.test(e.target.value)) {
+                                        setStopPrice(e.target.value);
+                                    }
+                                }}
+                                className='ml-3 border border-[var(--border)] rounded-xl p-2 w-32'
+                            >
+                            </input>
+                            <label>Current: {currentPrice.toFixed(2)}</label>
+                        </div>
+                    )}
                     <div className='flex justify-evenly'>
-                        <label className='text-xl m-3'>Price: {currentPrice}</label>
-                        <label className='text-xl m-3'>Total: {totalCost}</label>
+                        <div>
+                            <label className='text-xl m-3'>Price: {currentPrice.toFixed(2)}</label>
+                            <label className='text-xl m-3'>Total: {totalCost.toFixed(2)}</label>
+                        </div>
+                        {orderType === 'stop-loss' && mode === 'sell' && stopPrice && (
+                            <div className='text-center'>
+                                Stop-Loss triggered at {parseFloat(stopPrice).toFixed(2)}
+                            </div>
+                        )}
+                        {orderType === 'limit' && limitPrice && (
+                            <div className='text-center'>
+                                Limit order at {parseFloat(limitPrice).toFixed(2)}
+                            </div>
+                        )}
                     </div>
                     <button
                         type='submit'
@@ -193,6 +241,7 @@ export default function BuySellForm({
                         disabled={!isValid()}
                     >
                         {mode === 'buy' ? 'Buy' : 'Sell'} {quantity || '0'} units
+                        {orderType !== 'market' && ` (${orderType})`}
                     </button>
                 </div>
                 </form>
