@@ -1,7 +1,7 @@
 massive:
   base_url: "https://api.massive.com"
-  auth_location: header
-  auth_param_name: "X-Api-Key"
+  key_location: header
+  key_param_name: "X-Api-Key"
   api_key_env_var: "MASSIVE_KEY"
   seconds_per_request: 12.00
   requests_per_min: 5
@@ -14,8 +14,8 @@ massive:
 
 itick:
   base_url: "https://api.itick.org"
-  auth_location: header
-  auth_param_name: "X-Api-Key"
+  key_location: header
+  key_param_name: "X-Api-Key"
   api_key_env_var: "ITICK_KEY"
   seconds_per_request: 12
   requests_per_min: 5
@@ -28,8 +28,8 @@ itick:
 
 twelve_data:
   base_url: "https://api.twelvedata.com"
-  auth_location: query
-  auth_param_name: "apikey"
+  key_location: query
+  key_param_name: "apikey"
   api_key_env_var: "TWELVEDATA_KEY"
   seconds_per_request: 29.25
   requests_per_min: 8
@@ -45,8 +45,8 @@ twelve_data:
 
 vectrade:
   base_url: "https://api.vectrade.io"
-  auth_location: header
-  auth_param_name: "X-API-Key"
+  key_location: header
+  key_param_name: "X-API-Key"
   api_key_env_var: "VECTRADE_KEY"
   seconds_per_request: 46.80
   requests_per_min: 20
@@ -60,8 +60,8 @@ vectrade:
 
 eod_historical:
   base_url: "https://eodhd.com/api"
-  auth_location: query
-  auth_param_name: "api_token"
+  key_location: query
+  key_param_name: "api_token"
   api_key_env_var: "EOD_KEY"
   seconds_per_request: 2340.00
   requests_per_min: 20
@@ -74,8 +74,8 @@ eod_historical:
 
 finnhub:
   base_url: "https://finnhub.io/api/v1"
-  auth_location: query
-  auth_param_name: "token"
+  key_location: query
+  key_param_name: "token"
   api_key_env_var: "FINNHUB_KEY"
   seconds_per_request: 1
   requests_per_min: 60
@@ -89,8 +89,8 @@ finnhub:
 
 fcs:
   base_url: "https://api-v4.fcsapi.com/forex"
-  auth_location: query
-  auth_param_name: "access_key"
+  key_location: query
+  key_param_name: "access_key"
   api_key_env_var: "FCS_KEY"
   seconds_per_request: 5356.80
   requests_per_min: 3
@@ -109,8 +109,8 @@ fcs:
 
 coinmarketcap:
   base_url: "https://pro-api.coinmarketcap.com/v1"
-  auth_location: header
-  auth_param_name: "X-CMC_PRO_API_KEY"
+  key_location: header
+  key_param_name: "X-CMC_PRO_API_KEY"
   api_key_env_var: "COINMARKETCAP_KEY"
   seconds_per_request: 178.56
   requests_per_min: 50
@@ -127,8 +127,8 @@ coinmarketcap:
 
 coingecko:
   base_url: "https://api.coingecko.com/api/v3"
-  auth_location: query
-  auth_param_name: "x_cg_demo_api_key"
+  key_location: query
+  key_param_name: "x_cg_demo_api_key"
   api_key_env_var: "COINGECKO_KEY"
   seconds_per_request: 267.84
   requests_per_min: 30

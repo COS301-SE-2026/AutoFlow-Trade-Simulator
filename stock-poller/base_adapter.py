@@ -5,7 +5,8 @@ import asyncio
 from datetime import datetime
 from abc import ABC, abstractmethod
 import logging
-import random
+import secrets
+import aiofiles
 from typing import List, Union
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -52,6 +53,7 @@ class BaseMarketDataAdapter(ABC):
     async def run_harvest_loop(self):
         logging.info(f"Starting harvest loop for {self.provider_name}...")
         mock_mode = os.getenv("MOCK_MODE", "false").lower() == "true"
+        secure_random = secrets.SystemRandom()
 
         while True:
             start_time = asyncio.get_event_loop().time()
@@ -59,15 +61,15 @@ class BaseMarketDataAdapter(ABC):
                 if mock_mode:
                     mock_payload = {
                         "symbol": "MOCK",
-                        "last_price": round(random.uniform(10, 500), 4),
-                        "total_volume": random.randint(1000, 50000)
+                        "last_price": round(secure_random.uniform(10, 500), 4),
+                        "total_volume": secure_random.randint(1000, 50000)
                     }
                     await asyncio.sleep(0.1)
                     self.save_to_lake(asset_class="mock_asset", payload=mock_payload)
                 else:
                     await self.fetch_and_store()
             except Exception as e:
-                logging.error(f"Error: {e}")
+                logging.exception(f"Error: {e}")
 
             elapsed = asyncio.get_event_loop().time() - start_time
             sleep_time = max(0, self.seconds_per_request - elapsed)

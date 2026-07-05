@@ -3,24 +3,27 @@ import asyncio
 from adapters import MassiveAdapter, TwelveDataAdapter, FinnhubAdapter, CoinMarketCapAdapter, CoinGeckoAdapter, EodHistoricalAdapter, VectradeAdapter
 from base_adapter import TickerRingBuffer
 
-async def main():
+def load_yaml_sync():
     with open("config.yaml", "r") as f:
-        config_root = yaml.safe_load(f)
+        return yaml.safe_load(f)
+
+async def main():
+    config = await asyncio.to_thread(load_yaml_sync)
 
     # 1. Initialize the shared ring buffers for each asset class
     shared_pools = {}
-    for asset_class, symbols in config_root.get("ticker_pools", {}).items():
+    for asset_class, symbols in config.get("ticker_pools", {}).items():
         shared_pools[asset_class] = TickerRingBuffer(symbols)
 
     # 2. Instantiate workers, passing the shared memory pools into them
     workers = [
-        MassiveAdapter(config=config_root["massive"], pools=shared_pools),
-        TwelveDataAdapter(config=config_root["twelve_data"], pools=shared_pools),
-        FinnhubAdapter(config=config_root["finnhub"], pools=shared_pools),
-        CoinMarketCapAdapter(config=config_root["coinmarketcap"], pools=shared_pools),
-        CoinGeckoAdapter(config=config_root["coingecko"], pools=shared_pools),
-        EodHistoricalAdapter(config=config_root["eod_historical"], pools=shared_pools),
-        VectradeAdapter(config=config_root["vectrade"], pools=shared_pools),
+        MassiveAdapter(config=config["massive"], pools=shared_pools),
+        TwelveDataAdapter(config=config["twelve_data"], pools=shared_pools),
+        FinnhubAdapter(config=config["finnhub"], pools=shared_pools),
+        CoinMarketCapAdapter(config=config["coinmarketcap"], pools=shared_pools),
+        CoinGeckoAdapter(config=config["coingecko"], pools=shared_pools),
+        EodHistoricalAdapter(config=config["eod_historical"], pools=shared_pools),
+        VectradeAdapter(config=config["vectrade"], pools=shared_pools),
     ]
 
     # Spin up all data pipelines to operate simultaneously

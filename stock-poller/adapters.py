@@ -57,7 +57,7 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
 
         async with httpx.AsyncClient() as client:
             params = {
-                self.config["auth_param_name"]: self.api_key,
+                self.config["key_param_name"]: self.api_key,
                 "symbol": selected_symbol
             }
 
@@ -89,7 +89,7 @@ class FinnhubAdapter(BaseMarketDataAdapter):
 
                 target_symbol = symbols[0]
                 params = {
-                    self.config["auth_param_name"]: self.api_key,
+                    self.config["key_param_name"]: self.api_key,
                     "symbol": target_symbol
                 }
 
@@ -109,7 +109,7 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
     """
     def __init__(self, config: dict, pools: dict):
         super().__init__(provider_name="coinmarketcap", config=config)
-        self.headers = {config["auth_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CMC_KEY")}
+        self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CMC_KEY")}
         self.pools = pools
 
     async def fetch_and_store(self):
@@ -147,7 +147,7 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
 
         async with httpx.AsyncClient() as client:
             params = {
-                self.config["auth_param_name"]: self.api_key,
+                self.config["key_param_name"]: self.api_key,
                 "vs_currency": "usd",
                 "ids": ",".join(symbols).lower()
             }
@@ -187,7 +187,7 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
             # EODHD batch syntax: /real-time/{main_ticker}?s={ticker2},{ticker3}
             main_ticker = symbols[0]
             params = {
-                self.config["auth_param_name"]: self.api_key,
+                self.config["key_param_name"]: self.api_key,
                 "fmt": "json"
             }
 
@@ -208,7 +208,7 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
 class VectradeAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict):
         super().__init__(provider_name="vectrade", config=config)
-        self.headers = {config["auth_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
+        self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
         self.pools = pools
 
     async def fetch_and_store(self):
@@ -234,35 +234,6 @@ class VectradeAdapter(BaseMarketDataAdapter):
             except Exception as e:
                 print(f"ERROR: Vectrade batch stocks quotes fetch failed: {str(e)}")
 
-#ITick API key has expired, nevertheless, I will leave this adapter here in case the situation changes
-"""class ITickAdapter(BaseMarketDataAdapter):
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="itick", config=config)
-        self.api_key = os.getenv(config["api_key_env_var"], "MOCK_ITICK_KEY")
-        self.headers = {config["auth_param_name"]: self.api_key}
-        self.pools = pools
-
-    async def fetch_and_store(self):
-        async with httpx.AsyncClient() as client:
-            # Loop through the asset classes configured for Itick (futures, indices)
-            for asset_class in self.config["asset_classes"].keys():
-                batch_limit = self.config["rest"]["batch_limits"]
-
-                # Fetch the next chunk of tokens from the specific asset ring buffer
-                symbols = await self.pools[asset_class].dequeue_batch(batch_limit)
-                if not symbols:
-                    continue
-
-                # ITick accepts a comma-separated query parameter for batch ticker queries
-                symbol_string = ",".join(symbols)
-                url = f"{self.base_url}/{asset_class}/ticks?region=US&codes={symbol_string}"
-
-                response = await client.get(url, headers=self.headers, timeout=10.0)
-                if response.status_code == 200:
-                    self.save_to_lake(asset_class=asset_class, payload=response.json())
-                else:
-                    response.raise_for_status()"""
-
 class FCSAdapter(BaseMarketDataAdapter):
     """
     Handles bulk commodity tracking via query parameter authentication
@@ -281,7 +252,7 @@ class FCSAdapter(BaseMarketDataAdapter):
 
         async with httpx.AsyncClient() as client:
             params = {
-                self.config["auth_param_name"]: self.api_key,
+                self.config["key_param_name"]: self.api_key,
                 "symbol": ",".join(symbols),
                 "type": self.config["rest"]["query_filters"]["type"] # Injects 'commodity' string dynamically
             }
