@@ -59,10 +59,12 @@ class BaseMarketDataAdapter(ABC):
             start_time = asyncio.get_event_loop().time()
             try:
                 if mock_mode:
+                    random_volume = 1000 + secrets.randbelow(49001)
+
                     mock_payload = {
                         "symbol": "MOCK",
                         "last_price": round(secure_random.uniform(10, 500), 4),
-                        "total_volume": secure_random.randint(1000, 50000)
+                        "total_volume": random_volume
                     }
                     await asyncio.sleep(0.1)
                     self.save_to_lake(asset_class="mock_asset", payload=mock_payload)
