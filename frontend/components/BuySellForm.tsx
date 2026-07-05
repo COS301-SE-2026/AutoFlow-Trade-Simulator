@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { usePrices } from '@/hooks/usePrices';
+import { Button } from '@/components/ui/button';
 
 interface BuySellFormProps {
     price: number;
     accountBalance: number;
     currentHoldings: number;
-    onBuy?: (quantity: number) => void;
-    onSell?: (quantity: number) => void;
+    onBuy?: (quantity: number, orderType: 'market' | 'limit' | 'stop-loss', limitPrice?: number) => void;
+    onSell?: (quantity: number, orderType: 'market' | 'limit' | 'stop-loss', limitPrice?: number) => void;
 }
 
 export default function BuySellForm({
@@ -19,6 +20,9 @@ export default function BuySellForm({
     onSell}: BuySellFormProps) {
         const [mode, setMode] = useState<'buy' | 'sell'>('buy');
         const [quantity, setQuantity] = useState('');
+        const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop-loss'>('market');
+        const [limitPrice, setLimitPrice] = useState('');
+        const [stopPrice, setStopPrice] = useState('');
 
         const currentPrice = price || 0;
         const totalCost = parseFloat(quantity) * currentPrice || 0;
@@ -44,20 +48,57 @@ export default function BuySellForm({
             const qty = parseFloat(quantity);
             if (!(qty) || qty <= 0) { return; }
 
+            const limitPriceNum = limitPrice ? parseFloat(limitPrice) : undefined;
+            const stopPriceNum = stopPrice ? parseFloat(stopPrice) : undefined;
+
+            if (orderType === 'limit' && (!limitPriceNum || limitPriceNum <= 0)) {
+                alert('Please enter a valid limit price');
+                return;
+            }
+
+            if (orderType === 'stop-loss' && (!stopPriceNum || stopPriceNum <= 0)) {
+                alert('Please enter a valid stop price');
+                return;
+            }
+
             if (mode === 'buy' && onBuy) {
-                onBuy(qty);
+                onBuy(qty, orderType, orderType === 'limit' ? limitPriceNum : undefined);
             } else if (mode === 'sell' && onSell) {
-                onSell(qty);
+                onSell(qty, orderType, orderType === 'limit' ? limitPriceNum : undefined);
             }
         }
 
         const isValid = () => {
             const qty = parseFloat(quantity);
             if (!(qty) || qty <= 0) { return false; }
+            
+            if (orderType === 'limit') {
+                const limitPriceNum = parseFloat(limitPrice);
+                if (!limitPriceNum || limitPriceNum <= 0) { return false; }
+            }
+
+            if (orderType === 'stop-loss') {
+                const stopPriceNum = parseFloat(stopPrice);
+                if (!stopPriceNum || stopPriceNum <= 0) return false;
+            }
+
             if (mode === 'buy') {
                 return qty <= maxBuyable && qty * currentPrice <= accountBalance;
             } else {
                 return qty <= maxSellable && qty > 0;
+            }
+        };
+
+        const getOrderTypeDescription = () => {
+            switch(orderType) {
+                case 'market':
+                    return 'Execute immediately at current market price';
+                case 'limit':
+                    return `Execute at ${limitPrice || 'specified'} price or better`;
+                case 'stop-loss':
+                    return `Trigger sell at ${stopPrice || 'specified'} stop price`;
+                default:
+                    return '';
             }
         };
 
@@ -91,7 +132,7 @@ export default function BuySellForm({
                         ></input>
                     </div>
                     <button 
-                        className='rounded-xl px-10 m-2 bg-[var(--seafoam)]'
+                        className='rounded-xl px-10 py-3 m-2 bg-[var(--seafoam)]'
                         type='button'
                         onClick={handleMax}
                     >
@@ -99,6 +140,47 @@ export default function BuySellForm({
                     </button>
                 </div>
                 <div className='flex flex-col'>
+                    <div className='flex justify-evenly'>
+                        <Button
+                            type='button'
+                            onClick={() => {
+                                setOrderType('market');
+                                setLimitPrice('');
+                                setStopPrice('');
+                            }}
+                            className={`rounded-xl px-10 py-3 m-2 bg-red-500 text-white shadow-sm
+                                ${orderType === 'market' ? 'bg-[var(--blue)]' : 'bg-[var(--accent)]'}`}
+                        >
+                            Market
+                        </Button>
+                        <Button
+                            type='button'
+                            onClick={() => {
+                                setOrderType('limit');
+                                setStopPrice('');
+                            }}
+                            className={`rounded-xl px-10 py-3 m-2 bg-red-500 text-white shadow-sm
+                                ${orderType === 'limit' ? 'bg-[var(--blue)]' : 'bg-[var(--accent)]'}`}
+                        >
+                            Limit
+                        </Button>
+                        {mode === 'sell' && (
+                            <Button
+                                type='button'
+                                onClick={() => {
+                                    setOrderType('stop-loss');
+                                    setLimitPrice('');
+                                }}
+                                className={`rounded-xl px-10 py-3 m-2 bg-red-500 text-white shadow-sm
+                                    ${orderType === 'stop-loss' ? 'bg-[var(--blue)] border-[var(--border)]' : 'bg-[var(--accent)]'}`}
+                            >
+                                Stop Loss
+                            </Button>
+                        )}
+                    </div>
+                    <p className='card'>
+                        {getOrderTypeDescription()}
+                    </p>
                     <div className='flex justify-evenly'>
                         <label className='text-xl m-3'>Price: {currentPrice}</label>
                         <label className='text-xl m-3'>Total: {totalCost}</label>
