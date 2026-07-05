@@ -136,6 +136,7 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict):
         super().__init__(provider_name="coingecko", config=config)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_GECKO_KEY")
+        self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CG_KEY")}
         self.pools = pools
 
     async def fetch_and_store(self):
@@ -147,13 +148,12 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
 
         async with httpx.AsyncClient() as client:
             params = {
-                self.config["key_param_name"]: self.api_key,
                 "vs_currency": "usd",
-                "ids": ",".join(symbols).lower()
+                "symbols": ",".join(symbols).lower()
             }
             url = f"{self.base_url}/coins/markets"
 
-            response = await client.get(url, params=params, timeout=10.0)
+            response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
             if response.status_code == 200:
                 self.save_to_lake(asset_class="crypto", payload=response.json())
             else:

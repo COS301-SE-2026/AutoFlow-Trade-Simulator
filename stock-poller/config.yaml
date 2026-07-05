@@ -127,7 +127,7 @@ coinmarketcap:
 
 coingecko:
   base_url: "https://api.coingecko.com/api/v3"
-  key_location: query
+  key_location: header
   key_param_name: "x_cg_demo_api_key"
   api_key_env_var: "COINGECKO_KEY"
   seconds_per_request: 267.84
