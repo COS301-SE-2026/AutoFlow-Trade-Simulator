@@ -7,9 +7,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py config.yaml ./
-COPY data_harvester/ ./data_harvester/
-COPY stock-poller/ ./stock-poller/
+COPY main.py config.yaml base_adapter.py adapters.py ./
 
 RUN chown -R appuser:appgroup /app
 

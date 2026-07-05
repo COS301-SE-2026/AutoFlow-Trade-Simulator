@@ -5,6 +5,7 @@ services:
     build: .
     container_name: market_data_harvester
     restart: unless-stopped
+    user: "${UID:-1000}:${GID:-1000}"
     env_file:
       - .env
     volumes:
@@ -13,5 +14,3 @@ services:
     environment:
       - MOCK_MODE=false
       - DATA_LAKE_ROOT=/app/storage/raw_harvest
-      - MASSIVE_KEY=${MASSIVE_KEY}
-      - TWELVEDATA_KEY=${TWELVEDATA_KEY}

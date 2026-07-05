@@ -19,7 +19,7 @@ async def main():
     workers = [
         MassiveAdapter(config=config["massive"], pools=shared_pools),
         TwelveDataAdapter(config=config["twelve_data"], pools=shared_pools),
-        FinnhubAdapter(config=config["finnhub"], pools=shared_pools),
+        #FinnhubAdapter(config=config["finnhub"], pools=shared_pools),
         CoinMarketCapAdapter(config=config["coinmarketcap"], pools=shared_pools),
         CoinGeckoAdapter(config=config["coingecko"], pools=shared_pools),
         EodHistoricalAdapter(config=config["eod_historical"], pools=shared_pools),
