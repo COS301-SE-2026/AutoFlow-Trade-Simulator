@@ -1,4 +1,5 @@
 import math
+from .GreeksDTOs import EpicStatusDTO, GreekValues
 from scipy.stats import norm
 
 class GreeksService:
@@ -6,6 +7,12 @@ class GreeksService:
     def __init__(self):
         pass
     
+    @staticmethod
+    def get_status() -> EpicStatusDTO:
+        return EpicStatusDTO(
+            epic="greeks",
+            status="healthy",
+        )
     
     @staticmethod
     def calc_d1(current_price:float,strike_price:float,time_to_expire:float,interest_rate:float,sigma:float)-> float:
@@ -64,3 +71,22 @@ class GreeksService:
         """
         d1 = GreeksService.calc_d1(current_price, strike_price, time_to_expire, interest_rate, sigma)
         return current_price * norm.pdf(d1) * math.sqrt(time_to_expire)
+    
+
+    @staticmethod
+    def rho(current_price:float,strike_price:float,time_to_expire:float,interest_rate:float,sigma:float,option_type:str="call")-> float:
+        """
+        Rho: change in option price per 1.00 (100 percentage points) change
+        in the risk-free rate. Divide by 100 for change per 1% rate move.
+        """
+        d2 = GreeksService.calc_d2(current_price, strike_price, time_to_expire, interest_rate, sigma)
+        if option_type == "call":
+            return strike_price * time_to_expire * math.exp(-interest_rate * time_to_expire) * norm.cdf(d2)
+        elif option_type == "put":
+            return -strike_price * time_to_expire * math.exp(-interest_rate * time_to_expire) * norm.cdf(-d2)
+        raise ValueError("option_type must be 'call' or 'put'")
+
+    @staticmethod
+    def get_greeks(symbol:str)->GreekValues:
+        
+        
