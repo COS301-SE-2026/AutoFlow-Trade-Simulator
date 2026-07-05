@@ -31,3 +31,6 @@ class HistPriceHistoryItem(SQLModel):
 class HistPriceHistoryResponse(SQLModel):
     symbol: str
     history: list[HistPriceHistoryItem]
+
+class MarketConditionResponse(SQLModel):
+    market_condition: str

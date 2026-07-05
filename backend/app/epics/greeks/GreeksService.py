@@ -1,11 +1,12 @@
 import math
 
 from fastapi import HTTPException, status
-from sqlmodel import Session, select
+from sqlmodel import Session, select,col
 
 from ...models.HistPrice import HistPrice
+from ...models.MarketCondition import MarketCondition
 from ...models.greeks import Greeks
-from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues
+from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues, MarketConditionResponse
 
 class GreeksService:
 
@@ -151,6 +152,18 @@ class GreeksService:
         ]
 
         return HistPriceHistoryResponse(symbol=normalized_symbol, history=history)
+    
+    def get_market_condition(self) -> MarketConditionResponse:
+        latest_market_condition = self.session.exec(select(MarketCondition).order_by(col(MarketCondition.date).desc())).first()
+
+
+        if latest_market_condition is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No market condition data found",
+            )
+
+        return MarketConditionResponse(market_condition=latest_market_condition.condition.value)
     
     def calc_greeks(self,current_price: float, strike_price: float, time_to_expire: float, interest_rate: float, sigma: float, option_type: str = "call") -> GreekValues:
         delta = GreeksService.delta(current_price, strike_price, time_to_expire, interest_rate, sigma, option_type)
