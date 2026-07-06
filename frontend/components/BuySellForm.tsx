@@ -22,6 +22,8 @@ export default function BuySellForm({
         const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop-loss'>('market');
         const [limitPrice, setLimitPrice] = useState('');
         const [stopPrice, setStopPrice] = useState('');
+        const [showConfirm, setShowConfirm] = useState(false);
+        const [isSubmitting, setIsSubmitting] = useState(false);
 
         const currentPrice = price || 0;
         const totalCost = Number.parseFloat(quantity) * currentPrice || 0;
@@ -60,10 +62,30 @@ export default function BuySellForm({
                 return;
             }
 
-            if (mode === 'buy' && onBuy) {
-                onBuy(qty, orderType, orderType === 'limit' ? limitPriceNum : undefined);
-            } else if (mode === 'sell' && onSell) {
-                onSell(qty, orderType, orderType === 'limit' ? limitPriceNum : undefined);
+            setShowConfirm(true);
+        }
+
+        const handleConfirm = async () => {
+            setIsSubmitting(true);
+            const qty = Number.parseFloat(quantity);
+            const limitPriceNum = limitPrice ? Number.parseFloat(limitPrice) : undefined;
+            const stopPriceNum = stopPrice ? Number.parseFloat(stopPrice) : undefined;
+
+            try {
+                if (mode === 'buy' && onBuy) {
+                    await onBuy(qty, orderType, orderType === 'limit' ? limitPriceNum : stopPriceNum);
+                } else if (mode === 'sell' && onSell) {
+                    await onSell(qty, orderType, orderType === 'limit' ? limitPriceNum : stopPriceNum);
+                }
+                setQuantity('');
+                setLimitPrice('');
+                setStopPrice('');
+                setOrderType('market');
+            } catch (e: any) {
+                
+            } finally {
+                setIsSubmitting(false);
+                setShowConfirm(false);
             }
         }
 
@@ -102,17 +124,22 @@ export default function BuySellForm({
         };
 
         return (
+            <>
             <div className="flex flex-col rounded-xl shadow-sm border border-white p-4 w-full">
                 <form onSubmit={handleSubmit}>
                     <div className="m-3 border border-solid border-[var(--border)] bg-[rgba(20,20,32,0.6)] flex flex-row items-center justify-evenly rounded-xl">
-                    <button onClick={() => setMode('buy')} 
+                    <button 
+                        type='button'
+                        onClick={() => setMode('buy')} 
                         className={`rounded-xl px-10 py-3 m-2 bg-green-500 text-white shadow-sm
                         ${mode === 'buy' ? '' 
                                          : 'text-gray-600 hover:text-gray-900'}`}
                     >
                         Buy
                     </button>
-                    <button onClick={() => setMode('sell')} 
+                    <button 
+                        type='button'
+                        onClick={() => setMode('sell')} 
                         className={`rounded-xl px-10 py-3 m-2 bg-red-500 text-white shadow-sm
                         ${mode === 'sell' ? '' 
                                           : 'text-gray-600 hover:text-gray-900'}`}
@@ -277,5 +304,76 @@ export default function BuySellForm({
                 </div>
                 </form>
             </div>
+            {showConfirm && (
+                <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
+                    <div className='card p-6 max-w-md w-full'>
+                        <h3 className='text-xl font-bold mb-4'>
+                            Confirm {mode === 'buy' ? 'Buy' : 'Sell'}
+                        </h3>
+                        <div className=' flex flex-col gap-3 mb-6'>
+                            <div className='flex justify-between'>
+                                <span>Order Type:</span>
+                                <span className='font-semibold capitalize'>{orderType}</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span>Quantity:</span>
+                                <span className='font-semibold'>{quantity} units</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span>Price per unit:</span>
+                                <span className='font-semibold'>{currentPrice.toFixed(2)}</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span>Total Cost:</span>
+                                <span className='font-semibold'>{totalCost.toFixed(2)}</span>
+                            </div>
+                            <div className='border-b border-[var(--border)] p-2'></div>
+                            {orderType === 'limit' && (
+                                <div className='flex justify-between text-yellow'>
+                                    <span>Limit Price:</span>
+                                    <span className='font-semibold'>{Number.parseFloat(limitPrice).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {orderType === 'stop-loss' && (
+                                <div className='flex justify-between text-yellow'>
+                                    <span>Stop Price:</span>
+                                    <span className='font-semibold'>${Number.parseFloat(stopPrice).toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className='flex justify-between text-gray-400'>
+                                <span>Balance <b>after</b> trade:</span>
+                                <span className='font-bold text-white'>{mode === 'buy' ? (accountBalance - totalCost).toFixed(2)
+                                                       : (accountBalance + totalCost).toFixed(2)}
+                                </span>
+                            </div>
+                            <div className='flex justify-between text-gray-400'>
+                                <span>Holdings <b>after</b> trade:</span>
+                                <span className='font-bold text-white'>{(mode === 'buy' ? currentHoldings + Number.parseFloat(quantity)
+                                                       : currentHoldings - Number.parseFloat(quantity)).toFixed(4)} units
+                                </span>
+                            </div>
+                        </div>
+                        <div className='flex gap-3 justify-between'>
+                            <button
+                                onClick={() => setShowConfirm(false)}
+                                disabled={isSubmitting}
+                                className='px-4 py-2 flex rounded-xl font-bold border border-[var(--border)] disabled:opacity-50'
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirm}
+                                disabled={isSubmitting}
+                                className={`px-4 py-2 flex rounded-xl font-bold border 
+                                    border-[var(--border)] disabled:opacity-50 
+                                    ${mode === 'buy' ? 'bg-green-600' : 'bg-red-600'}`}
+                            >
+                                {isSubmitting ? 'Processing...' : `Confirm ${mode === 'buy' ? 'Buy' : 'Sell'}`}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            </>
         )
     }
