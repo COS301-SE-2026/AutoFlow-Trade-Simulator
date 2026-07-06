@@ -13,7 +13,8 @@ import { apiClient } from '@/lib/api';
 
 export default function AssetPage() {
   const params = useParams();
-  const ticker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
+  const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
+  const ticker = iTicker?.replace('-', '/');
 
   const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
   const { data: summary, loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
