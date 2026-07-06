@@ -132,7 +132,7 @@ export default function BuySellForm({
                         ></input>
                     </div>
                     <button 
-                        className='rounded-xl px-10 py-3 m-2 bg-[var(--seafoam)]'
+                        className='rounded-xl px-10 py-3 m-2 bg-[var(--accent)]'
                         type='button'
                         onClick={handleMax}
                     >
@@ -205,7 +205,7 @@ export default function BuySellForm({
                             <input
                                 type='text'
                                 placeholder='Enter stop price'
-                                value={limitPrice}
+                                value={stopPrice}
                                 onChange={(e) => {
                                     if (e.target.value === '' || /[\d]+([.]\d+)?/.test(e.target.value)) {
                                         setStopPrice(e.target.value);
