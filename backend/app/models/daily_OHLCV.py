@@ -6,7 +6,7 @@ from sqlmodel import Field, SQLModel
 
 class DailyOHLCV(SQLModel,table=True):
     asset_id:int=Field(primary_key=True, foreign_key="asset.asset_id")
-    datetime:datetime=Field(primary_key=True)
+    timestamp:datetime=Field(primary_key=True)
     open:Decimal=Field(nullable=False, max_digits=18, decimal_places=4)
     high:Decimal=Field(nullable=False, max_digits=18, decimal_places=4)
     low:Decimal=Field(nullable=False, max_digits=18, decimal_places=4)

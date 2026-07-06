@@ -11,7 +11,7 @@ class Direction(Enum):
 class Transaction(SQLModel,table=True):
     id:Optional[int] = Field(default=None,primary_key=True)
     account_id:int =Field(default=None,foreign_key="internationalaccount.id",index=True)
-    asset_id: int =Field(default=None,foreign_key="asset.id")
+    asset_id: int =Field(default=None,foreign_key="asset.asset_id")
     direction:Direction = Field(default=None)
     quantity:float =Field(default=None)
     price_at_execution: Decimal = Field(default=None)
