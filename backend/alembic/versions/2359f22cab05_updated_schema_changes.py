@@ -22,22 +22,42 @@ def upgrade() -> None:
     op.execute("""
         DO $$
         DECLARE
+            drop_stmt TEXT;
+            type_drop_stmt TEXT;
             table_count INT;
         BEGIN
             SELECT COUNT(*) INTO table_count
             FROM information_schema.tables
-            WHERE table_schema = 'public'
-                AND table_name != 'alembic_version';
+            WHERE table_schema = 'public' AND table_name != 'alembic_version';
 
             IF table_count > 0 THEN
-                RAISE NOTICE 'Public schema has tables dropping them';
-                EXECUTE 'DROP SCHEMA public CASCADE;';
-                EXECUTE 'CREATE SCHEMA public;';
-                EXECUTE 'GRANT ALL ON SCHEMA public TO autoflow;';
-                EXECUTE 'CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;';
-            ELSE
-                RAISE NOTICE 'Public schema empty proceeding to population step';
+                RAISE NOTICE 'Pre-exsisting tables noticed killing them';
 
+                SELECT 'DROP TABLE IF EXISTS ' || string_agg('"' || table_name || '"', ', ') || ' CASCADE;'
+                INTO drop_stmt
+                FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name != 'alembic_version';
+
+                IF drop_stmt IS NOT NULL THEN
+                    EXECUTE drop_stmt;
+                END IF;
+
+                SELECT 'DROP TYPE IF EXISTS ' || string_agg('"' || typname || '"', ', ') || ' CASCADE;'
+                INTO type_drop_stmt
+                FROM pg_type t
+                JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+                WHERE n.nspname = 'public' AND t.typtype = 'e';
+
+                IF type_drop_stmt IS NOT NULL THEN
+                    EXECUTE type_drop_stmt;
+                END IF;
+
+                CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+
+                RAISE NOTICE 'Schema construction beginning';
+
+            ELSE
+                RAISE NOTICE 'Schema empty going right to build';
             END IF;
         END $$;
     """)
