@@ -1,3 +1,4 @@
+from fastapi.testclient import TestClient
 from sqlmodel import SQLModel, Session, create_engine
 from app.database import get_session
 from app.main import app
@@ -30,10 +31,6 @@ def setup_database():
     SQLModel.metadata.create_all(test_engine)
     yield
     SQLModel.metadata.drop_all(test_engine)
-    
-
-from fastapi.testclient import TestClient
-from app.main import app
 
 client = TestClient(app)
 

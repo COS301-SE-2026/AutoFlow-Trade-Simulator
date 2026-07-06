@@ -1,6 +1,3 @@
-from fastapi.testclient import TestClient
-from app.main import app
-
 from sqlmodel import Session
 from app.models.currency import Currency
 from tests.conftest import test_engine

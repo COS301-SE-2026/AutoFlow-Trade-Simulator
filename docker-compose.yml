@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: timescale/timescaledb:latest-pg16
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-autoflow}
