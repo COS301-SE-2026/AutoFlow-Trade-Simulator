@@ -13,7 +13,6 @@ import {TradingAuthPrompt} from "@/components/tradingAuthPrompt";
 import {HoldingsSummary} from "@/components/HoldingsSummary";
 import {Navbar} from '@/components/navbar';
 import {ReportView} from "@/components/ReportView";
-import BuySellForm from '@/components/BuySellForm';
 
 function PageSkeleton() {
     return (

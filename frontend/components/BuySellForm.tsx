@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { usePrices } from '@/hooks/usePrices';
 import { Button } from '@/components/ui/button';
 
 interface BuySellFormProps {
@@ -25,7 +24,7 @@ export default function BuySellForm({
         const [stopPrice, setStopPrice] = useState('');
 
         const currentPrice = price || 0;
-        const totalCost = parseFloat(quantity) * currentPrice || 0;
+        const totalCost = Number.parseFloat(quantity) * currentPrice || 0;
         const maxBuyable = Math.floor(accountBalance / currentPrice);
         const maxSellable = currentHoldings;
 
@@ -45,11 +44,11 @@ export default function BuySellForm({
 
         const handleSubmit = (e: React.SubmitEvent) => {
             e.preventDefault();
-            const qty = parseFloat(quantity);
+            const qty = Number.parseFloat(quantity);
             if (!(qty) || qty <= 0) { return; }
 
-            const limitPriceNum = limitPrice ? parseFloat(limitPrice) : undefined;
-            const stopPriceNum = stopPrice ? parseFloat(stopPrice) : undefined;
+            const limitPriceNum = limitPrice ? Number.parseFloat(limitPrice) : undefined;
+            const stopPriceNum = stopPrice ? Number.parseFloat(stopPrice) : undefined;
 
             if (orderType === 'limit' && (!limitPriceNum || limitPriceNum <= 0)) {
                 alert('Please enter a valid limit price');
@@ -69,16 +68,16 @@ export default function BuySellForm({
         }
 
         const isValid = () => {
-            const qty = parseFloat(quantity);
+            const qty = Number.parseFloat(quantity);
             if (!(qty) || qty <= 0) { return false; }
             
             if (orderType === 'limit') {
-                const limitPriceNum = parseFloat(limitPrice);
+                const limitPriceNum = Number.parseFloat(limitPrice);
                 if (!limitPriceNum || limitPriceNum <= 0) { return false; }
             }
 
             if (orderType === 'stop-loss') {
-                const stopPriceNum = parseFloat(stopPrice);
+                const stopPriceNum = Number.parseFloat(stopPrice);
                 if (!stopPriceNum || stopPriceNum <= 0) return false;
             }
 
@@ -103,10 +102,9 @@ export default function BuySellForm({
         };
 
         return (
-            <>
             <div className="flex flex-col rounded-xl shadow-sm border border-white p-4 w-full">
                 <form onSubmit={handleSubmit}>
-                    <div className="border border-solid border-[var(--border)] bg-[rgba(20,20,32,0.6)] flex flex-row items-center justify-evenly rounded-xl">
+                    <div className="m-3 border border-solid border-[var(--border)] bg-[rgba(20,20,32,0.6)] flex flex-row items-center justify-evenly rounded-xl">
                     <button onClick={() => setMode('buy')} 
                         className={`rounded-xl px-10 py-3 m-2 bg-green-500 text-white shadow-sm
                         ${mode === 'buy' ? '' 
@@ -122,7 +120,7 @@ export default function BuySellForm({
                         Sell
                     </button>
                     <div className='m-4 flex flex-col items-center'>
-                        <label className='mb-3'>Quantity</label>
+                        <span className='mb-3'>Quantity</span>
                         <input
                             type="text"
                             placeholder='Enter Quantity'
@@ -183,7 +181,7 @@ export default function BuySellForm({
                     </p>
                     {orderType === 'limit' && (
                         <div className='card flex justify-center items-center m-2 gap-2'>
-                            <label>Limit Price:</label>
+                            <span>Limit Price:</span>
                             <input
                                 type='text'
                                 placeholder='Enter limit price'
@@ -196,12 +194,12 @@ export default function BuySellForm({
                                 className='ml-3 border border-[var(--border)] rounded-xl p-2 w-32'
                             >
                             </input>
-                            <label>Current Price: {currentPrice.toFixed(2)}</label>
+                            <span>Current Price: {currentPrice.toFixed(2)}</span>
                         </div>
                     )}
                     {orderType === 'stop-loss' && mode === 'sell' && (
                         <div className='card flex justify-center items-center m-2 gap-2'>
-                            <label>Stop Price:</label>
+                            <span>Stop Price:</span>
                             <input
                                 type='text'
                                 placeholder='Enter stop price'
@@ -214,7 +212,7 @@ export default function BuySellForm({
                                 className='ml-3 border border-[var(--border)] rounded-xl p-2 w-32'
                             >
                             </input>
-                            <label>Current: {currentPrice.toFixed(2)}</label>
+                            <span>Current: {currentPrice.toFixed(2)}</span>
                         </div>
                     )}
                     <div className='border border-[var(--border)] rounded-xl bg-[rgba(20,20,32,0.3)] p-4 m-3'>
@@ -236,13 +234,13 @@ export default function BuySellForm({
                                 <span className='text-lg'>Estimated Total:</span>
                                 <span className='text-xl font-bold'>{totalCost.toFixed(2)}</span>
                             </div>
-                            {quantity && parseFloat(quantity) > 0 && (
+                            {quantity && Number.parseFloat(quantity) > 0 && (
                                 <div className='flex justify-between items-center'>
                                     <span className='text-lg'>Quantity</span>
                                     <span className='text-xl font-bold text-green-400'>{quantity} units</span>
                                 </div>
                             )}
-                            {!isValid() && quantity && parseFloat(quantity) > 0 && (
+                            {!isValid() && quantity && Number.parseFloat(quantity) > 0 && (
                                 <div className='text-red-500 text-center mt-2'>
                                     {mode === 'buy' ? 'Insufficient Balance' : 'Insufficient holdings'}
                                 </div>
@@ -252,12 +250,12 @@ export default function BuySellForm({
                     <div className='flex justify-evenly'>
                         {orderType === 'stop-loss' && mode === 'sell' && stopPrice && (
                             <div className='text-center'>
-                                Stop-Loss triggered at {parseFloat(stopPrice).toFixed(2)}
+                                Stop-Loss triggered at {Number.parseFloat(stopPrice).toFixed(2)}
                             </div>
                         )}
                         {orderType === 'limit' && limitPrice && (
                             <div className='text-center'>
-                                Limit order at {parseFloat(limitPrice).toFixed(2)}
+                                Limit order at {Number.parseFloat(limitPrice).toFixed(2)}
                             </div>
                         )}
                         {orderType === 'market' && (
@@ -279,6 +277,5 @@ export default function BuySellForm({
                 </div>
                 </form>
             </div>
-            </>
         )
     }

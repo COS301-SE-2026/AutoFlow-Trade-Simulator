@@ -30,7 +30,7 @@ export default function AssetPage() {
     ? prices[prices.length -1].close
     : summary?.current_price || 0;
 
-  const accountBalance = activeAccount ? parseFloat(activeAccount.balance) : 0;
+  const accountBalance = activeAccount ? Number.parseFloat(activeAccount.balance) : 0;
   const currentHolding = holdings.find(h => h.ticker === ticker);
   const currentHoldings = currentHolding?.net_quantity || 0;
 
@@ -91,7 +91,7 @@ export default function AssetPage() {
         <div>
           <PriceChart ticker={ticker} />
         </div>
-        <div>
+        <div className='m-4'>
           <BuySellForm 
             price={currentPrice}
             accountBalance={accountBalance}
