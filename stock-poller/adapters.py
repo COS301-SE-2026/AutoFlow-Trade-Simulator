@@ -3,8 +3,8 @@ import httpx
 from base_adapter import BaseMarketDataAdapter
 
 class MassiveAdapter(BaseMarketDataAdapter):
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="massive", config=config)
+    def __init__(self, config: dict, pools: dict, market_event):
+        super().__init__(provider_name="massive", config=config, market_event=market_event)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_MASSIVE_KEY")
         self.base_params = {"apiKey": self.api_key, "adjusted": "true"}
         self.pools = pools
@@ -39,8 +39,8 @@ class MassiveAdapter(BaseMarketDataAdapter):
 
 
 class TwelveDataAdapter(BaseMarketDataAdapter):
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="twelve_data", config=config)
+    def __init__(self, config: dict, pools: dict, market_event):
+        super().__init__(provider_name="twelve_data", config=config, market_event=market_event)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_12DATA_KEY")
         self.pools = pools
 
@@ -48,7 +48,6 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
         # Twelve Data basic tier handles single ticker calls for this endpoint layout
         batch_limit = self.config["rest"]["batch_limits"]
 
-        # Pop the next isolated index symbol from the conveyor belt
         target_symbols = await self.pools["indices"].dequeue_batch(batch_limit)
         if not target_symbols:
             return
@@ -74,8 +73,8 @@ class FinnhubAdapter(BaseMarketDataAdapter):
     Handles standard Forex and Crypto quotes via URL query parameter authentication.
     Note: Finnhub does not support native batching for quotes on basic tiers.
     """
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="finnhub", config=config)
+    def __init__(self, config: dict, pools: dict, market_event):
+        super().__init__(provider_name="finnhub", config=config, market_event=market_event)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FINNHUB_KEY")
         self.pools = pools
 
@@ -107,8 +106,8 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
     """
     Handles heavy parallel batch requests for Crypto quotes using header auth.
     """
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="coinmarketcap", config=config)
+    def __init__(self, config: dict, pools: dict, market_event):
+        super().__init__(provider_name="coinmarketcap", config=config, market_event=market_event)
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CMC_KEY")}
         self.pools = pools
 
@@ -133,8 +132,8 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
     Handles Crypto asset indexing tracking via demo query strings.
     Supports high-volume comma separated IDs.
     """
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="coingecko", config=config)
+    def __init__(self, config: dict, pools: dict, market_event):
+        super().__init__(provider_name="coingecko", config=config, market_event=market_event)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_GECKO_KEY")
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CG_KEY")}
         self.pools = pools
@@ -160,11 +159,8 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
                 response.raise_for_status()
 
 class EodHistoricalAdapter(BaseMarketDataAdapter):
-    """
-    Handles slow, high-latency historical/delayed stock and currency tracks.
-    """
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="eod_historical", config=config)
+    def __init__(self, config: dict, pools: dict, market_event):
+        super().__init__(provider_name="eod_historical", config=config, market_event=market_event)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_EOD_KEY")
         self.pools = pools
 
@@ -206,8 +202,8 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
                 print(f"ERROR: EodHistorical batch forex fetch failed for {symbols}: {str(e)}")
 
 class VectradeAdapter(BaseMarketDataAdapter):
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="vectrade", config=config)
+    def __init__(self, config: dict, pools: dict, market_event):
+        super().__init__(provider_name="vectrade", config=config, market_event=market_event)
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
         self.pools = pools
 
@@ -239,8 +235,8 @@ class FCSAdapter(BaseMarketDataAdapter):
     Handles bulk commodity tracking via query parameter authentication
     and mandatory static endpoint filtering keys.
     """
-    def __init__(self, config: dict, pools: dict):
-        super().__init__(provider_name="fcs", config=config)
+    def __init__(self, config: dict, pools: dict, market_event):
+        super().__init__(provider_name="fcs", config=config, market_event=market_event)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FCS_KEY")
         self.pools = pools
 

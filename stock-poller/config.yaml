@@ -1,40 +1,28 @@
 massive:
   base_url: "https://api.massive.com"
+  run_during_market_close: true
   key_location: header
   key_param_name: "X-Api-Key"
   api_key_env_var: "MASSIVE_KEY"
   seconds_per_request: 12.00
   requests_per_min: 5
   asset_classes:
-    stocks: 5.0
+    stocks: true
   rest:
     batch_limits:
       stocks: 1
     credit_system: false
 
-itick:
-  base_url: "https://api.itick.org"
-  key_location: header
-  key_param_name: "X-Api-Key"
-  api_key_env_var: "ITICK_KEY"
-  seconds_per_request: 12
-  requests_per_min: 5
-  asset_classes:
-    indices: 2.5
-    future: 2.5
-  rest:
-    batch_limits: 10
-    credit_system: false
-
 twelve_data:
   base_url: "https://api.twelvedata.com"
+  run_during_market_close: true
   key_location: query
   key_param_name: "apikey"
   api_key_env_var: "TWELVEDATA_KEY"
-  seconds_per_request: 29.25
+  seconds_per_request: 29.25 # data updated once per day, so we can get unique data for (60*60*24)/29.25 = 2 953 ETFs
   requests_per_min: 8
   asset_classes:
-    etfs: 2.051282051
+    etfs: true
   rest:
     batch_limits: 1
     credit_system: true
@@ -45,43 +33,48 @@ twelve_data:
 
 vectrade:
   base_url: "https://api.vectrade.io"
+  run_during_market_close: false # both stocks and options must only run during market open
   key_location: header
   key_param_name: "X-API-Key"
   api_key_env_var: "VECTRADE_KEY"
-  seconds_per_request: 46.80
+  seconds_per_request: 54.00 # with standard closing times, not considering holidays
   requests_per_min: 20
   requests_per_month: 10000
   asset_classes:
-    stocks: 1.282051282
+    stocks: false
+    options: true
   rest:
     batch_limits:
       stocks: 50
+      options: 1
     credit_system: false
 
 eod_historical:
   base_url: "https://eodhd.com/api"
+  run_during_market_close: false
   key_location: query
   key_param_name: "api_token"
   api_key_env_var: "EOD_KEY"
-  seconds_per_request: 2340.00
+  seconds_per_request: 1700.00
   requests_per_min: 20
   asset_classes:
-    stocks: 0.025641026
-    currencies: 0.020833333
+    stocks: false
+    currencies: true
   rest:
     batch_limits: 1
     credit_system: false
 
-finnhub:
+finnhub: #currently broken
   base_url: "https://finnhub.io/api/v1"
+  run_during_market_close: false #update when fixing
   key_location: query
   key_param_name: "token"
   api_key_env_var: "FINNHUB_KEY"
   seconds_per_request: 1
   requests_per_min: 60
   asset_classes:
-    currencies: 30
-    crypto: 30
+    currencies: true
+    crypto: true
   rest:
     batch_limits:
       quotes: 1
@@ -89,6 +82,7 @@ finnhub:
 
 fcs:
   base_url: "https://api-v4.fcsapi.com/forex"
+  run_during_market_close: false
   key_location: query
   key_param_name: "access_key"
   api_key_env_var: "FCS_KEY"
@@ -96,7 +90,7 @@ fcs:
   requests_per_min: 3
   requests_per_month: 500
   asset_classes:
-    commodities: 0.011200717
+    commodities: true
   rest:
     batch_limits: 300
     credit_system: true
@@ -109,6 +103,7 @@ fcs:
 
 coinmarketcap:
   base_url: "https://pro-api.coinmarketcap.com/v1"
+  run_during_market_close: true
   key_location: header
   key_param_name: "X-CMC_PRO_API_KEY"
   api_key_env_var: "COINMARKETCAP_KEY"
@@ -116,7 +111,7 @@ coinmarketcap:
   requests_per_min: 50
   requests_per_month: 15000
   asset_classes:
-    crypto: 0.336021505
+    crypto: true
   rest:
     batch_limits: ~
     credit_system: true
@@ -127,6 +122,7 @@ coinmarketcap:
 
 coingecko:
   base_url: "https://api.coingecko.com/api/v3"
+  run_during_market_close: true
   key_location: header
   key_param_name: "x_cg_demo_api_key"
   api_key_env_var: "COINGECKO_KEY"
@@ -134,7 +130,7 @@ coingecko:
   requests_per_min: 30
   requests_per_month: 10000
   asset_classes:
-    crypto: 0.224014337
+    crypto: true
   rest:
     batch_limits:
       simple_price: 515

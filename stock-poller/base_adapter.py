@@ -5,20 +5,21 @@ import asyncio
 from datetime import datetime
 from abc import ABC, abstractmethod
 import logging
-import secrets
 import aiofiles
 from typing import List, Union
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 class BaseMarketDataAdapter(ABC):
-    def __init__(self, provider_name: str, config: dict):
+    def __init__(self, provider_name: str, config: dict, market_event:asyncio.Event):
         self.provider_name = provider_name
         self.config = config
+        self.market_event = market_event
 
         # Pull timing constraints from the calibrated YAML
         self.seconds_per_request = config.get("seconds_per_request", 1.0)
         self.base_url = config.get("base_url")
+        self.run_during_market_close = config.get("run_during_market_close", False)
 
         # Target directory configuration for our flat-file lake
         self.storage_root = os.getenv("DATA_LAKE_ROOT", "./storage/raw_harvest")
@@ -52,24 +53,24 @@ class BaseMarketDataAdapter(ABC):
 
     async def run_harvest_loop(self):
         logging.info(f"Starting harvest loop for {self.provider_name}...")
-        mock_mode = os.getenv("MOCK_MODE", "false").lower() == "true"
-        secure_random = secrets.SystemRandom()
 
-        while True:
+        if not self.run_during_market_close:
+            while True:
+                await self.market_event.wait() #check if the market is open, wait if not
+
+                start_time = asyncio.get_event_loop().time()
+                try:
+                    await self.fetch_and_store()
+                except Exception as e:
+                    logging.exception(f"Error: {e}")
+
+                elapsed = asyncio.get_event_loop().time() - start_time
+                sleep_time = max(0, self.seconds_per_request - elapsed)
+                await asyncio.sleep(sleep_time)
+        else:
             start_time = asyncio.get_event_loop().time()
             try:
-                if mock_mode:
-                    random_volume = 1000 + secrets.randbelow(49001)
-
-                    mock_payload = {
-                        "symbol": "MOCK",
-                        "last_price": round(secure_random.uniform(10, 500), 4),
-                        "total_volume": random_volume
-                    }
-                    await asyncio.sleep(0.1)
-                    self.save_to_lake(asset_class="mock_asset", payload=mock_payload)
-                else:
-                    await self.fetch_and_store()
+                await self.fetch_and_store()
             except Exception as e:
                 logging.exception(f"Error: {e}")
 
