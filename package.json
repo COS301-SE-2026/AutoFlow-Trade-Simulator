@@ -19,7 +19,7 @@
     "dev": "npm run backend & npm run frontend",
     "start": "npm run start --prefix backend & npm run start --prefix frontend",
     "lhci": "lhci autorun",
-    "k6": "dotenv -e .env -- k6 run backend/tests/performance/performance-baseline.js",
+    "k6": "docker run --rm --network=host --env-file .env -v \"$PWD/backend/tests/performance:/tests\" grafana/k6 run /tests/performance-baseline.js",
     "perf": "npm run lhci && npm run k6"
   },
   "dependencies": {
