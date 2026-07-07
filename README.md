@@ -218,6 +218,7 @@ npm run dev
 | `npm run migrate` | Applies database migrations. |
 | `npm run migrate:dev` | Creates a new database migration. |
 | `npm run test` | Runs backend tests. |
+| `npm run perf` | Runs backend and frontend performance tests. |
 
 <p align="center"><img src="docs/images/divider.svg" width="800" alt="" /></p>
 

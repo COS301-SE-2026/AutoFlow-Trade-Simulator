@@ -2,6 +2,10 @@
 
 **Task:** TEST-S1.5 – Performance testing baseline (Lighthouse, k6)
 
+## prerequisites
+
+requires a chrome installation and npm install to download lighthouse for testing
+
 ## 1. Executive Summary
 
 This report establishes the performance baseline for the AutoFlow Trade Simulator application. The baseline covers:
