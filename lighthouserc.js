@@ -1,11 +1,17 @@
-{
+const dotenv = require('dotenv');
+dotenv.config({ path: '.env' });
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
+module.exports = {
     "ci": {
         "collect": {
             "url": [
-                "http://localhost:3000",
-                "http://localhost:3000/login",
-                "http://localhost:3000/register",
-                "http://localhost:3000/dashboard"
+                `${FRONTEND_URL}`,
+                `${FRONTEND_URL}/login`,
+                `${FRONTEND_URL}/register`,
+                `${FRONTEND_URL}/dashboard`
             ],
             "numberOfRuns": 1,
             "settings": {
@@ -33,4 +39,4 @@
             "outputDir": "./lhci-reports"
         }
     }
-}
+};
