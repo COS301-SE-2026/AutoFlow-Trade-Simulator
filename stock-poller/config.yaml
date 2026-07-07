@@ -41,7 +41,7 @@ vectrade:
   requests_per_min: 20
   requests_per_month: 10000
   asset_classes:
-    stocks: false
+    stocks: true
     options: true
   rest:
     batch_limits:

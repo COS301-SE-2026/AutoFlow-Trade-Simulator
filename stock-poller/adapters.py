@@ -4,20 +4,12 @@ from base_adapter import BaseMarketDataAdapter
 
 class MassiveAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="massive", config=config, market_event=market_event)
+        super().__init__(provider_name="massive", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_MASSIVE_KEY")
         self.base_params = {"apiKey": self.api_key, "adjusted": "true"}
-        self.pools = pools
 
-    async def fetch_and_store(self):
-        if "stocks" not in self.config["asset_classes"]:
-            return
-
-        batch_limit = self.config["rest"]["batch_limits"].get("stocks", 1)
-        symbols = await self.pools["stocks"].dequeue_batch(batch_limit)
-
-        if not symbols:
-            return
+    async def fetch_and_store(self, index:int):
+        symbols = await self.get_symbol_batch(index)
 
         ticker = symbols[0].upper()
         url = f"{self.base_url}/v2/aggs/ticker/{ticker}/prev"
@@ -40,11 +32,10 @@ class MassiveAdapter(BaseMarketDataAdapter):
 
 class TwelveDataAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="twelve_data", config=config, market_event=market_event)
+        super().__init__(provider_name="twelve_data", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_12DATA_KEY")
-        self.pools = pools
 
-    async def fetch_and_store(self):
+    async def fetch_and_store(self, index:int):
         # Twelve Data basic tier handles single ticker calls for this endpoint layout
         batch_limit = self.config["rest"]["batch_limits"]
 
@@ -74,11 +65,10 @@ class FinnhubAdapter(BaseMarketDataAdapter):
     Note: Finnhub does not support native batching for quotes on basic tiers.
     """
     def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="finnhub", config=config, market_event=market_event)
+        super().__init__(provider_name="finnhub", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FINNHUB_KEY")
-        self.pools = pools
 
-    async def fetch_and_store(self):
+    async def fetch_and_store(self, index:int):
         async with httpx.AsyncClient() as client:
             for asset_class in ["currencies", "crypto"]:
                 # Process 1 ticker at a time per loop cycle due to batch limits
@@ -107,11 +97,10 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
     Handles heavy parallel batch requests for Crypto quotes using header auth.
     """
     def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="coinmarketcap", config=config, market_event=market_event)
+        super().__init__(provider_name="coinmarketcap", config=config, market_event=market_event, pools=pools)
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CMC_KEY")}
-        self.pools = pools
 
-    async def fetch_and_store(self):
+    async def fetch_and_store(self, index:int):
         # Consume a highly packed batch of crypto IDs/Symbols sequentially
         symbols = await self.pools["crypto"].dequeue_batch(100)
         if not symbols:
@@ -133,12 +122,11 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
     Supports high-volume comma separated IDs.
     """
     def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="coingecko", config=config, market_event=market_event)
+        super().__init__(provider_name="coingecko", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_GECKO_KEY")
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CG_KEY")}
-        self.pools = pools
 
-    async def fetch_and_store(self):
+    async def fetch_and_store(self, index:int):
         # Pull 250 elements simultaneously matching their coins_markets capability
         batch_limit = self.config["rest"]["batch_limits"]["coins_markets"]
         symbols = await self.pools["crypto"].dequeue_batch(batch_limit)
@@ -160,11 +148,10 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
 
 class EodHistoricalAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="eod_historical", config=config, market_event=market_event)
+        super().__init__(provider_name="eod_historical", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_EOD_KEY")
-        self.pools = pools
 
-    async def fetch_and_store(self):
+    async def fetch_and_store(self, index:int):
         async with httpx.AsyncClient() as client:
             asset_class = "currencies"
 
@@ -203,11 +190,10 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
 
 class VectradeAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="vectrade", config=config, market_event=market_event)
+        super().__init__(provider_name="vectrade", config=config, market_event=market_event, pools=pools)
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
-        self.pools = pools
 
-    async def fetch_and_store(self):
+    async def fetch_and_store(self, index:int):
         if "stocks" not in self.config["asset_classes"]:
             return
 
@@ -236,11 +222,10 @@ class FCSAdapter(BaseMarketDataAdapter):
     and mandatory static endpoint filtering keys.
     """
     def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="fcs", config=config, market_event=market_event)
+        super().__init__(provider_name="fcs", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FCS_KEY")
-        self.pools = pools
 
-    async def fetch_and_store(self):
+    async def fetch_and_store(self, index:int):
         batch_limit = self.config["rest"]["batch_limits"]
         symbols = await self.pools["commodities"].dequeue_batch(batch_limit)
         if not symbols:

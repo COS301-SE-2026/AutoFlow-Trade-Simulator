@@ -11,10 +11,11 @@ from typing import List, Union
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 class BaseMarketDataAdapter(ABC):
-    def __init__(self, provider_name: str, config: dict, market_event:asyncio.Event):
+    def __init__(self, provider_name: str, config: dict, market_event:asyncio.Event, pools:dict):
         self.provider_name = provider_name
         self.config = config
         self.market_event = market_event
+        self.pools = pools
 
         # Pull timing constraints from the calibrated YAML
         self.seconds_per_request = config.get("seconds_per_request", 1.0)
@@ -48,11 +49,31 @@ class BaseMarketDataAdapter(ABC):
             f.write(json.dumps(envelope) + "\n")
 
     @abstractmethod
-    async def fetch_and_store(self):
+    async def fetch_and_store(self, index:int):
         pass
+
+    async def get_symbol_batch(self, index: int) -> List[str]:
+        asset_type = list(self.config["asset_classes"].items())[index]
+        # henceforth [0] is the key/asset type and [1] is whether it is enabled
+
+        if not isinstance(asset_type[0], str) or not isinstance(asset_type[1], bool):
+            print(f"ERROR: {self.provider_name} config.yaml asset_classes entry could not be parsed.")
+            return []
+
+        if "stocks" != asset_type[0] or asset_type[1] is False:
+            return []
+
+        batch_limit = self.config["rest"]["batch_limits"].get(asset_type[0], 1)
+        symbols = await self.pools[asset_type[0]].dequeue_batch(batch_limit)
+
+        if not symbols:
+            print(f"ERROR: {asset_type[0]} config.yaml asset_classes entry could not be parsed.")
+            return []
+        return symbols
 
     async def run_harvest_loop(self):
         logging.info(f"Starting harvest loop for {self.provider_name}...")
+        counter = 0
 
         if not self.run_during_market_close:
             while True:
@@ -60,23 +81,26 @@ class BaseMarketDataAdapter(ABC):
 
                 start_time = asyncio.get_event_loop().time()
                 try:
-                    await self.fetch_and_store()
+                    await self.fetch_and_store(counter)
                 except Exception as e:
                     logging.exception(f"Error: {e}")
 
                 elapsed = asyncio.get_event_loop().time() - start_time
                 sleep_time = max(0, self.seconds_per_request - elapsed)
+                counter= (counter+1) % len(self.config.get("asset_classes", []))
                 await asyncio.sleep(sleep_time)
         else:
-            start_time = asyncio.get_event_loop().time()
-            try:
-                await self.fetch_and_store()
-            except Exception as e:
-                logging.exception(f"Error: {e}")
+            while True:
+                start_time = asyncio.get_event_loop().time()
+                try:
+                    await self.fetch_and_store(counter)
+                except Exception as e:
+                    logging.exception(f"Error: {e}")
 
-            elapsed = asyncio.get_event_loop().time() - start_time
-            sleep_time = max(0, self.seconds_per_request - elapsed)
-            await asyncio.sleep(sleep_time)
+                elapsed = asyncio.get_event_loop().time() - start_time
+                sleep_time = max(0, self.seconds_per_request - elapsed)
+                counter= (counter+1) % len(self.config.get("asset_classes", []))
+                await asyncio.sleep(sleep_time)
 
 class TickerRingBuffer:
     """
