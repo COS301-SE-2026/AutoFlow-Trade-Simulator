@@ -33,15 +33,15 @@ export default function AssetSummaryBar({ ticker }: SummaryBarProps) {
         </div>
         <div>
           <p className="text-sm">Current Price</p>
-          <p className={`text-2xl ${priceColor}`}>R{data.current_price.toFixed(2)}</p>
+          <p className={`text-2xl ${priceColor}`}>{data.current_price.toFixed(2)}</p>
         </div>
         <div>
           <p className="text-sm">Daily High</p>
-          <p className="text-2xl">R{data.daily_high.toFixed(2)}</p>
+          <p className="text-2xl">{data.daily_high.toFixed(2)}</p>
         </div>
         <div>
           <p className="text-sm">Daily Low</p>
-          <p className="text-2xl">R{data.daily_low.toFixed(2)}</p>
+          <p className="text-2xl">{data.daily_low.toFixed(2)}</p>
         </div>
       </div>
     </div>
