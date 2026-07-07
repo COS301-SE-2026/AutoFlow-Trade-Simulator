@@ -1,12 +1,21 @@
 'use client';
 import { useAccount } from '@/lib/hooks/accountContext';
+import { TradingAuthPrompt } from "@/components/tradingAuthPrompt";
 
-export function PortfolioCashBalance({ accountId }: { accountId: number | null }) {
+export function PortfolioCashBalance() {
     const { activeAccount } = useAccount();
+
+    if (!activeAccount) {
+        return (
+            <TradingAuthPrompt />
+        )
+    }
 
     return (
         <div>
-            {activeAccount?.balance} {activeAccount?.currency_code}
+            <div>Cash Balance</div>
+            <div>{activeAccount?.balance} {activeAccount?.currency_code}</div>
+            <div>Available for trading</div>
         </div>
     );
 }
