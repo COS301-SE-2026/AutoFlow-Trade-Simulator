@@ -24,7 +24,8 @@ twelve_data:
   asset_classes:
     etfs: true
   rest:
-    batch_limits: 1
+    batch_limits:
+      etfs: 1
     credit_system: true
     credit_cost_per_symbol: 1
     credits_replenishment:
@@ -61,7 +62,9 @@ eod_historical:
     stocks: false
     currencies: true
   rest:
-    batch_limits: 1
+    batch_limits:
+      stocks: 1
+      currencies: 1
     credit_system: false
 
 finnhub: #currently broken
@@ -92,7 +95,8 @@ fcs:
   asset_classes:
     commodities: true
   rest:
-    batch_limits: 300
+    batch_limits:
+      commodities: 300
     credit_system: true
     credit_cost_per_request: 1
     query_filters:
@@ -113,7 +117,8 @@ coinmarketcap:
   asset_classes:
     crypto: true
   rest:
-    batch_limits: ~
+    batch_limits:
+      crypto: 100
     credit_system: true
     credit_cost_per_symbol: 0.005
     credits_replenishment:
@@ -133,8 +138,7 @@ coingecko:
     crypto: true
   rest:
     batch_limits:
-      simple_price: 515
-      coins_markets: 250
+      crypto: 250
     credit_system: false
 
 ticker_pools:

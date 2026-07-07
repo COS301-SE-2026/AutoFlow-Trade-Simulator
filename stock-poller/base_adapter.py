@@ -50,17 +50,20 @@ class BaseMarketDataAdapter(ABC):
             f.write(json.dumps(envelope) + "\n")
 
     async def fetch_and_store(self, index:int):
-        asset_type = list(self.config["asset_classes"].items())[index]
+        asset_type: str = [name for name, enabled in self.config["asset_classes"].items() if enabled][index]
         symbols = await self.get_symbol_batch(asset_type)
+        if not symbols:
+            logging.info("No symbols to request")
+            return
 
         async with httpx.AsyncClient() as client:
             try:
-                response = await self.make_request(client, symbols, asset_type[0])
+                response = await self.make_request(client, symbols, asset_type)
 
                 if response.status_code == 200:
                     payload = response.json()
                     if payload.get("resultsCount", 0) > 0:
-                        self.save_to_lake(asset_class=asset_type[0], payload=payload)
+                        self.save_to_lake(asset_class=asset_type, payload=payload)
                 elif response.status_code == 429:
                     print(f"WARN: Rate limit exceeded on {self.provider_name}. Pacing window check required.")
                 else:
@@ -72,21 +75,14 @@ class BaseMarketDataAdapter(ABC):
     async def make_request(self, client, symbols: list[str], asset:str):
         pass
 
-    async def get_symbol_batch(self, asset) -> List[str]:
+    async def get_symbol_batch(self, asset:str) -> List[str]:
         # henceforth [0] is the key/asset type and [1] is whether it is enabled
 
-        if not isinstance(asset[0], str) or not isinstance(asset[1], bool):
-            print(f"ERROR: {self.provider_name} config.yaml asset_classes entry could not be parsed.")
-            return []
-
-        if "stocks" != asset[0] or asset[1] is False:
-            return []
-
-        batch_limit = self.config["rest"]["batch_limits"].get(asset[0], 1)
-        symbols = await self.pools[asset[0]].dequeue_batch(batch_limit)
+        batch_limit = self.config["rest"]["batch_limits"].get(asset, 1)
+        symbols = await self.pools[asset].dequeue_batch(batch_limit)
 
         if not symbols:
-            print(f"ERROR: {asset[0]} config.yaml asset_classes entry could not be parsed.")
+            logging.error(f"{asset} config.yaml asset_classes entry could not be parsed.")
             return []
         return symbols
 
