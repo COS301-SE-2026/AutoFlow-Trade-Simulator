@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
+type OrderType = 'market' | 'limit' | 'stop-loss';
+
 interface BuySellFormProps {
     price: number;
     accountBalance: number;
     currentHoldings: number;
-    onBuy?: (quantity: number, orderType: 'market' | 'limit' | 'stop-loss', limitPrice?: number) => void;
-    onSell?: (quantity: number, orderType: 'market' | 'limit' | 'stop-loss', limitPrice?: number) => void;
+    onBuy?: (quantity: number, orderType: OrderType, limitPrice?: number) => void;
+    onSell?: (quantity: number, orderType: OrderType, limitPrice?: number) => void;
 }
 
 export default function BuySellForm({
@@ -19,7 +21,7 @@ export default function BuySellForm({
     onSell}: BuySellFormProps) {
         const [mode, setMode] = useState<'buy' | 'sell'>('buy');
         const [quantity, setQuantity] = useState('');
-        const [orderType, setOrderType] = useState<'market' | 'limit' | 'stop-loss'>('market');
+        const [orderType, setOrderType] = useState<OrderType>('market');
         const [limitPrice, setLimitPrice] = useState('');
         const [stopPrice, setStopPrice] = useState('');
         const [showConfirm, setShowConfirm] = useState(false);
@@ -31,7 +33,7 @@ export default function BuySellForm({
         const maxSellable = currentHoldings;
 
         const handleQuantityChange = (value: string) => {
-            if (value === '' || /[\d]+([.]\d+)?/.test(value)) {
+            if (value === '' || /\d+(.\d+)?/.test(value)) {
                 setQuantity(value);
             }
         }
@@ -82,7 +84,7 @@ export default function BuySellForm({
                 setStopPrice('');
                 setOrderType('market');
             } catch (e: any) {
-                
+                throw e;
             } finally {
                 setIsSubmitting(false);
                 setShowConfirm(false);
@@ -214,7 +216,7 @@ export default function BuySellForm({
                                 placeholder='Enter limit price'
                                 value={limitPrice}
                                 onChange={(e) => {
-                                    if (e.target.value === '' || /[\d]+([.]\d+)?/.test(e.target.value)) {
+                                    if (e.target.value === '' || /\d+(.\d+)?/.test(e.target.value)) {
                                         setLimitPrice(e.target.value);
                                     }
                                 }}
@@ -232,7 +234,7 @@ export default function BuySellForm({
                                 placeholder='Enter stop price'
                                 value={stopPrice}
                                 onChange={(e) => {
-                                    if (e.target.value === '' || /[\d]+([.]\d+)?/.test(e.target.value)) {
+                                    if (e.target.value === '' || /\d+(.\d+)?/.test(e.target.value)) {
                                         setStopPrice(e.target.value);
                                     }
                                 }}
@@ -368,7 +370,7 @@ export default function BuySellForm({
                                     border-[var(--border)] disabled:opacity-50 
                                     ${mode === 'buy' ? 'bg-green-600' : 'bg-red-600'}`}
                             >
-                                {isSubmitting ? 'Processing...' : `Confirm ${mode === 'buy' ? 'Buy' : 'Sell'}`}
+                                {isSubmitting ? 'Processing...' : `Confirm`}
                             </button>
                         </div>
                     </div>

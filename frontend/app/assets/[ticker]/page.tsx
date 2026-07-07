@@ -20,7 +20,7 @@ export default function AssetPage() {
   const { data: summary, loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
 
   const { activeAccount } = useAccount();
-  const { holdings, loading: holdingsLoading, refetch: refetchHoldings } = useHoldings(activeAccount?.id ?? null);
+  const { holdings, refetch: refetchHoldings } = useHoldings(activeAccount?.id ?? null);
 
   if (!ticker) return <div>Invalid ticker</div>;
   if (pricesLoading || summaryLoading) return <div>Loading...</div>;
