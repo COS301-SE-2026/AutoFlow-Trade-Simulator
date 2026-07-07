@@ -2,10 +2,10 @@
     "ci": {
         "collect": {
             "url": [
-                "http://localhost:3001",
-                "http://localhost:3001/login",
-                "http://localhost:3001/register",
-                "http://localhost:3001/dashboard"
+                "http://localhost:3000",
+                "http://localhost:3000/login",
+                "http://localhost:3000/register",
+                "http://localhost:3000/dashboard"
             ],
             "numberOfRuns": 1,
             "settings": {
