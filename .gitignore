@@ -21,3 +21,4 @@ dist/
 build/
 coverage/
 test.db
+node_modules/

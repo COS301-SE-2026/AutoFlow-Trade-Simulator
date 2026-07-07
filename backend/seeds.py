@@ -13,7 +13,7 @@ from app.models import (
     InternationalAccount,
     Portfolio,
 )
-
+from app.core.security import create_password_hash
 
 # Seed data definitions
 user_data = [
@@ -30,6 +30,7 @@ user_data = [
     },
     {"email": "diana@example.com", "full_name": "Diana Prince", "password_hash": "hashed_password_4"},
     {"email": "eve@example.com", "full_name": "Eve Turner", "password_hash": "hashed_password_5"},
+    {"email": "testUser@example.com", "full_name": "Test User", "password_hash": create_password_hash("1234567890")}
 ]
 
 currency_data = [
