@@ -8,26 +8,11 @@ class MassiveAdapter(BaseMarketDataAdapter):
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_MASSIVE_KEY")
         self.base_params = {"apiKey": self.api_key, "adjusted": "true"}
 
-    async def fetch_and_store(self, index:int):
-        symbols = await self.get_symbol_batch(index)
-
+    async def make_request(self, client, symbols: list[str], asset:str):
         ticker = symbols[0].upper()
         url = f"{self.base_url}/v2/aggs/ticker/{ticker}/prev"
-
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.get(url, params=self.base_params, timeout=10.0)
-
-                if response.status_code == 200:
-                    payload = response.json()
-                    if payload.get("resultsCount", 0) > 0:
-                        self.save_to_lake(asset_class="stocks", payload=payload)
-                elif response.status_code == 429:
-                    print(f"WARN: Rate limit exceeded while fetching {ticker}. Pacing window check required.")
-                else:
-                    response.raise_for_status()
-            except Exception as e:
-                print(f"ERROR: Failed to harvest daily stock OHLCV data for {ticker}: {str(e)}")
+        response = await client.get(url, params=self.base_params, timeout=10.0)
+        return response
 
 
 class TwelveDataAdapter(BaseMarketDataAdapter):
@@ -35,29 +20,16 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
         super().__init__(provider_name="twelve_data", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_12DATA_KEY")
 
-    async def fetch_and_store(self, index:int):
-        # Twelve Data basic tier handles single ticker calls for this endpoint layout
-        batch_limit = self.config["rest"]["batch_limits"]
+    async def make_request(self, client, symbols: list[str], asset:str):
+        selected_symbol = symbols[0]
+        params = {
+            self.config["key_param_name"]: self.api_key,
+            "symbol": selected_symbol
+        }
 
-        target_symbols = await self.pools["indices"].dequeue_batch(batch_limit)
-        if not target_symbols:
-            return
-
-        selected_symbol = target_symbols[0]
-
-        async with httpx.AsyncClient() as client:
-            params = {
-                self.config["key_param_name"]: self.api_key,
-                "symbol": selected_symbol
-            }
-
-            url = f"{self.base_url}/etfs"
-            response = await client.get(url, params=params, timeout=10.0)
-
-            if response.status_code == 200:
-                self.save_to_lake(asset_class="indices", payload=response.json())
-            else:
-                response.raise_for_status()
+        url = f"{self.base_url}/etfs"
+        response = await client.get(url, params=params, timeout=10.0)
+        return response
 
 class FinnhubAdapter(BaseMarketDataAdapter):
     """
@@ -68,29 +40,22 @@ class FinnhubAdapter(BaseMarketDataAdapter):
         super().__init__(provider_name="finnhub", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FINNHUB_KEY")
 
-    async def fetch_and_store(self, index:int):
-        async with httpx.AsyncClient() as client:
-            for asset_class in ["currencies", "crypto"]:
-                # Process 1 ticker at a time per loop cycle due to batch limits
-                symbols = await self.pools[asset_class].dequeue_batch(1)
-                if not symbols:
-                    continue
+    async def make_request(self, client, symbols: list[str], asset:str):
+        symbols = await self.pools[asset].dequeue_batch(1)
+        if not symbols:
+            return
 
-                target_symbol = symbols[0]
-                params = {
-                    self.config["key_param_name"]: self.api_key,
-                    "symbol": target_symbol
-                }
+        params = {
+            self.config["key_param_name"]: self.api_key,
+            "symbol": symbols[0]
+        }
 
-                # Finnhub dynamic endpoint structure layout
-                endpoint = "forex/rates" if asset_class == "currencies" else "crypto/candle"
-                url = f"{self.base_url}/{endpoint}"
+        # Finnhub dynamic endpoint structure layout
+        endpoint = "forex/rates" if asset == "currencies" else "crypto/candle"
+        url = f"{self.base_url}/{endpoint}"
 
-                response = await client.get(url, params=params, timeout=10.0)
-                if response.status_code == 200:
-                    self.save_to_lake(asset_class=asset_class, payload=response.json())
-                else:
-                    response.raise_for_status()
+        response = await client.get(url, params=params, timeout=10.0)
+        return response
 
 class CoinMarketCapAdapter(BaseMarketDataAdapter):
     """
@@ -100,21 +65,12 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
         super().__init__(provider_name="coinmarketcap", config=config, market_event=market_event, pools=pools)
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CMC_KEY")}
 
-    async def fetch_and_store(self, index:int):
-        # Consume a highly packed batch of crypto IDs/Symbols sequentially
-        symbols = await self.pools["crypto"].dequeue_batch(100)
-        if not symbols:
-            return
+    async def make_request(self, client, symbols: list[str], asset:str):
+        params = {"symbol": ",".join(symbols), "convert": "USD"}
+        url = f"{self.base_url}/cryptocurrency/quotes/latest"
 
-        async with httpx.AsyncClient() as client:
-            params = {"symbol": ",".join(symbols), "convert": "USD"}
-            url = f"{self.base_url}/cryptocurrency/quotes/latest"
-
-            response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
-            if response.status_code == 200:
-                self.save_to_lake(asset_class="crypto", payload=response.json())
-            else:
-                response.raise_for_status()
+        response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
+        return response
 
 class CoinGeckoAdapter(BaseMarketDataAdapter):
     """
@@ -126,25 +82,15 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_GECKO_KEY")
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CG_KEY")}
 
-    async def fetch_and_store(self, index:int):
-        # Pull 250 elements simultaneously matching their coins_markets capability
-        batch_limit = self.config["rest"]["batch_limits"]["coins_markets"]
-        symbols = await self.pools["crypto"].dequeue_batch(batch_limit)
-        if not symbols:
-            return
+    async def make_request(self, client, symbols: list[str], asset:str):
+        params = {
+            "vs_currency": "usd",
+            "symbols": ",".join(symbols).lower()
+        }
+        url = f"{self.base_url}/coins/markets"
 
-        async with httpx.AsyncClient() as client:
-            params = {
-                "vs_currency": "usd",
-                "symbols": ",".join(symbols).lower()
-            }
-            url = f"{self.base_url}/coins/markets"
-
-            response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
-            if response.status_code == 200:
-                self.save_to_lake(asset_class="crypto", payload=response.json())
-            else:
-                response.raise_for_status()
+        response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
+        return response
 
 class EodHistoricalAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event):
