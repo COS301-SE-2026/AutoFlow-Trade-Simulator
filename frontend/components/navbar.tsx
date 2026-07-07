@@ -48,7 +48,7 @@ export function Navbar() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {[
                     { label: 'Dashboard', href: '/dashboard' },
-                    { label: 'Portfolio',  href: '/#' },
+                    { label: 'Portfolio',  href: '/portfolio' },
                     { label: 'Markets',    href: '/#' },
                     { label: 'Leaderboard', href: '/#' },
                     { label: 'AI Assistant', href: '/#' },

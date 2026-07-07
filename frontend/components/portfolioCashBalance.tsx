@@ -6,7 +6,9 @@ export function PortfolioCashBalance({ accountId }: { accountId: number | null }
 
     return (
         <div>
-            {activeAccount?.balance} {activeAccount?.currency_code}
+            <div>Cash Balance</div>
+            <div>{activeAccount?.balance} {activeAccount?.currency_code}</div>
+            <div>Available for trading</div>
         </div>
     );
 }
