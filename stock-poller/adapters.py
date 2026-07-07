@@ -97,70 +97,39 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
         super().__init__(provider_name="eod_historical", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_EOD_KEY")
 
-    async def fetch_and_store(self, index:int):
-        async with httpx.AsyncClient() as client:
-            asset_class = "currencies"
+    async def make_request(self, client, symbols: list[str], asset:str):
+        formatted_symbols = []
+        for sym in symbols:
+            cleaned = sym.replace("/", "")
+            if ".FOREX" not in cleaned.upper():
+                cleaned = f"{cleaned}.FOREX"
+            formatted_symbols.append(cleaned)
 
-            batch_limit = self.config["rest"]["batch_limits"]
-            raw_symbols = await self.pools[asset_class].dequeue_batch(batch_limit)
-            if not raw_symbols:
-                return
+        # EODHD batch syntax: /real-time/{main_ticker}?s={ticker2},{ticker3}
+        main_ticker = formatted_symbols[0]
+        params = {
+            self.config["key_param_name"]: self.api_key,
+            "fmt": "json"
+        }
 
-            symbols = []
-            for sym in raw_symbols:
-                cleaned = sym.replace("/", "")
-                if ".FOREX" not in cleaned.upper():
-                    cleaned = f"{cleaned}.FOREX"
-                symbols.append(cleaned)
+        if len(formatted_symbols) > 1:
+            params["s"] = ",".join(formatted_symbols[1:])
 
-            # EODHD batch syntax: /real-time/{main_ticker}?s={ticker2},{ticker3}
-            main_ticker = symbols[0]
-            params = {
-                self.config["key_param_name"]: self.api_key,
-                "fmt": "json"
-            }
+        url = f"{self.base_url}/real-time/{main_ticker}"
 
-            if len(symbols) > 1:
-                params["s"] = ",".join(symbols[1:])
-
-            url = f"{self.base_url}/real-time/{main_ticker}"
-
-            try:
-                response = await client.get(url, params=params, timeout=12.0)
-                if response.status_code == 200:
-                    self.save_to_lake(asset_class=asset_class, payload=response.json())
-                else:
-                    response.raise_for_status()
-            except Exception as e:
-                print(f"ERROR: EodHistorical batch forex fetch failed for {symbols}: {str(e)}")
+        response = await client.get(url, params=params, timeout=12.0)
+        return response
 
 class VectradeAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event):
         super().__init__(provider_name="vectrade", config=config, market_event=market_event, pools=pools)
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
 
-    async def fetch_and_store(self, index:int):
-        if "stocks" not in self.config["asset_classes"]:
-            return
-
-        batch_limit = self.config["rest"]["batch_limits"]["stocks"]
-
-        symbols = await self.pools["vectrade_stocks"].dequeue_batch(batch_limit)
-        if not symbols:
-            return
-
+    async def make_request(self, client, symbols: list[str], asset:str):
         params = {"symbols": ",".join(symbols)}
         url = f"{self.base_url}/v1/vq/quotes/batch"
-
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.get(url, headers=self.headers, params=params, timeout=15.0)
-                if response.status_code == 200:
-                    self.save_to_lake(asset_class="stocks", payload=response.json())
-                else:
-                    response.raise_for_status()
-            except Exception as e:
-                print(f"ERROR: Vectrade batch stocks quotes fetch failed: {str(e)}")
+        response = await client.get(url, headers=self.headers, params=params, timeout=15.0)
+        return response
 
 class FCSAdapter(BaseMarketDataAdapter):
     """
@@ -171,24 +140,14 @@ class FCSAdapter(BaseMarketDataAdapter):
         super().__init__(provider_name="fcs", config=config, market_event=market_event, pools=pools)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FCS_KEY")
 
-    async def fetch_and_store(self, index:int):
-        batch_limit = self.config["rest"]["batch_limits"]
-        symbols = await self.pools["commodities"].dequeue_batch(batch_limit)
-        if not symbols:
-            return
+    async def make_request(self, client, symbols: list[str], asset:str):
+        params = {
+            self.config["key_param_name"]: self.api_key,
+            "symbol": ",".join(symbols),
+            "type": self.config["rest"]["query_filters"]["type"]
+        }
 
-        async with httpx.AsyncClient() as client:
-            params = {
-                self.config["key_param_name"]: self.api_key,
-                "symbol": ",".join(symbols),
-                "type": self.config["rest"]["query_filters"]["type"] # Injects 'commodity' string dynamically
-            }
+        url = f"{self.base_url}/latest"
 
-            # Formats cleanly to: https://api-v4.fcsapi.com/forex/latest
-            url = f"{self.base_url}/latest"
-
-            response = await client.get(url, params=params, timeout=12.0)
-            if response.status_code == 200:
-                self.save_to_lake(asset_class="commodities", payload=response.json())
-            else:
-                response.raise_for_status()
+        response = await client.get(url, params=params, timeout=12.0)
+        return response
