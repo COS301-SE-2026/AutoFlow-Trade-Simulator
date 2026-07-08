@@ -9,6 +9,8 @@ export function usePortfolio(accountId: number | null) {
 
     const cashBalance = Number(activeAccount?.balance);
 
+    const currencyCode = activeAccount?.currency_code;
+
     const investedValue = useMemo(() => {
         let temp = 0;
         for (let index = 0; index < holdings.length; index++) {
@@ -20,5 +22,7 @@ export function usePortfolio(accountId: number | null) {
 
     const totalValue = cashBalance + investedValue;
 
-    return { totalValue, cashBalance, investedValue, holdings, activeAccount };
+    const numHoldings = holdings.length;
+
+    return { cashBalance, currencyCode, investedValue, totalValue, numHoldings, activeAccount, holdings };
 }

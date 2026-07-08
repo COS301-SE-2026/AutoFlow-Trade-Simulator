@@ -2,12 +2,12 @@
 import { usePortfolio } from '@/hooks/usePortfolio';
 
 export function PortfolioTotalValue({ accountId }: { accountId: number | null }) {
-    const { totalValue } = usePortfolio(accountId);
+    const { totalValue, currencyCode } = usePortfolio(accountId);
 
     return (
         <div>
             <div>Total Value</div>
-            <div>{totalValue}</div>
+            <div>{totalValue}{currencyCode}</div>
         </div>
     );
 }
