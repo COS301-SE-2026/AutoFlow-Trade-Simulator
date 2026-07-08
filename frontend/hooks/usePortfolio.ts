@@ -20,5 +20,5 @@ export function usePortfolio(accountId: number | null) {
 
     const totalValue = cashBalance + investedValue;
 
-    return { totalValue, cashBalance, investedValue, holdings };
+    return { totalValue, cashBalance, investedValue, holdings, activeAccount };
 }

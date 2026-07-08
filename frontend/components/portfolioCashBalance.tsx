@@ -1,8 +1,8 @@
 'use client';
-import { useAccount } from '@/lib/hooks/accountContext';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 export function PortfolioCashBalance({ accountId }: { accountId: number | null }) {
-    const { activeAccount } = useAccount();
+    const { activeAccount } = usePortfolio(accountId);
 
     return (
         <div>
