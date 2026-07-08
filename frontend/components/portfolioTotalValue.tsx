@@ -1,12 +1,13 @@
 'use client';
-import { useAccount } from '@/lib/hooks/accountContext';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 export function PortfolioTotalValue({ accountId }: { accountId: number | null }) {
-    const { activeAccount } = useAccount();
+    const { totalValue } = usePortfolio(accountId);
 
     return (
         <div>
-            {activeAccount?.balance} {activeAccount?.currency_code}
+            <div>Total Value</div>
+            <div>{totalValue}</div>
         </div>
     );
 }
