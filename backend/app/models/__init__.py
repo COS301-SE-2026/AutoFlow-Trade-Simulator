@@ -9,6 +9,7 @@ from .report import Report, Period
 from .report_section import ReportSection
 from .greeks import Greeks
 from .HistPrice import HistPrice
+from .MockTickerTest import MockTickerTest
 
 __all__ = [
     "User",
@@ -24,4 +25,5 @@ __all__ = [
 	"ReportSection",
 	"Greeks",
 	"HistPrice",
+	"MockTickerTest"
 ]

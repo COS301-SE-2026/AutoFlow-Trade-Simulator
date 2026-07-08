@@ -23,6 +23,12 @@ if config.config_file_name is not None:
 
 target_metadata = SQLModel.metadata
 
+def include_object(object, name, type_, reflected, compare_to) -> bool:
+    if type_ == "table":
+        if name.startswith("_hyper_") or getattr(object, "schema", None) == "_timescaledb_internal":
+            return False
+    return True
+
 
 def process_revision_directives(context, revision, directives) -> None:
     """Skip generating empty migration files during --autogenerate runs."""
@@ -46,6 +52,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         compare_type=True,
         compare_server_default=True,
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -66,6 +73,7 @@ def run_migrations_online() -> None:
             compare_type=True,
             compare_server_default=True,
             process_revision_directives=process_revision_directives,
+            include_object=include_object
         )
 
         with context.begin_transaction():

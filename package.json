@@ -17,13 +17,18 @@
     "test:backend": "cd backend && python -m pytest",
     "test": "npm run test:backend",
     "dev": "npm run backend & npm run frontend",
-    "start": "npm run start --prefix backend & npm run start --prefix frontend"
+    "start": "npm run start --prefix backend & npm run start --prefix frontend",
+    "lhci": "lhci autorun",
+    "k6": "docker run --rm --network=host --env-file .env -v \"$PWD/backend/tests/performance:/tests\" grafana/k6 run /tests/performance-baseline.js",
+    "perf": "npm run lhci && npm run k6"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "autoprefixer": "^10.5.0",
+    "dotenv-cli": "^11.0.0",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.3.0"
   }
