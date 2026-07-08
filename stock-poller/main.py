@@ -1,9 +1,12 @@
+import logging
 import yaml
 import asyncio
 from adapters import MassiveAdapter, TwelveDataAdapter, FCSAdapter, CoinMarketCapAdapter, CoinGeckoAdapter, EodHistoricalAdapter, VectradeAdapter
 from base_adapter import TickerRingBuffer
 import zoneinfo
 from datetime import datetime
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 def load_yaml_sync():
     with open("config.yaml", "r") as f:
@@ -20,11 +23,11 @@ async def market_clock_broadcaster(market_open_event: asyncio.Event):
 
         if is_market_hours:
             if not market_open_event.is_set():
-                print(f"[{now.strftime('%X')}] Market Open Broadcast Sent")
+                logging.info(f"[{now.strftime('%X')}] Market Open Broadcast Sent")
                 market_open_event.set()
         else:
             if market_open_event.is_set():
-                print(f"[{now.strftime('%X')}] Market Close Broadcast Sent")
+                logging.info(f"[{now.strftime('%X')}] Market Close Broadcast Sent")
                 market_open_event.clear()
 
         # conserve resources by only checking once per second.
@@ -61,4 +64,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nHarvest pipeline gracefully suspended.")
+        logging.info("\nHarvest pipeline gracefully suspended.")

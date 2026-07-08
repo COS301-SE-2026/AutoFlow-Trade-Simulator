@@ -65,11 +65,11 @@ class BaseMarketDataAdapter(ABC):
                     if payload.get("resultsCount", 0) > 0:
                         self.save_to_lake(asset_class=asset_type, payload=payload)
                 elif response.status_code == 429:
-                    print(f"WARN: Rate limit exceeded on {self.provider_name}. Pacing window check required.")
+                    logging.info(f"WARN: Rate limit exceeded on {self.provider_name}. Pacing window check required.")
                 else:
                     response.raise_for_status()
             except Exception as e:
-                print(f"ERROR: Failed to make request for {self.provider_name}: {str(e)}")
+                logging.error(f"ERROR: Failed to make request for {self.provider_name}: {str(e)}")
 
     @abstractmethod
     async def make_request(self, client, symbols: list[str], asset:str):
@@ -89,6 +89,7 @@ class BaseMarketDataAdapter(ABC):
     async def run_harvest_loop(self):
         logging.info(f"Starting harvest loop for {self.provider_name}...")
         counter = 0
+        num_enabled_assets = len([name for name, enabled in self.config["asset_classes"].items() if enabled])
 
         if not self.run_during_market_close:
             while True:
@@ -102,7 +103,7 @@ class BaseMarketDataAdapter(ABC):
 
                 elapsed = asyncio.get_event_loop().time() - start_time
                 sleep_time = max(0, self.seconds_per_request - elapsed)
-                counter= (counter+1) % len(self.config.get("asset_classes", []))
+                counter= (counter+1) % num_enabled_assets
                 await asyncio.sleep(sleep_time)
         else:
             while True:
@@ -114,7 +115,7 @@ class BaseMarketDataAdapter(ABC):
 
                 elapsed = asyncio.get_event_loop().time() - start_time
                 sleep_time = max(0, self.seconds_per_request - elapsed)
-                counter= (counter+1) % len(self.config.get("asset_classes", []))
+                counter= (counter+1) % num_enabled_assets
                 await asyncio.sleep(sleep_time)
 
 class TickerRingBuffer:

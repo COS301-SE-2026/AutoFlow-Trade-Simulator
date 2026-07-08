@@ -1,6 +1,9 @@
+import logging
 import os
 import httpx
 from base_adapter import BaseMarketDataAdapter
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 class MassiveAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event):
@@ -9,7 +12,7 @@ class MassiveAdapter(BaseMarketDataAdapter):
         self.base_params = {"apiKey": self.api_key, "adjusted": "true"}
 
     async def make_request(self, client, symbols: list[str], asset:str):
-        ticker = symbols[0].upper()
+        ticker = symbols[0]
         url = f"{self.base_url}/v2/aggs/ticker/{ticker}/prev"
         response = await client.get(url, params=self.base_params, timeout=10.0)
         return response
@@ -126,10 +129,18 @@ class VectradeAdapter(BaseMarketDataAdapter):
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
 
     async def make_request(self, client, symbols: list[str], asset:str):
-        params = {"symbols": ",".join(symbols)}
-        url = f"{self.base_url}/v1/vq/quotes/batch"
-        response = await client.get(url, headers=self.headers, params=params, timeout=15.0)
-        return response
+        if asset=="stocks":
+            params = {"symbols": ",".join(symbols)}
+            url = f"{self.base_url}/v1/vq/quotes/batch"
+            response = await client.get(url, headers=self.headers, params=params, timeout=15.0)
+            return response
+        elif asset=="options":
+            url = f"{self.base_url}/v1/vq/options/{symbols[0]}/chain"
+            response = await client.get(url, headers=self.headers, timeout=15.0)
+            return response
+        else:
+            logging.error("Invalid asset type passed in to VectradeAdapter: make_request")
+            return {}
 
 class FCSAdapter(BaseMarketDataAdapter):
     """
