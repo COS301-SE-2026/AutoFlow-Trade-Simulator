@@ -24,5 +24,16 @@ export function usePortfolio(accountId: number | null) {
 
     const numHoldings = holdings.length;
 
-    return { cashBalance, currencyCode, investedValue, totalValue, numHoldings, activeAccount, holdings };
+    const totalCost = useMemo(() => {
+        let temp = 0;
+        for (let index = 0; index < holdings.length; index++) {
+            const holding = holdings[index];
+            temp += holding.average_cost * holding.net_quantity;
+        }
+        return temp;
+    }, [holdings]);
+    const profitLoss = investedValue - totalCost;
+    const profitLossPercent = totalCost > 0 ? (profitLoss / totalCost) * 100 : 0;
+
+    return { cashBalance, currencyCode, investedValue, totalValue, numHoldings, activeAccount, holdings, profitLoss, profitLossPercent };
 }

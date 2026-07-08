@@ -1,9 +1,11 @@
 'use client';
 import { usePortfolio } from '@/hooks/usePortfolio';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 
 export function PortfolioTotalValue({ accountId }: { accountId: number | null }) {
-    const { totalValue, currencyCode } = usePortfolio(accountId);
+    const { totalValue, currencyCode, profitLoss, profitLossPercent } = usePortfolio(accountId);
+
+    const isPositive = profitLoss >= 0;
 
     return (
         <div className='rounded-xl p-6 border border-border/60' style={{ background: 'var(--panel' }}>
@@ -14,9 +16,12 @@ export function PortfolioTotalValue({ accountId }: { accountId: number | null })
                 <span style={{ color: 'var(--muted' }}>Total Value</span>
             </div>
             <div className='text-3xl font-bold' style={{ color: 'var(--text' }}>
-                <div>{totalValue} {currencyCode}</div>
+                <div>{totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currencyCode}</div>
+            </div>
+            <div className={`flex items-center gap-1 mt-2 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                {isPositive ? <TrendingUp className='w-4 h-4' /> : <TrendingDown className='w-4 h-4' />}
+                <span>{isPositive ? '+' : ''}{profitLossPercent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
         </div>
-
     );
 }

@@ -14,7 +14,7 @@ export function PortfolioCashBalance({ accountId }: { accountId: number | null }
                 <span style={{ color: 'var(--muted' }}>Cash Balance</span>
             </div>
             <div className='text-3xl font-bold' style={{ color: 'var(--text' }}>
-                <div>{currencyCode} {cashBalance}</div>
+                <div>{currencyCode} {cashBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             </div>
             <div className='text-sm mt-2' style={{ color: 'var(--muted' }}>
                 Available for trading

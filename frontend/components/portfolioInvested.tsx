@@ -14,7 +14,7 @@ export function PortfolioInvested({ accountId }: { accountId: number | null }) {
                 <span style={{ color: 'var(--muted' }}>Invested</span>
             </div>
             <div className='text-3xl font-bold' style={{ color: 'var(--text' }}>
-                <div>{investedValue} {currencyCode}</div>
+                <div>{investedValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currencyCode}</div>
             </div>
             <div className='text-sm mt-2' style={{ color: 'var(--muted' }}>
                 Across {numHoldings} positions
