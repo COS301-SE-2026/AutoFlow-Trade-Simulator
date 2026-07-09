@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BuySellForm from '@/components/BuySellForm';
 
@@ -10,8 +10,8 @@ describe('BuySellForm', () => {
         price: 100,
         accountBalance: 12000,
         currentHoldings: 5,
-        onBuy: mockOnBuy(),
-        onSell: mockOnSell()
+        onBuy: mockOnBuy,
+        onSell: mockOnSell
     };
 
     describe('Basic Rendering', () => {
@@ -97,6 +97,38 @@ describe('BuySellForm', () => {
 
             const submitButton = screen.getByRole('button', { name: /Buy 0 units/i});
             expect(submitButton).toBeDisabled();
+        });
+    });
+
+    describe('Trade Execution', () => {
+        it('should show confirmation before buying', async () => {
+            render(<BuySellForm {...defaultProps} />);
+    
+            const input = screen.getByPlaceholderText('Enter Quantity');
+            fireEvent.change(input, { target: { value: '10' } });
+            fireEvent.click(screen.getByRole('button', { name: /Buy 10 units/i }));
+    
+            await waitFor(() => {
+                expect(screen.getByText('Confirm Purchase')).toBeInTheDocument();
+            });
+        });
+
+        it('should execute buy when confirmed', async () => {
+            render(<BuySellForm {...defaultProps} />);
+            
+            const input = screen.getByPlaceholderText('Enter Quantity');
+            fireEvent.change(input, { target: { value: '10' } });
+            fireEvent.click(screen.getByRole('button', { name: /Buy 10  units/i }));
+
+            await waitFor(() => {
+                expect(screen.getByText('Confirm Purchase')).toBeInTheDocument();
+            });
+
+            fireEvent.click(screen.getByText('Confirm Buy'));
+
+            await waitFor(() => {
+                expect(mockOnBuy).toHaveBeenCalledWith(10, 'market', undefined);
+            });
         });
     });
 })
