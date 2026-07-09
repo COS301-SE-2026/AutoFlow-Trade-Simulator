@@ -34,7 +34,7 @@ describe('BuySellForm', () => {
         it('should start in buy mode', () => {
             render(<BuySellForm {...defaultProps} />);
             
-            const submitButton = screen.getByRole('button', { name: /Buy/i});
+            const submitButton = screen.getByRole('button', { name: 'Buy' });
             expect(submitButton).toBeInTheDocument();
         });
     });
@@ -52,9 +52,9 @@ describe('BuySellForm', () => {
         it('should switch between buy and sell mode', () => {
             render(<BuySellForm {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('Sell'));
+            fireEvent.click(screen.getByRole('button', { name: 'Sell' }));
 
-            const submitButton = screen.getByRole('button', { name: /Sell/i});
+            const submitButton = screen.getByRole('button', { name: 'Sell' });
             expect(submitButton).toBeInTheDocument();
         });
 
@@ -120,11 +120,11 @@ describe('BuySellForm', () => {
         it('should show confirmation before selling', async () => {
             render(<BuySellForm {...defaultProps} />);
     
-            fireEvent.change(screen.getByText('Sell'));
+            fireEvent.click(screen.getByRole('button', { name: 'Sell' }));
 
             const input = screen.getByPlaceholderText('Enter Quantity');
             fireEvent.change(input, { target: { value: '3' } });
-            fireEvent.click(screen.getByRole('button', { name: /Sell 3 units/i }));
+            fireEvent.click(screen.getByRole('button', { name: /^Sell 3 units/ }));
     
             await waitFor(() => {
                 expect(screen.getByText('Confirm Sell')).toBeInTheDocument();
@@ -153,11 +153,11 @@ describe('BuySellForm', () => {
         it('should execute sell when confirmed', async () => {
             render(<BuySellForm {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('Sell'));
+            fireEvent.click(screen.getByRole('button', { name: 'Sell' }));
             
             const input = screen.getByPlaceholderText('Enter Quantity');
             fireEvent.change(input, { target: { value: '3' } });
-            fireEvent.click(screen.getByRole('button', { name: /Sell 3 units/i }));
+            fireEvent.click(screen.getByRole('button', { name: /^Sell 3 units/ }));
 
             await waitFor(() => {
                 expect(screen.getByText('Confirm Sell')).toBeInTheDocument();
@@ -176,7 +176,7 @@ describe('BuySellForm', () => {
 
             const input = screen.getByPlaceholderText('Enter Quantity');
             fireEvent.change(input, { target: { value: '10' } });
-            fireEvent.click(screen.getByRole('button', { name: /Buy 10 units/i }));
+            fireEvent.click(screen.getByRole('button', { name: /^Buy 10 units/ }));
 
             await waitFor(() => {
                 expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
@@ -195,7 +195,7 @@ describe('BuySellForm', () => {
 
             const input = screen.getByPlaceholderText('Enter Quantity');
             fireEvent.change(input, { target: { value: '10' } });
-            fireEvent.click(screen.getByRole('button', { name: /Buy 10 units/i }));
+            fireEvent.click(screen.getByRole('button', { name: /^Buy 10 units/ }));
 
             await waitFor(() => {
                 expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
