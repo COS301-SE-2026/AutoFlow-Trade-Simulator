@@ -14,6 +14,10 @@ describe('BuySellForm', () => {
         onSell: mockOnSell
     };
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    })
+
     describe('Basic Rendering', () => {
         it('should show the buy and sell form buttons', () => {
             render(<BuySellForm {...defaultProps} />);
@@ -109,7 +113,21 @@ describe('BuySellForm', () => {
             fireEvent.click(screen.getByRole('button', { name: /Buy 10 units/i }));
     
             await waitFor(() => {
-                expect(screen.getByText('Confirm Purchase')).toBeInTheDocument();
+                expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
+            });
+        });
+
+        it('should show confirmation before selling', async () => {
+            render(<BuySellForm {...defaultProps} />);
+    
+            fireEvent.change(screen.getByText('Sell'));
+
+            const input = screen.getByPlaceholderText('Enter Quantity');
+            fireEvent.change(input, { target: { value: '3' } });
+            fireEvent.click(screen.getByRole('button', { name: /Sell 3 units/i }));
+    
+            await waitFor(() => {
+                expect(screen.getByText('Confirm Sell')).toBeInTheDocument();
             });
         });
 
@@ -118,17 +136,76 @@ describe('BuySellForm', () => {
             
             const input = screen.getByPlaceholderText('Enter Quantity');
             fireEvent.change(input, { target: { value: '10' } });
-            fireEvent.click(screen.getByRole('button', { name: /Buy 10  units/i }));
+            fireEvent.click(screen.getByRole('button', { name: /Buy 10 units/i }));
 
             await waitFor(() => {
-                expect(screen.getByText('Confirm Purchase')).toBeInTheDocument();
+                expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
             });
 
-            fireEvent.click(screen.getByText('Confirm Buy'));
+            const confirmButton = screen.getByText('Confirm');
+            fireEvent.click(confirmButton);
 
             await waitFor(() => {
                 expect(mockOnBuy).toHaveBeenCalledWith(10, 'market', undefined);
             });
         });
+
+        it('should execute sell when confirmed', async () => {
+            render(<BuySellForm {...defaultProps} />);
+
+            fireEvent.click(screen.getByText('Sell'));
+            
+            const input = screen.getByPlaceholderText('Enter Quantity');
+            fireEvent.change(input, { target: { value: '3' } });
+            fireEvent.click(screen.getByRole('button', { name: /Sell 3 units/i }));
+
+            await waitFor(() => {
+                expect(screen.getByText('Confirm Sell')).toBeInTheDocument();
+            });
+
+            const confirmButton = screen.getByText('Confirm');
+            fireEvent.click(confirmButton);
+
+            await waitFor(() => {
+                expect(mockOnSell).toHaveBeenCalledWith(3, 'market', undefined);
+            });
+        });
+
+        it('should cancel trade when cancel is clicked', async () => {
+            render(<BuySellForm {...defaultProps} />);
+
+            const input = screen.getByPlaceholderText('Enter Quantity');
+            fireEvent.change(input, { target: { value: '10' } });
+            fireEvent.click(screen.getByRole('button', { name: /Buy 10 units/i }));
+
+            await waitFor(() => {
+                expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
+            });
+
+            fireEvent.click(screen.getByText('Cancel'));
+
+            await waitFor(() => {
+                expect(screen.queryByText('Confirm Buy')).not.toBeInTheDocument();
+                expect(mockOnBuy).not.toHaveBeenCalled();
+            });
+        });
+
+        it('should reset form after successful trade', async () => {
+            render(<BuySellForm {...defaultProps} />);
+
+            const input = screen.getByPlaceholderText('Enter Quantity');
+            fireEvent.change(input, { target: { value: '10' } });
+            fireEvent.click(screen.getByRole('button', { name: /Buy 10 units/i }));
+
+            await waitFor(() => {
+                expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
+            });
+
+            fireEvent.click(screen.getByText('Confirm'));
+
+            await waitFor(() => {
+                expect(input).toHaveValue('');
+            })
+        })
     });
 })
