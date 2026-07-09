@@ -2,7 +2,8 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlmodel import SQLModel
+from sqlmodel import  SQLModel
+from enum import Enum
 
 
 class EpicStatusDTO(SQLModel):
@@ -34,3 +35,12 @@ class HistPriceHistoryResponse(SQLModel):
 
 class MarketConditionResponse(SQLModel):
     market_condition: str
+
+class TimePeriod(Enum):
+    ONE_DAY = "1d"
+    ONE_WEEK = "1w"
+    ONE_MONTH = "1m"
+    THREE_MONTHS = "3m"
+    SIX_MONTHS = "6m"
+    ONE_YEAR = "1y"
+    FIVE_YEARS = "5y"

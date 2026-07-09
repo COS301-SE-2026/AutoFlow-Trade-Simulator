@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
 from ...database import get_session
-from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryResponse, GreekValues, MarketConditionResponse
+from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryResponse, GreekValues, MarketConditionResponse,TimePeriod
 from .GreeksService import GreeksService
 router= APIRouter(prefix="/greeks",tags=["Greeks"])
+
+
 
 
 def get_greeks_service(session: Session = Depends(get_session)) -> GreeksService:
@@ -21,8 +23,8 @@ def get_greeks(symbol: str, service: GreeksService = Depends(get_greeks_service)
 
 
 @router.get("/{symbol}/history", response_model=HistPriceHistoryResponse)
-def get_greeks_history(symbol: str, service: GreeksService = Depends(get_greeks_service)) -> HistPriceHistoryResponse:
-    return service.get_history(symbol)
+def get_greeks_history(symbol: str, period: TimePeriod=TimePeriod.ONE_WEEK, service: GreeksService = Depends(get_greeks_service)) -> HistPriceHistoryResponse:
+    return service.get_history(symbol, period)
 
 @router.get("/market-condition", response_model=MarketConditionResponse)
 def get_market_condition(service: GreeksService = Depends(get_greeks_service)) -> MarketConditionResponse:

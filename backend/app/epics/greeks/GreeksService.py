@@ -2,12 +2,11 @@ import math
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select,col
-
 from ...models.HistPrice import HistPrice
 from ...models.MarketCondition import MarketCondition
 from ...models.greeks import Greeks
-from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues, MarketConditionResponse
-
+from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues, MarketConditionResponse, TimePeriod
+from datetime import datetime,timedelta
 class GreeksService:
 
     def __init__(self, session: Session):
@@ -124,12 +123,58 @@ class GreeksService:
             rho=float(greek_row.rho),
         )
 
-    def get_history(self, symbol: str) -> HistPriceHistoryResponse:
+    def get_history(self, symbol: str, period: TimePeriod) -> HistPriceHistoryResponse:
         normalized_symbol = symbol.upper()
+        price_rows = None
 
-        price_rows = self.session.exec(
-            select(HistPrice).where(HistPrice.symbol == normalized_symbol)
-        ).all()
+        match period:
+            case TimePeriod.ONE_DAY:
+
+                price_rows = self.session.exec(
+                    select(HistPrice)
+                    .where(HistPrice.symbol == normalized_symbol)
+                    .where(HistPrice.date >= (datetime.now() - timedelta(days=1)))
+                ).all()
+            case TimePeriod.ONE_WEEK:
+                price_rows = self.session.exec(
+                    select(HistPrice)
+                    .where(HistPrice.symbol == normalized_symbol)
+                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=1)))
+                ).all()
+
+            case TimePeriod.ONE_MONTH:
+                price_rows = self.session.exec(
+                    select(HistPrice)
+                    .where(HistPrice.symbol == normalized_symbol)
+                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=4)))
+                ).all()
+
+            case TimePeriod.THREE_MONTHS:
+                price_rows = self.session.exec(
+                    select(HistPrice)
+                    .where(HistPrice.symbol == normalized_symbol)
+                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=12)))
+                ).all()
+
+            case TimePeriod.SIX_MONTHS:
+                price_rows = self.session.exec(
+                    select(HistPrice)
+                    .where(HistPrice.symbol == normalized_symbol)
+                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=26)))
+                ).all()
+            case TimePeriod.ONE_YEAR:
+                price_rows = self.session.exec(
+                    select(HistPrice)
+                    .where(HistPrice.symbol == normalized_symbol)
+                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=52)))
+                ).all()
+
+            case TimePeriod.FIVE_YEARS:
+                price_rows = self.session.exec(
+                    select(HistPrice)
+                    .where(HistPrice.symbol == normalized_symbol)
+                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=260)))
+                ).all()
 
         if not price_rows:
             raise HTTPException(
