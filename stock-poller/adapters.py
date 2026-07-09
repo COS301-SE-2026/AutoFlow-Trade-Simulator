@@ -24,15 +24,30 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_12DATA_KEY")
 
     async def make_request(self, client, symbols: list[str], asset:str):
-        selected_symbol = symbols[0]
-        params = {
-            self.config["key_param_name"]: self.api_key,
-            "symbol": selected_symbol
-        }
+        if asset=="twelve_stocks":
+            selected_symbol = symbols[0]
+            params = {
+                self.config["key_param_name"]: self.api_key,
+                "symbol": selected_symbol,
+                "interval": "1min"
+            }
 
-        url = f"{self.base_url}/etfs"
-        response = await client.get(url, params=params, timeout=10.0)
-        return response
+            url = f"{self.base_url}/time_series"
+            response = await client.get(url, params=params, timeout=10.0)
+            return response
+        elif asset=="etfs":
+            selected_symbol = symbols[0]
+            params = {
+                self.config["key_param_name"]: self.api_key,
+                "symbol": selected_symbol
+            }
+
+            url = f"{self.base_url}/etfs"
+            response = await client.get(url, params=params, timeout=10.0)
+            return response
+        else:
+            logging.error("Invalid asset type passed in to TwelveAdapter: make_request")
+            return {}
 
 class FinnhubAdapter(BaseMarketDataAdapter):
     """
@@ -108,7 +123,7 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
                 cleaned = f"{cleaned}.FOREX"
             formatted_symbols.append(cleaned)
 
-        # EODHD batch syntax: /real-time/{main_ticker}?s={ticker2},{ticker3}
+        # https://eodhd.com/api/eod/EURUSD.FOREX?api_token=DEMO&fmt=json
         main_ticker = formatted_symbols[0]
         params = {
             self.config["key_param_name"]: self.api_key,
@@ -118,7 +133,7 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
         if len(formatted_symbols) > 1:
             params["s"] = ",".join(formatted_symbols[1:])
 
-        url = f"{self.base_url}/real-time/{main_ticker}"
+        url = f"{self.base_url}/eod/{main_ticker}"
 
         response = await client.get(url, params=params, timeout=12.0)
         return response
@@ -129,7 +144,7 @@ class VectradeAdapter(BaseMarketDataAdapter):
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
 
     async def make_request(self, client, symbols: list[str], asset:str):
-        if asset=="stocks":
+        if asset=="vectrade_stocks":
             params = {"symbols": ",".join(symbols)}
             url = f"{self.base_url}/v1/vq/quotes/batch"
             response = await client.get(url, headers=self.headers, params=params, timeout=15.0)
@@ -161,5 +176,5 @@ class FCSAdapter(BaseMarketDataAdapter):
 
         url = f"{self.base_url}/latest"
 
-        response = await client.get(url, params=params, timeout=12.0)
+        response = await client.get(url, params=params, timeout=60.0)
         return response
