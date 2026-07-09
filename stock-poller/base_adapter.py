@@ -69,7 +69,7 @@ class BaseMarketDataAdapter(ABC):
                 else:
                     response.raise_for_status()
             except Exception as e:
-                logging.error(f"ERROR: Failed to make request for {self.provider_name}: {str(e)}")
+                logging.exception(f"ERROR: Failed to make request for {self.provider_name}: {str(e)}")
 
     @abstractmethod
     async def make_request(self, client, symbols: list[str], asset:str):

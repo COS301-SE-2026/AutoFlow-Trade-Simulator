@@ -59,10 +59,6 @@ class FinnhubAdapter(BaseMarketDataAdapter):
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FINNHUB_KEY")
 
     async def make_request(self, client, symbols: list[str], asset:str):
-        symbols = await self.pools[asset].dequeue_batch(1)
-        if not symbols:
-            return
-
         params = {
             self.config["key_param_name"]: self.api_key,
             "symbol": symbols[0]

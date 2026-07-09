@@ -23,11 +23,11 @@ async def market_clock_broadcaster(market_open_event: asyncio.Event):
 
         if is_market_hours:
             if not market_open_event.is_set():
-                logging.info(f"[{now.strftime('%X')}] Market Open Broadcast Sent")
+                logging.info("[%s] Market Open Broadcast Sent", now.strftime('%X'))
                 market_open_event.set()
         else:
             if market_open_event.is_set():
-                logging.info(f"[{now.strftime('%X')}] Market Close Broadcast Sent")
+                logging.info("[%s] Market Close Broadcast Sent", now.strftime('%X'))
                 market_open_event.clear()
 
         # conserve resources by only checking once per second.
