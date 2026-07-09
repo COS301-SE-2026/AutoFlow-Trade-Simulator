@@ -7,7 +7,10 @@ from ...models.MarketCondition import MarketCondition
 from ...models.greeks import Greeks
 from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues, MarketConditionResponse, TimePeriod
 from datetime import datetime,timedelta
+
 class GreeksService:
+
+    DIRECTION_ERROR:str = "option_type must be 'call' or 'put'"
 
     def __init__(self, session: Session):
         self.session = session
@@ -46,7 +49,7 @@ class GreeksService:
             return GreeksService._normal_cdf(d1)
         elif option_type == "put":
             return GreeksService._normal_cdf(d1) - 1
-        raise ValueError("option_type must be 'call' or 'put'")
+        raise ValueError(GreeksService.DIRECTION_ERROR)
 
     @staticmethod
     def gamma(current_price:float,strike_price:float,time_to_expire:float,interest_rate:float,sigma:float)-> float:
@@ -72,7 +75,7 @@ class GreeksService:
         elif option_type == "put":
             term2 = interest_rate * strike_price * math.exp(-interest_rate * time_to_expire) * GreeksService._normal_cdf(-d2)
             return term1 + term2
-        raise ValueError("option_type must be 'call' or 'put'")
+        raise ValueError(GreeksService.DIRECTION_ERROR)
 
 
     @staticmethod
@@ -97,7 +100,7 @@ class GreeksService:
             return strike_price * time_to_expire * math.exp(-interest_rate * time_to_expire) * GreeksService._normal_cdf(d2)
         elif option_type == "put":
             return -strike_price * time_to_expire * math.exp(-interest_rate * time_to_expire) * GreeksService._normal_cdf(-d2)
-        raise ValueError("option_type must be 'call' or 'put'")
+        raise ValueError(GreeksService.DIRECTION_ERROR)
 
     
     def get_greeks(self, symbol: str) -> GreekValues:

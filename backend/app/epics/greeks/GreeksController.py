@@ -1,31 +1,42 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
 from ...database import get_session
-from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryResponse, GreekValues, MarketConditionResponse,TimePeriod
+from .GreeksDTOs import EpicStatusDTO, GreekValues, HistPriceHistoryResponse, MarketConditionResponse, TimePeriod
 from .GreeksService import GreeksService
-router= APIRouter(prefix="/greeks",tags=["Greeks"])
+router = APIRouter(prefix="/greeks",tags=["Greeks"])
 
 
 
 
-def get_greeks_service(session: Session = Depends(get_session)) -> GreeksService:
+def get_greeks_service(session: Annotated[Session, Depends(get_session)]) -> GreeksService:
     return GreeksService(session)
 
-@router.get("/status", response_model=EpicStatusDTO)
+@router.get("/status")
 def get_epic_status() -> EpicStatusDTO:
     return GreeksService.get_status()
 
+@router.get("/market-condition")
+def get_market_condition(
+    service: Annotated[GreeksService, Depends(get_greeks_service)],
+) -> MarketConditionResponse:
+    return service.get_market_condition()
 
-@router.get("/{symbol}", response_model=GreekValues)
-def get_greeks(symbol: str, service: GreeksService = Depends(get_greeks_service)) -> GreekValues:
+
+@router.get("/{symbol}")
+def get_greeks(
+    symbol: str,
+    service: Annotated[GreeksService, Depends(get_greeks_service)],
+) -> GreekValues:
     return service.get_greeks(symbol)
 
 
-@router.get("/{symbol}/history", response_model=HistPriceHistoryResponse)
-def get_greeks_history(symbol: str, period: TimePeriod=TimePeriod.ONE_WEEK, service: GreeksService = Depends(get_greeks_service)) -> HistPriceHistoryResponse:
+@router.get("/{symbol}/history")
+def get_greeks_history(
+    symbol: str,
+    service: Annotated[GreeksService, Depends(get_greeks_service)],
+    period: Annotated[TimePeriod, Query(description="The time period for the historical data")],
+) -> HistPriceHistoryResponse:
     return service.get_history(symbol, period)
-
-@router.get("/market-condition", response_model=MarketConditionResponse)
-def get_market_condition(service: GreeksService = Depends(get_greeks_service)) -> MarketConditionResponse:
-    return service.get_market_condition()
