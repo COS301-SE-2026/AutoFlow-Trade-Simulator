@@ -10,7 +10,7 @@ class BackTestResults(SQLModel, table=True):
     asset_symbol:str=Field(nullable=False, max_length=10)
     timeframe:str=Field(nullable=False, max_length=10)
     start_date:datetime=Field(nullable=False)
-    end_date:datetime=Field(default=None)
+    end_date:Optional[datetime]=Field(default=None)
     initial_balance:Decimal=Field(nullable=False, max_digits=18, decimal_places=4)
     final_balance:Decimal=Field(nullable=False, max_digits=18, decimal_places=4)
     total_return_percentage:Decimal=Field(nullable=False, max_digits=18, decimal_places=4)
