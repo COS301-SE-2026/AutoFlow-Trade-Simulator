@@ -21,9 +21,15 @@ export default function PortfolioPage() {
           <section className="hero">
             <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
               <div className="flex w-full max-w-sm flex-col gap-6">
-                {activeAccount ? <PortfolioCashBalance accountId={activeAccount.id} /> : <TradingAuthPrompt />}
-                {activeAccount ? <PortfolioInvested accountId={activeAccount.id} /> : <TradingAuthPrompt />}
-                {activeAccount ? <PortfolioTotalValue accountId={activeAccount.id} /> : <TradingAuthPrompt />}
+                {activeAccount ? (
+                  <>
+                    <PortfolioCashBalance accountId={activeAccount.id} />
+                    <PortfolioInvested accountId={activeAccount.id} />
+                    <PortfolioTotalValue accountId={activeAccount.id} />
+                  </>
+                ) :
+                  <TradingAuthPrompt />
+                }
               </div>
             </div>
           </section>
