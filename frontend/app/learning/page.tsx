@@ -1,10 +1,10 @@
-// In whatever page you want:
 'use client';
+import GreeksDisplay from '@/components/GreeksDisplay';
 
 export default function LearningPage() {
   return (
     <div className="h-full p-6">
-      Greek component goes here
+      <GreeksDisplay />
     </div>
   );
 }
