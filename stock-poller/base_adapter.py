@@ -62,7 +62,7 @@ class BaseMarketDataAdapter(ABC):
 
                 if response.status_code == 200:
                     payload = response.json()
-                    if payload.get("resultsCount", 0) > 0:
+                    if payload:
                         self.save_to_lake(asset_class=asset_type, payload=payload)
                 elif response.status_code == 429:
                     logging.info(f"WARN: Rate limit exceeded on {self.provider_name}. Pacing window check required.")

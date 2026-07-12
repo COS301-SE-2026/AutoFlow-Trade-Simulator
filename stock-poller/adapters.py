@@ -2,6 +2,7 @@ import logging
 import os
 import httpx
 from base_adapter import BaseMarketDataAdapter
+import yaml
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -96,10 +97,19 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_GECKO_KEY")
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CG_KEY")}
 
+        with open("config.yaml", "r") as f:
+            yaml_config = yaml.safe_load(f)
+        self.symbol_to_id = yaml_config.get("cg-mapping", {})
+
     async def make_request(self, client, symbols: list[str], asset:str):
+        cg_ids = [self.symbol_to_id[sym] for sym in symbols if sym in self.symbol_to_id]
+
+        if not cg_ids:
+            return {}
+
         params = {
             "vs_currency": "usd",
-            "symbols": ",".join(symbols).lower()
+            "ids": ",".join(cg_ids).lower()
         }
         url = f"{self.base_url}/coins/markets"
 
