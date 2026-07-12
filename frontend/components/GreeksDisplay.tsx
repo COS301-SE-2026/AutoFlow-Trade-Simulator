@@ -1,7 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, BarChart2 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from 'recharts';
 
 interface GreekData {
     symbol: string;
@@ -190,6 +200,42 @@ export default function GreeksDisplay() {
                                         {row.short}
                                     </div>
                                     </button>
+                                    {isExpanded && (
+                                        <div className='px-5 pb-5 bg-muted/10'>
+                                            <div className='grid grid-cols-2 gap-6 pt-4 border-t'>
+                                                <div>
+                                                    <h4>
+                                                        <BarChart2 className='w-3.5 h-3.5' style={{ color: row.color }} />
+                                                        {row.chartLabel}
+                                                    </h4>
+                                                    <div style={{ width: '100%', height: '250px'}}>
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <LineChart
+                                                            data={row.chartData}
+                                                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                                                            >
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
+                                                            <XAxis dataKey="x" stroke="#ffffff" tick={{ fontSize: 10 }}/>
+                                                            <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                                                            <Tooltip
+                                                                cursor={{ stroke: '#9ca3af' }}
+                                                                content={<CustomTooltip />}
+                                                            />
+                                                            <Line
+                                                                type="monotone"
+                                                                dataKey="y"
+                                                                stroke={row.color}
+                                                                strokeWidth={4}
+                                                                dot={{ fill: row.color }}
+                                                                activeDot={{ r: 8, stroke: '#1c75bc' }}
+                                                            />
+                                                            </LineChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
