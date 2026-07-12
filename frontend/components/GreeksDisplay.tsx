@@ -47,11 +47,28 @@ const greeks: GreekData[] = [
         long: 'Accelerating gains as stock moves favorably - convex payoff.',
         short: 'Gamma risk - losses accelerate. Short gamma can blow up near expiration.',
         tagline: 'How fast does Delta itself change?',
-        example: '',
-        chartLabel: '',
+        example: 'Your opton has Γ = 0.08. The stock rises R1, so Delta increases by 0.08 - from 0.50 to 0.58.',
+        chartLabel: 'Gamma vs. Stock Price (Peaks ATM)',
         chartData: Array.from({ length: 50 }, (_, i) => ({
             x: i * 4 + 200,
             y: 0.3 * Math.exp(-0.002 * Math.pow(i * 4 + 200 - 350, 2)),
+        })),
+    },
+    {
+        symbol: 'Θ',
+        name: 'Theta',
+        color: 'var(--orange)',
+        range: 'Negative (buyers) / Positive (sellers)',
+        atm: 'Decay fastest ATM',
+        definition: 'Daily time decay of extrinsic value. Accelerates in final 30 days before expiration.',
+        long: 'Lost value every day. Buying options = fighting the clock.',
+        short: 'Collect daily income. Theta works for you as a net seller.',
+        tagline: 'How much value does an option lose each day?',
+        example: 'You own a call with Θ = -0.12. Every day that passes, your option loses R12 per contract in time value.',
+        chartLabel: 'Theta decay accelerates near expiry',
+        chartData: Array.from({ length: 60 }, (_, i) => ({
+            x: 60 - i,
+            y: -0.05 * Math.exp(0.06 * i),
         })),
     },
 ];
@@ -108,13 +125,36 @@ export default function GreeksDisplay() {
                             const isExpanded = expandedRow === row.name;
                         
                             return (
-                                <div key={row.name}>
+                                <div key={row.name} className='border-b last:border-0'>
                                     <button
+                                        className={`w-full grid grid-cols-[60px_1.2fr_1fr_1fr_1.2fr_1.2fr] gap-3 px-5 py-4 text-sm text-left transition-colors hover:bg-muted/30
+                                            ${isExpanded ? 'bg-muted/20' : '' }`
+                                        }
                                         onClick={() => toggleRow(row.name)}
                                     >
-                                        <div>
-                                            <span>{row.symbol}</span>
-                                        </div>
+                                    <div className='flex items-center gap-2'>
+                                        <span className='text-xl font-bold' style={{ color: row.color }}>
+                                            {row.symbol}
+                                        </span>
+                                        <span className='font-medium text-xs'>
+                                            {row.name}
+                                        </span>
+                                    </div>
+                                    <div className='text-muted-foreground text-xs self-center leading-relaxed'>
+                                        {row.range}
+                                    </div>
+                                    <div className='text-xs self-center leading-relaxed'>
+                                        {row.atm}
+                                    </div>
+                                    <div className='text-xs self-center leading-relaxed'>
+                                        {row.definition}
+                                    </div>
+                                    <div className='text-muted-foreground text-xs self-center leading-relaxed'>
+                                        {row.long}
+                                    </div>
+                                    <div className='text-muted-foreground text-xs self-center leading-relaxed'>
+                                        {row.short}
+                                    </div>
                                     </button>
                                 </div>
                             );
