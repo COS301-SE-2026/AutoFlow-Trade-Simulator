@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Activity, BarChart2 } from 'lucide-react';
+import { Activity, BarChart2, Zap } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -204,7 +204,7 @@ export default function GreeksDisplay() {
                                         <div className='px-5 pb-5 bg-muted/10'>
                                             <div className='grid grid-cols-2 gap-6 pt-4 border-t'>
                                                 <div>
-                                                    <h4>
+                                                    <h4 className='text-xs font-semibold'>
                                                         <BarChart2 className='w-3.5 h-3.5' style={{ color: row.color }} />
                                                         {row.chartLabel}
                                                     </h4>
@@ -231,6 +231,39 @@ export default function GreeksDisplay() {
                                                             />
                                                             </LineChart>
                                                         </ResponsiveContainer>
+                                                    </div>
+                                                </div>
+
+                                                <div className='flex flex-col gap-3'>
+                                                    <div>
+                                                        <h4 className='text-xs font-semibold mb-1.5 items-center gap-1.5'>
+                                                            <Zap className='w.3.5 h-3.5 text-white' />
+                                                            Real World Example
+                                                        </h4>
+                                                        <div className='border border-border rounded-xl p-3'>
+                                                            <p className='text-sm leading-relaxed'>
+                                                                {row.example}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className='flex gap-3'>
+                                                        <div className='flex-1 bg-[#8dc63f]/5 border border-[#8dc63f]/20 rounded-xl p-3'>
+                                                            <h5 className='text-xs font-semibold mb-1'>
+                                                                Long Position
+                                                            </h5>
+                                                            <p className='text-xs leading-relaxed'>
+                                                                {row.long}
+                                                            </p>
+                                                        </div>
+                                                        <div className='flex-1 bg-[#ed1c24]/2 border border-[#ed1c24]/20 rounded-xl p-3'>
+                                                            <h5 className='text-xs font-semibold mb-1'>
+                                                                Short Position
+                                                            </h5>
+                                                            <p className='text-xs leading-relaxed'>
+                                                                {row.short}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
