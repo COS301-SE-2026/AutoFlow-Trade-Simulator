@@ -185,7 +185,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_transaction_executed_at'), 'transaction', ['executed_at'], unique=False)
 
     op.execute("SELECT create_hypertable('realtimeticks', 'timestamp', chunk_time_interval => INTERVAL '1 day');")
-    op.execute("SELECT create_hypertable('dailyohlcv', 'timestamp', chunk_time_interval => INTERVAL '1 year');")
+    op.execute("SELECT create_hypertable('dailyohlcv', 'timestamp', chunk_time_interval => INTERVAL '1 day');")
     # ### end Alembic commands ###
 
 
