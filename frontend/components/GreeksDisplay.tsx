@@ -71,6 +71,40 @@ const greeks: GreekData[] = [
             y: -0.05 * Math.exp(0.06 * i),
         })),
     },
+    {
+        symbol: 'v',
+        name: 'Vega',
+        color: 'var(--seafoam)',
+        range: 'Always positive (long) / negative (short)',
+        atm: 'Highest ATM, decays over time',
+        definition: 'Sensitivity to 1% change in implied volatility (IV). Vega peaks ATM and falls as expiration approaches.',
+        long: 'Profit from IV expansion - ideal before earnings or macro events.',
+        short: 'Profit from IV crush. Sell options when IV is high; but back when it drops.',
+        tagline: 'How does the option price respond to volatility changes?',
+        example: 'You buy an NVDA straddle before earnings. IV jumps 15%. With Vega = 0.30, each leg gains ~R4.50.',
+        chartLabel: 'Vega vs. Implied Volatility (%)',
+        chartData: Array.from({ length: 50 }, (_, i) => ({
+            x: i * 0.8 + 10,
+            y: 0.3 * Math.exp(-0.03 * Math.pow(i * 0.8 + 10 - 30, 2)),
+        })),
+    },
+    {
+        symbol: 'ρ',
+        name: 'Rho',
+        color: 'var(--green-light)',
+        range: '+ for calls / - for puts',
+        atm: 'Small; matters for LEAPS',
+        definition: 'Sensitivity to 1% change in risk-free interest rate. Minor for short-dated options, relevant for LEAPS (>1 year).',
+        long: 'LEAPS calls gain when rates rise (cost-of-carry increases stock forward price).',
+        short: 'Short-dated options most unaffected; LEAPS puts lose value when rates rise.',
+        tagline: 'How does the option price change with interest rates?',
+        example: 'You hold a 2-year LEAPS call with ρ = 0.45. The Fed hikes by 0.25%. Your call gains ~R11.25 per contract.',
+        chartLabel: 'Rho: linear with interest rate',
+        chartData: Array.from({ length: 40 }, (_, i) => ({
+            x: i * 0.25,
+            y: 0.45 * i * 0.25,
+        })),
+    },
 ];
 
 const CustomTooltip = ({ active, payload }: any) => {
