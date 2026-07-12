@@ -9,8 +9,6 @@ from ...models.greeks import Greeks
 from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues, MarketConditionResponse, TimePeriod
 from datetime import datetime,timedelta
 
-from backend.app.models import daily_OHLCV
-
 class GreeksService:
 
     DIRECTION_ERROR:str = "option_type must be 'call' or 'put'"
