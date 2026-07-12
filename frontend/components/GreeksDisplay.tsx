@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { Activity, BarChart2, Zap } from 'lucide-react';
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -204,16 +204,22 @@ export default function GreeksDisplay() {
                                         <div className='px-5 pb-5 bg-muted/10'>
                                             <div className='grid grid-cols-2 gap-6 pt-4 border-t'>
                                                 <div>
-                                                    <h4 className='text-xs font-semibold'>
+                                                    <h4 className='text-xs font-semibold mb-2 flex items-center gap-1.5'>
                                                         <BarChart2 className='w-3.5 h-3.5' style={{ color: row.color }} />
                                                         {row.chartLabel}
                                                     </h4>
                                                     <div style={{ width: '100%', height: '250px'}}>
                                                         <ResponsiveContainer width="100%" height="100%">
-                                                            <LineChart
+                                                            <AreaChart
                                                             data={row.chartData}
                                                             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                                                             >
+                                                            <defs>
+                                                                <linearGradient id={`grad-${row.name}`} x1='0' y1='0' x2='0' y2='1'>
+                                                                    <stop offset='5%' stopColor={row.color} stopOpacity={0.8} />
+                                                                    <stop offset='95%' stopColor={row.color} stopOpacity={0.02} />
+                                                                </linearGradient>
+                                                            </defs>
                                                             <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
                                                             <XAxis dataKey="x" stroke="#ffffff" tick={{ fontSize: 10 }}/>
                                                             <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
@@ -221,15 +227,16 @@ export default function GreeksDisplay() {
                                                                 cursor={{ stroke: '#9ca3af' }}
                                                                 content={<CustomTooltip />}
                                                             />
-                                                            <Line
+                                                            <Area
                                                                 type="monotone"
                                                                 dataKey="y"
                                                                 stroke={row.color}
                                                                 strokeWidth={4}
+                                                                fill={`url(#grad-${row.name})`}
                                                                 dot={{ fill: row.color }}
                                                                 activeDot={{ r: 8, stroke: '#1c75bc' }}
                                                             />
-                                                            </LineChart>
+                                                            </AreaChart>
                                                         </ResponsiveContainer>
                                                     </div>
                                                 </div>
@@ -264,6 +271,13 @@ export default function GreeksDisplay() {
                                                                 {row.short}
                                                             </p>
                                                         </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <h5 className='text-xs font-semibold mb-1'>
+                                                            IN PLAIN ENGLISH
+                                                        </h5>
+                                                        <p className='text-xs'><i>{row.tagline}</i></p>
                                                     </div>
                                                 </div>
                                             </div>
