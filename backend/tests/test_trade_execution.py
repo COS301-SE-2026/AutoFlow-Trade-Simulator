@@ -7,7 +7,7 @@ from tests.conftest import client, get_token
 
 def seed_asset(ticker: str = "AAPL") -> None:
     with Session(test_engine) as session:
-        asset = Asset(ticker=ticker, name="Apple Inc", asset_type="stock")
+        asset = Asset(symbol=ticker, asset_class="STOCK", exchange="NASDAQ", currency="ZAR")
         session.add(asset)
         session.commit()
         

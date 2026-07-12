@@ -64,11 +64,11 @@ class PortfolioService:
         total_cost = asset_price * Decimal(str(data.quantity))
 
          # get asset based on ticker
-        asset=self.session.exec(select(Asset).where(Asset.ticker==data.ticker)).first()
+        asset=self.session.exec(select(Asset).where(Asset.symbol==data.ticker)).first()
         if asset is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no asset with specified ticker")
         
-        assert asset.id is not None,"Asset ID should not be none"
+        assert asset.asset_id is not None,"Asset ID should not be none"
 
 
         if data.direction== Direction.Buy:
@@ -77,29 +77,29 @@ class PortfolioService:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Account balance is too low")
 
             account.balance = balance - total_cost
-            buy_transaction:Transaction = Transaction(account_id=account_id,asset_id=asset.id,direction=data.direction,quantity=data.quantity,price_at_execution=asset_price)
+            buy_transaction:Transaction = Transaction(account_id=account_id,asset_id=asset.asset_id,direction=data.direction,quantity=data.quantity,price_at_execution=asset_price)
             self.session.add(account)
             self.session.add(buy_transaction)
             self.session.commit()
             self.session.refresh(account)
             self.session.refresh(buy_transaction)
 
-            new_position_quantity = self._get_position_quantity(account_id, asset.id)
+            new_position_quantity = self._get_position_quantity(account_id, asset.asset_id)
 
             assert buy_transaction.id is not None, "Transaction id should not be none"
 
-            return ExecuteTradeResponseDTO(transaction_id=buy_transaction.id,account_id=account.id,ticker=asset.ticker,direction=buy_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=float(asset_price),total_cost=float(total_cost),executed_at=buy_transaction.executed_at,new_cash_balance=float(account.balance))
+            return ExecuteTradeResponseDTO(transaction_id=buy_transaction.id,account_id=account.id,ticker=asset.symbol,direction=buy_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=float(asset_price),total_cost=float(total_cost),executed_at=buy_transaction.executed_at,new_cash_balance=float(account.balance))
         
 
 
         elif data.direction == Direction.Sell:
             #sell asset
-            owned_quantity = self._get_position_quantity(account_id, asset.id)
+            owned_quantity = self._get_position_quantity(account_id, asset.asset_id)
             if owned_quantity < data.quantity:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="You do not have enough of this asset to sell")
 
             account.balance = balance + total_cost
-            sell_transaction:Transaction = Transaction(account_id=account_id,asset_id=asset.id,direction=data.direction,quantity=data.quantity,price_at_execution=asset_price)
+            sell_transaction:Transaction = Transaction(account_id=account_id,asset_id=asset.asset_id,direction=data.direction,quantity=data.quantity,price_at_execution=asset_price)
             self.session.add(account)
             self.session.add(sell_transaction)
             self.session.commit()
@@ -108,8 +108,8 @@ class PortfolioService:
 
             assert sell_transaction.id is not None, "Transaction id should not be none"
 
-            new_position_quantity = self._get_position_quantity(account_id, asset.id)
-            return ExecuteTradeResponseDTO(transaction_id=sell_transaction.id,account_id=account.id,ticker=asset.ticker,direction=sell_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=float(asset_price),total_cost=float(total_cost),executed_at=sell_transaction.executed_at,new_cash_balance=float(account.balance))
+            new_position_quantity = self._get_position_quantity(account_id, asset.asset_id)
+            return ExecuteTradeResponseDTO(transaction_id=sell_transaction.id,account_id=account.id,ticker=asset.symbol,direction=sell_transaction.direction,new_position_quantity=new_position_quantity,quantity=data.quantity,price_at_execution=float(asset_price),total_cost=float(total_cost),executed_at=sell_transaction.executed_at,new_cash_balance=float(account.balance))
 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Unsupported trade direction")
         
@@ -140,7 +140,7 @@ class PortfolioService:
             asset=self.session.get(Asset,transaction.asset_id)
             assert asset is not None,"Asset should not be null"
 
-            trade_history:TransactionResponse= TransactionResponse(account_id=transaction.account_id,price_at_execution=float(transaction.price_at_execution),quantity=transaction.quantity,executed_at=transaction.executed_at,direction=transaction.direction,asset_id=transaction.asset_id,account_currency_code=currency_code,asset_ticker=asset.ticker)
+            trade_history:TransactionResponse= TransactionResponse(account_id=transaction.account_id,price_at_execution=float(transaction.price_at_execution),quantity=transaction.quantity,executed_at=transaction.executed_at,direction=transaction.direction,asset_id=transaction.asset_id,account_currency_code=currency_code,asset_ticker=asset.symbol)
             response.transactions.append(trade_history)
         return response
 
@@ -184,9 +184,9 @@ class PortfolioService:
 
             asset = self.session.get(Asset, aid)
             assert asset is not None, "Asset should not be null"
-            assert asset.id is not None, "Asset ID should not be none"
+            assert asset.asset_id is not None, "Asset ID should not be none"
 
-            holdings_list.append(Holding(asset_id=asset.id, ticker=asset.ticker, net_quantity=net_qty, average_cost=avg_cost))
+            holdings_list.append(Holding(asset_id=asset.asset_id, ticker=asset.symbol, net_quantity=net_qty, average_cost=avg_cost))
 
         return HoldingResponse(holdings=holdings_list)
 
