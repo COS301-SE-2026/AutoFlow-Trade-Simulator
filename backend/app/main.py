@@ -16,6 +16,7 @@ from .epics.ui.UiController import router as ui_router
 from .epics.auth.AuthController import router as auth_router
 from .epics.accounts.AccountsController import router as accounts_router
 from .epics.portfolio.ReportController import router as report_router
+from .epics.simulation.SimulationController import router as simulation_router
 
 
 @asynccontextmanager
@@ -48,3 +49,4 @@ app.include_router(greeks_router)
 app.include_router(auth_router)
 app.include_router(accounts_router)
 app.include_router(report_router)
+app.include_router(simulation_router)
