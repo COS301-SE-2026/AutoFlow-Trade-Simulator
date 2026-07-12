@@ -21,7 +21,7 @@ class GreekValues(SQLModel):
 class HistPriceHistoryItem(SQLModel):
     asset_id: int
     symbol: str
-    volume: int
+    volume: Decimal
     open_price: Decimal
     high_price: Decimal
     low_price: Decimal

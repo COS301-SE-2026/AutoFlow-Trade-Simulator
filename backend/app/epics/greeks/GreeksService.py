@@ -2,8 +2,9 @@ import math
 
 from fastapi import HTTPException, status
 from sqlmodel import Session, select,col
-from ...models.HistPrice import HistPrice
-from ...models.MarketCondition import MarketCondition
+from ...models.asset import Asset
+from ...models.daily_OHLCV import DailyOHLCV
+from ...models.market_condition import MarketCondition, Condition
 from ...models.greeks import Greeks
 from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues, MarketConditionResponse, TimePeriod
 from datetime import datetime,timedelta
@@ -130,53 +131,58 @@ class GreeksService:
         normalized_symbol = symbol.upper()
         price_rows = None
 
+        """get asset id"""
+        asset=self.session.exec(select(Asset).where(Asset.symbol==normalized_symbol)).first()
+        assert asset is not None,"Invalid symbol found"
+        asset_id=asset.asset_id
+
         match period:
             case TimePeriod.ONE_DAY:
 
                 price_rows = self.session.exec(
-                    select(HistPrice)
-                    .where(HistPrice.symbol == normalized_symbol)
-                    .where(HistPrice.date >= (datetime.now() - timedelta(days=1)))
+                    select(DailyOHLCV)
+                    .where(DailyOHLCV.asset_id == asset_id)
+                    .where(DailyOHLCV.timestamp >= (datetime.now() - timedelta(days=1)))
                 ).all()
             case TimePeriod.ONE_WEEK:
                 price_rows = self.session.exec(
-                    select(HistPrice)
-                    .where(HistPrice.symbol == normalized_symbol)
-                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=1)))
+                    select(DailyOHLCV)
+                    .where(DailyOHLCV.asset_id == asset_id)
+                    .where(DailyOHLCV.timestamp >= (datetime.now() - timedelta(weeks=1)))
                 ).all()
 
             case TimePeriod.ONE_MONTH:
                 price_rows = self.session.exec(
-                    select(HistPrice)
-                    .where(HistPrice.symbol == normalized_symbol)
-                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=4)))
+                    select(DailyOHLCV)
+                    .where(DailyOHLCV.asset_id == asset_id)
+                    .where(DailyOHLCV.timestamp >= (datetime.now() - timedelta(weeks=4)))
                 ).all()
 
             case TimePeriod.THREE_MONTHS:
                 price_rows = self.session.exec(
-                    select(HistPrice)
-                    .where(HistPrice.symbol == normalized_symbol)
-                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=12)))
+                    select(DailyOHLCV)
+                    .where(DailyOHLCV.asset_id == asset_id)
+                    .where(DailyOHLCV.timestamp >= (datetime.now() - timedelta(weeks=12)))
                 ).all()
 
             case TimePeriod.SIX_MONTHS:
                 price_rows = self.session.exec(
-                    select(HistPrice)
-                    .where(HistPrice.symbol == normalized_symbol)
-                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=26)))
+                    select(DailyOHLCV)
+                    .where(DailyOHLCV.asset_id == asset_id)
+                    .where(DailyOHLCV.timestamp >= (datetime.now() - timedelta(weeks=26)))
                 ).all()
             case TimePeriod.ONE_YEAR:
                 price_rows = self.session.exec(
-                    select(HistPrice)
-                    .where(HistPrice.symbol == normalized_symbol)
-                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=52)))
+                    select(DailyOHLCV)
+                    .where(DailyOHLCV.asset_id == asset_id)
+                    .where(DailyOHLCV.timestamp >= (datetime.now() - timedelta(weeks=52)))
                 ).all()
 
             case TimePeriod.FIVE_YEARS:
                 price_rows = self.session.exec(
-                    select(HistPrice)
-                    .where(HistPrice.symbol == normalized_symbol)
-                    .where(HistPrice.date >= (datetime.now() - timedelta(weeks=260)))
+                    select(DailyOHLCV)
+                    .where(DailyOHLCV.asset_id == asset_id)
+                    .where(DailyOHLCV.timestamp >= (datetime.now() - timedelta(weeks=260)))
                 ).all()
 
         if not price_rows:
@@ -188,15 +194,15 @@ class GreeksService:
         history = [
             HistPriceHistoryItem(
                 asset_id=row.asset_id,
-                symbol=row.symbol,
+                symbol=normalized_symbol,
                 volume=row.volume,
-                open_price=row.open_price,
-                high_price=row.high_price,
-                low_price=row.low_price,
-                official_close=row.offical_close,
-                timestamp=row.date,
+                open_price=row.open,
+                high_price=row.high,
+                low_price=row.low,
+                official_close=row.close,
+                timestamp=row.timestamp,
             )
-            for row in sorted(price_rows, key=lambda row: row.date)
+            for row in sorted(price_rows, key=lambda row: row.timestamp)
         ]
 
         return HistPriceHistoryResponse(symbol=normalized_symbol, history=history)
@@ -205,13 +211,67 @@ class GreeksService:
         latest_market_condition = self.session.exec(select(MarketCondition).order_by(col(MarketCondition.date).desc())).first()
 
 
-        if latest_market_condition is None:
+        if latest_market_condition is not None:
+            return MarketConditionResponse(market_condition=latest_market_condition.condition.value)
+
+        # Fallback: compute market condition from recent DailyOHLCV data
+        window_days = 30
+        cutoff = datetime.now() - timedelta(days=window_days)
+        rows = self.session.exec(
+            select(DailyOHLCV).where(DailyOHLCV.timestamp >= cutoff)
+        ).all()
+
+        if not rows:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No market condition data found",
+                detail="No market condition data found and insufficient price history to compute it",
             )
 
-        return MarketConditionResponse(market_condition=latest_market_condition.condition.value)
+        # Group by asset_id and compute percent change for each asset over the window
+        assets = {}
+        for r in rows:
+            assets.setdefault(r.asset_id, []).append(r)
+
+        pct_changes = []
+        for asset_id, bars in assets.items():
+            bars_sorted = sorted(bars, key=lambda b: b.timestamp)
+            if len(bars_sorted) < 2:
+                continue
+            first = bars_sorted[0]
+            last = bars_sorted[-1]
+            try:
+                first_close = float(first.close)
+                last_close = float(last.close)
+            except Exception:
+                continue
+            if first_close == 0:
+                continue
+            pct = (last_close - first_close) / first_close
+            pct_changes.append(pct)
+
+        if not pct_changes:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Insufficient OHLCV history to compute market condition",
+            )
+
+        avg_change = sum(pct_changes) / len(pct_changes)
+
+        # Thresholds: 2% over window -> bull, -2% -> bear, otherwise ranging
+        threshold = 0.02
+        if avg_change >= threshold:
+            inferred = Condition.BULL
+        elif avg_change <= -threshold:
+            inferred = Condition.BEAR
+        else:
+            inferred = Condition.RANGING
+
+        # Persist inferred market condition for future use
+        mc = MarketCondition(date=datetime.now(), condition=inferred)
+        self.session.add(mc)
+        self.session.commit()
+
+        return MarketConditionResponse(market_condition=inferred.value)
     
     def calc_greeks(self,current_price: float, strike_price: float, time_to_expire: float, interest_rate: float, sigma: float, option_type: str = "call") -> GreekValues:
         delta = GreeksService.delta(current_price, strike_price, time_to_expire, interest_rate, sigma, option_type)
