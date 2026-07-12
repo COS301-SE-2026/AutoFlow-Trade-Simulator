@@ -67,10 +67,6 @@ export default function PriceChart({ ticker }: PriceChartProps) {
   const [timeframe, setTimeframe] = useState<Timeframe>('daily');
   const { data, loading, error } = usePrices(ticker, timeframeMap[timeframe]);
 
-  //console.log('usePrices data:', data);
-  //console.log('usePrices loading:', loading);
-  //console.log('usePrices error:', error);
-
   const chartData = data.map((item) => ({
     ...item,
     name: item.timestamp.split('T')[0],
@@ -78,7 +74,7 @@ export default function PriceChart({ ticker }: PriceChartProps) {
  
     return (
       <>
-        <div className='flex flex-row justify-evenly mt-5 mb-5 card'>
+        <div className='flex flex-row justify-evenly m-5 card'>
           <Label className='text'>Select Chart Timeframe:</Label>
           <Button className='bg-(--accent) button secondary' onClick={() => setTimeframe('daily')}>Daily</Button>
           <Button className='button secondary' onClick={() => setTimeframe('weekly')}>Weekly</Button>
