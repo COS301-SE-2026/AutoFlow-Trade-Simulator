@@ -2,12 +2,17 @@ import os
 import asyncio
 import logging
 import asyncpg # more lightweight than having another ORM layer to try fit into a cheaper AWS container
+from datetime import timezone
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 # toggle between database and local flat file storage
 DB_MODE = os.getenv("DB_MODE", "false").lower() == "true"
 
+def _naive_utc(ts):
+    if ts.tzinfo is not None:
+        return ts.astimezone(timezone.utc).replace(tzinfo=None)
+    return ts
 
 async def init_pool(db_config: dict) -> asyncpg.Pool:
     pool = await asyncpg.create_pool(
@@ -81,7 +86,7 @@ async def upsert_realtime_ticks(pool: asyncpg.Pool, rows: list[dict]):
                 ON CONFLICT (asset_id, timestamp) DO UPDATE
                                                          SET price = EXCLUDED.price, volume = EXCLUDED.volume
             """,
-            [(r["asset_id"], r["timestamp"], r["price"], r["volume"]) for r in rows],
+            [(r["asset_id"], _naive_utc(r["timestamp"]), r["price"], r["volume"]) for r in rows],
         )
 
 
@@ -103,7 +108,7 @@ async def upsert_daily_ohlcv(pool: asyncpg.Pool, rows: list[dict]):
             [
                 (
                     r["asset_id"],
-                    r["timestamp"],
+                    _naive_utc(r["timestamp"]),
                     r["open"],
                     r["high"],
                     r["low"],
