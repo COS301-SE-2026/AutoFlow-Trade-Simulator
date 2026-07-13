@@ -1,14 +1,16 @@
 import logging
 import os
 import httpx
+from typing import Optional
 from base_adapter import BaseMarketDataAdapter
 import yaml
+from datetime import datetime, timezone
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 class MassiveAdapter(BaseMarketDataAdapter):
-    def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="massive", config=config, market_event=market_event, pools=pools)
+    def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
+        super().__init__(provider_name="massive", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_MASSIVE_KEY")
         self.base_params = {"apiKey": self.api_key, "adjusted": "true"}
 
@@ -18,10 +20,69 @@ class MassiveAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=self.base_params, timeout=10.0)
         return response
 
+    async def _validate_payload(self, payload) -> tuple[bool, str]:
+        if not isinstance(payload, dict):
+            return False, "Payload root must be an object"
+
+        if "ticker" not in payload or not isinstance(payload["ticker"], str):
+            return False, "Missing or invalid 'ticker'"
+
+        if "results" in payload:
+            results = payload["results"]
+
+            if not isinstance(results, list) or not results:
+                return False, "'results' must be a non-empty list"
+
+            for result in results:
+                if "o" not in result or not isinstance(result["o"], float):
+                    return False, "Missing or invalid 'o'"
+
+                if "T" not in result or not isinstance(result["T"], str):
+                    return False, "Missing or invalid 'T'"
+
+                if "h" not in result or not isinstance(result["h"], float):
+                    return False, "Missing or invalid 'h'"
+
+                if "l" not in result or not isinstance(result["l"], float):
+                    return False, "Missing or invalid 'l'"
+
+                if "c" not in result or not isinstance(result["c"], float):
+                    return False, "Missing or invalid 'c'"
+
+                if "v" not in result or not isinstance(result["v"], float):
+                    return False, "Missing or invalid 'v'"
+
+                if "t" not in result or not isinstance(result["t"], int):
+                    return False, "Missing or invalid 't'"
+        else:
+            return False, "Missing or invalid 'results' (string)"
+        return True, "Valid"
+
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        (is_valid, msg) = await self._validate_payload(payload)
+        if not is_valid:
+            logging.error(f"Failed to validate Massive response: {msg}")
+
+        rows = []
+        results = payload["results"]
+        for res in results:
+            rows.append({
+                "symbol": res["T"],
+                "table": "dailyohlcv",
+                "timestamp": datetime.fromtimestamp(res["t"]/1000, tz=timezone.utc).replace(tzinfo=None),
+                "open": res["o"],
+                "high": res["h"],
+                "low": res["l"],
+                "close": res["c"],
+                "volume": res["v"],
+                "exchange": "US",
+                "currency": "USD",
+            })
+        return rows
 
 class TwelveDataAdapter(BaseMarketDataAdapter):
-    def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="twelve_data", config=config, market_event=market_event, pools=pools)
+    def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
+        super().__init__(provider_name="twelve_data", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_12DATA_KEY")
 
     async def make_request(self, client, symbols: list[str], asset:str):
@@ -50,13 +111,17 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
             logging.error("Invalid asset type passed in to TwelveAdapter: make_request")
             return {}
 
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        # TODO: map TwelveData time_series/etfs payload -> rows
+        raise NotImplementedError("TwelveDataAdapter.transform_payload not implemented yet")
+
 class FinnhubAdapter(BaseMarketDataAdapter):
     """
     Handles standard Forex and Crypto quotes via URL query parameter authentication.
     Note: Finnhub does not support native batching for quotes on basic tiers.
     """
-    def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="finnhub", config=config, market_event=market_event, pools=pools)
+    def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
+        super().__init__(provider_name="finnhub", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FINNHUB_KEY")
 
     async def make_request(self, client, symbols: list[str], asset:str):
@@ -72,12 +137,16 @@ class FinnhubAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=params, timeout=10.0)
         return response
 
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        # TODO: map Finnhub forex/rates or crypto/candle payload -> rows
+        raise NotImplementedError("FinnhubAdapter.transform_payload not implemented yet")
+
 class CoinMarketCapAdapter(BaseMarketDataAdapter):
     """
     Handles heavy parallel batch requests for Crypto quotes using header auth.
     """
-    def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="coinmarketcap", config=config, market_event=market_event, pools=pools)
+    def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
+        super().__init__(provider_name="coinmarketcap", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CMC_KEY")}
 
     async def make_request(self, client, symbols: list[str], asset:str):
@@ -87,13 +156,17 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
         response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
         return response
 
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        # TODO: map CMC quotes/latest payload -> rows
+        raise NotImplementedError("CoinMarketCapAdapter.transform_payload not implemented yet")
+
 class CoinGeckoAdapter(BaseMarketDataAdapter):
     """
     Handles Crypto asset indexing tracking via demo query strings.
     Supports high-volume comma separated IDs.
     """
-    def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="coingecko", config=config, market_event=market_event, pools=pools)
+    def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
+        super().__init__(provider_name="coingecko", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_GECKO_KEY")
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_CG_KEY")}
 
@@ -116,9 +189,13 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
         response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
         return response
 
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        # TODO: map CoinGecko coins/markets payload -> rows
+        raise NotImplementedError("CoinGeckoAdapter.transform_payload not implemented yet")
+
 class EodHistoricalAdapter(BaseMarketDataAdapter):
-    def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="eod_historical", config=config, market_event=market_event, pools=pools)
+    def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
+        super().__init__(provider_name="eod_historical", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_EOD_KEY")
 
     async def make_request(self, client, symbols: list[str], asset:str):
@@ -144,9 +221,13 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=params, timeout=12.0)
         return response
 
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        # TODO: map EOD historical payload -> rows (likely dailyohlcv table)
+        raise NotImplementedError("EodHistoricalAdapter.transform_payload not implemented yet")
+
 class VectradeAdapter(BaseMarketDataAdapter):
-    def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="vectrade", config=config, market_event=market_event, pools=pools)
+    def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
+        super().__init__(provider_name="vectrade", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
         self.headers = {config["key_param_name"]: os.getenv(config["api_key_env_var"], "MOCK_VECTRADE_KEY")}
 
     async def make_request(self, client, symbols: list[str], asset:str):
@@ -163,13 +244,17 @@ class VectradeAdapter(BaseMarketDataAdapter):
             logging.error("Invalid asset type passed in to VectradeAdapter: make_request")
             return {}
 
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        # TODO: map Vectrade quotes/batch (fast, realtimeticks) or options/chain (slow) -> rows
+        raise NotImplementedError("VectradeAdapter.transform_payload not implemented yet")
+
 class FCSAdapter(BaseMarketDataAdapter):
     """
     Handles bulk commodity tracking via query parameter authentication
     and mandatory static endpoint filtering keys.
     """
-    def __init__(self, config: dict, pools: dict, market_event):
-        super().__init__(provider_name="fcs", config=config, market_event=market_event, pools=pools)
+    def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
+        super().__init__(provider_name="fcs", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FCS_KEY")
 
     async def make_request(self, client, symbols: list[str], asset:str):
@@ -184,3 +269,7 @@ class FCSAdapter(BaseMarketDataAdapter):
 
         response = await client.get(url, params=params, timeout=60.0)
         return response
+
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        # TODO: map FCS commodities/latest payload -> rows
+        raise NotImplementedError("FCSAdapter.transform_payload not implemented yet")
