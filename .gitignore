@@ -16,6 +16,7 @@ frontend/node_modules/
 frontend/.next/
 frontend/.turbo/
 frontend/.env.local
+frontend/next-env.d.ts
 frontend/.next-env.d.ts
 dist/
 build/
