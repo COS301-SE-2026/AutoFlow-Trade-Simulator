@@ -62,6 +62,7 @@ class MassiveAdapter(BaseMarketDataAdapter):
         (is_valid, msg) = await self._validate_payload(payload)
         if not is_valid:
             logging.error(f"Failed to validate Massive response: {msg}")
+            return []
 
         rows = []
         results = payload["results"]
@@ -86,34 +87,84 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_12DATA_KEY")
 
     async def make_request(self, client, symbols: list[str], asset:str):
-        if asset=="twelve_stocks":
-            selected_symbol = symbols[0]
-            params = {
-                self.config["key_param_name"]: self.api_key,
-                "symbol": selected_symbol,
-                "interval": "1min"
-            }
+        selected_symbol = symbols[0]
+        params = {
+            self.config["key_param_name"]: self.api_key,
+            "symbol": selected_symbol,
+            "interval": "1min"
+        }
 
-            url = f"{self.base_url}/time_series"
-            response = await client.get(url, params=params, timeout=10.0)
-            return response
-        elif asset=="etfs":
-            selected_symbol = symbols[0]
-            params = {
-                self.config["key_param_name"]: self.api_key,
-                "symbol": selected_symbol
-            }
+        url = f"{self.base_url}/time_series"
+        response = await client.get(url, params=params, timeout=10.0)
+        return response
 
-            url = f"{self.base_url}/etfs"
-            response = await client.get(url, params=params, timeout=10.0)
-            return response
-        else:
-            logging.error("Invalid asset type passed in to TwelveAdapter: make_request")
-            return {}
+    async def _validate_payload(self, payload) -> tuple[bool, str]:
+        if not isinstance(payload, dict):
+            return False, "Payload root must be an object"
+
+        if "meta" not in payload or not isinstance(payload["meta"], dict):
+            return False, "Missing or invalid 'meta' (must be an object)"
+
+        if "values" not in payload or not isinstance(payload["values"], list):
+            return False, "Missing or invalid 'values' (must be a list)"
+
+        if not payload["values"]:
+            return False, "'values' must be a non-empty list"
+
+        if "status" not in payload or not isinstance(payload["status"], str):
+            return False, "Missing or invalid 'status' (must be a string)"
+
+        meta = payload["meta"]
+        required_meta_fields = {
+            "symbol": str,
+            "currency": str,
+            "exchange": str
+        }
+        for field, expected_type in required_meta_fields.items():
+            if field not in meta:
+                return False, f"Missing required field '{field}' in meta"
+            if not isinstance(meta[field], expected_type):
+                return False, f"'{field}' in meta must be a {expected_type.__name__}"
+
+        for idx, item in enumerate(payload["values"]):
+            if not isinstance(item, dict):
+                return False, f"Item {idx} in 'values' must be an object"
+
+            required_keys = ["datetime", "open", "high", "low", "close", "volume"]
+            for key in required_keys:
+                if key not in item:
+                    return False, f"Item {idx} missing required key '{key}'"
+                if not isinstance(item[key], str):
+                    return False, f"Item {idx} '{key}' must be a string"
+
+        return True, "Valid"
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        # TODO: map TwelveData time_series/etfs payload -> rows
-        raise NotImplementedError("TwelveDataAdapter.transform_payload not implemented yet")
+        (is_valid, msg) = await self._validate_payload(payload)
+        if not is_valid:
+            logging.error(f"Failed to validate TwelveData response for {asset_class}: {msg}")
+            return []
+
+        rows = []
+        results = payload["values"]
+        symbol=payload["meta"]["symbol"]
+        currency = payload["meta"]["currency"]
+        exchange = payload["meta"]["exchange"]
+        for res in results:
+            rows.append({
+                "symbol": symbol,
+                "table": "dailyohlcv",
+                "timestamp": datetime.fromisoformat(res["datetime"]).replace(tzinfo=None),
+                "open": res["open"],
+                "high": res["high"],
+                "low": res["low"],
+                "close": res["close"],
+                "volume": res["volume"],
+                "exchange": exchange,
+                "currency": currency,
+            })
+        return rows
+
 
 class FinnhubAdapter(BaseMarketDataAdapter):
     """

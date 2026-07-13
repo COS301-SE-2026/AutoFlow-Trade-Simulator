@@ -24,7 +24,7 @@ massive:
   asset_classes:
     stocks:
       enabled: true
-      lane: "fast"
+      lane: "slow"
   rest:
     batch_limits:
       stocks: 1
@@ -39,15 +39,11 @@ twelve_data:
   seconds_per_request: 29.25
   requests_per_min: 8
   asset_classes:
-    etfs:
-      enabled: false
-      lane: "slow"
     twelve_stocks:
       enabled: true
       lane: "fast"
   rest:
     batch_limits:
-      etfs: 1
       twelve_stocks: 1
     credit_system: true
     credit_cost_per_symbol: 1
@@ -969,10 +965,6 @@ ticker_pools:
     - PH
     - SBUX
     - COF
-  etfs:
-    - SPX
-    - NDX
-    - DJI
   futures:
     - ES=F
     - NQ=F

@@ -73,6 +73,7 @@ class BaseMarketDataAdapter(ABC):
         lane = self.config["asset_classes"][asset_type].get("lane", "slow")
         target_queue = self.database_service["fast_queue"] if lane == "fast" else self.database_service["slow_queue"]
 
+        fixed_asset_type = "stocks" if asset_type=="twelve_stocks" else asset_type
         for row in rows:
             symbol = row.pop("symbol")
             exchange = row.pop("exchange", "UNKNOWN")
@@ -80,7 +81,7 @@ class BaseMarketDataAdapter(ABC):
             table = row.pop("table")
 
             row["asset_id"] = await asset_cache.get_or_create_asset_id(
-                symbol=symbol, asset_class=asset_type, exchange=exchange, currency=currency
+                symbol=symbol, asset_class=fixed_asset_type, exchange=exchange, currency=currency
             )
             await target_queue.put((table, row))
 
