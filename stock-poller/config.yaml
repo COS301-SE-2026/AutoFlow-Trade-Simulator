@@ -1,3 +1,18 @@
+database:
+  pool_min_size: 2
+  pool_max_size: 8
+  command_timeout: 10
+
+ingestion:
+  fast_lane:
+    queue_maxsize: 5000
+    volume_trigger: 10
+    temporal_trigger_seconds: 1
+  slow_lane:
+    queue_maxsize: 2000
+    volume_trigger: 2000
+    temporal_trigger_seconds: 30
+
 massive:
   base_url: "https://api.massive.com"
   run_during_market_close: true
@@ -7,7 +22,9 @@ massive:
   seconds_per_request: 12.00
   requests_per_min: 5
   asset_classes:
-    stocks: true
+    stocks:
+      enabled: true
+      lane: "fast"
   rest:
     batch_limits:
       stocks: 1
@@ -19,11 +36,15 @@ twelve_data:
   key_location: query
   key_param_name: "apikey"
   api_key_env_var: "TWELVEDATA_KEY"
-  seconds_per_request: 29.25 # we choose data updated once per day, so we can get unique data for (60*60*24)/29.25 = 2 953 ETFs
+  seconds_per_request: 29.25
   requests_per_min: 8
   asset_classes:
-    etfs: false # no endpoint available for actual price data...
-    twelve_stocks: true
+    etfs:
+      enabled: false
+      lane: "slow"
+    twelve_stocks:
+      enabled: true
+      lane: "fast"
   rest:
     batch_limits:
       etfs: 1
@@ -36,16 +57,20 @@ twelve_data:
 
 vectrade:
   base_url: "https://api.vectrade.io"
-  run_during_market_close: false # both stocks and options must only run during market open
+  run_during_market_close: false
   key_location: header
   key_param_name: "X-API-Key"
   api_key_env_var: "VECTRADE_KEY"
-  seconds_per_request: 54.00 # with standard closing times, not considering holidays
+  seconds_per_request: 54.00
   requests_per_min: 20
   requests_per_month: 10000
   asset_classes:
-    vectrade_stocks: true
-    options: true
+    vectrade_stocks:
+      enabled: true
+      lane: "fast"
+    options:
+      enabled: true
+      lane: "slow"
   rest:
     batch_limits:
       vectrade_stocks: 50
@@ -61,8 +86,12 @@ eod_historical:
   seconds_per_request: 1700.00
   requests_per_min: 20
   asset_classes:
-    stocks: false # not supported right now
-    currencies: true
+    stocks:
+      enabled: false
+      lane: "slow"
+    currencies:
+      enabled: true
+      lane: "slow"
   rest:
     batch_limits:
       stocks: 1
@@ -71,15 +100,19 @@ eod_historical:
 
 finnhub: #currently broken
   base_url: "https://finnhub.io/api/v1"
-  run_during_market_close: false #update when fixing
+  run_during_market_close: false
   key_location: query
   key_param_name: "token"
   api_key_env_var: "FINNHUB_KEY"
   seconds_per_request: 1
   requests_per_min: 60
   asset_classes:
-    currencies: true
-    crypto: true
+    currencies:
+      enabled: true
+      lane: "fast"
+    crypto:
+      enabled: true
+      lane: "fast"
   rest:
     batch_limits:
       quotes: 1
@@ -95,7 +128,9 @@ fcs:
   requests_per_min: 3
   requests_per_month: 500
   asset_classes:
-    commodities: true
+    commodities:
+      enabled: true
+      lane: "slow"
   rest:
     batch_limits:
       commodities: 300
@@ -117,7 +152,9 @@ coinmarketcap:
   requests_per_min: 50
   requests_per_month: 15000
   asset_classes:
-    crypto: true
+    crypto:
+      enabled: true
+      lane: "fast"
   rest:
     batch_limits:
       crypto: 100
@@ -137,7 +174,9 @@ coingecko:
   requests_per_min: 30
   requests_per_month: 10000
   asset_classes:
-    crypto: true
+    crypto:
+      enabled: true
+      lane: "slow"
   rest:
     batch_limits:
       crypto: 250
