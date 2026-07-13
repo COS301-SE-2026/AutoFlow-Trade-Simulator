@@ -1,10 +1,13 @@
-import logging
 import yaml
 import asyncio
+import logging
 from adapters import MassiveAdapter, TwelveDataAdapter, FCSAdapter, CoinMarketCapAdapter, CoinGeckoAdapter, EodHistoricalAdapter, VectradeAdapter
 from base_adapter import TickerRingBuffer
 import zoneinfo
 from datetime import datetime
+
+import db
+from ingestion import build_lanes, IngestWorker
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -43,20 +46,44 @@ async def main():
 
     market_open_event = asyncio.Event()
 
-    # 2. Instantiate workers, passing the shared memory pools into them
+    # 2. DB_MODE wiring: pool + lazy asset cache + fast/slow lane queues + shared writer.
+    #    In flat-file mode none of this spins up — db_ctx stays None, adapters
+    #    fall back to save_to_lake untouched.
+    db_ctx = None
+    background_tasks = [market_clock_broadcaster(market_open_event)]
+
+    if db.DB_MODE:
+        pool = await db.init_pool(config["database"])
+        asset_cache = db.AssetCache(pool)
+        fast_queue, slow_queue = build_lanes(config["ingestion"])
+
+        db_ctx = {
+            "pool": pool,
+            "asset_cache": asset_cache,
+            "fast_queue": fast_queue,
+            "slow_queue": slow_queue,
+        }
+
+        ingest_worker = IngestWorker(pool, fast_queue, slow_queue, config["ingestion"])
+        background_tasks.append(ingest_worker.run())
+        logging.info("DB_MODE enabled — ingest worker + lanes online.")
+    else:
+        logging.info("DB_MODE disabled — writing to flat-file data lake.")
+
+    # 3. Instantiate workers, passing the shared memory pools (and db_ctx) into them
     workers = [
-        MassiveAdapter(config=config["massive"], pools=shared_pools, market_event=market_open_event),
-        TwelveDataAdapter(config=config["twelve_data"], pools=shared_pools, market_event=market_open_event),
-        #FinnhubAdapter(config=config["finnhub"], pools=shared_pools, market_event=market_open_event),
-        CoinMarketCapAdapter(config=config["coinmarketcap"], pools=shared_pools, market_event=market_open_event),
-        CoinGeckoAdapter(config=config["coingecko"], pools=shared_pools, market_event=market_open_event),
-        EodHistoricalAdapter(config=config["eod_historical"], pools=shared_pools, market_event=market_open_event),
-        VectradeAdapter(config=config["vectrade"], pools=shared_pools, market_event=market_open_event),
-        FCSAdapter(config=config["fcs"], pools=shared_pools, market_event=market_open_event),
+        MassiveAdapter(config=config["massive"], pools=shared_pools, market_event=market_open_event, db_ctx=db_ctx),
+        TwelveDataAdapter(config=config["twelve_data"], pools=shared_pools, market_event=market_open_event, db_ctx=db_ctx),
+        #FinnhubAdapter(config=config["finnhub"], pools=shared_pools, market_event=market_open_event, db_ctx=db_ctx),
+        CoinMarketCapAdapter(config=config["coinmarketcap"], pools=shared_pools, market_event=market_open_event, db_ctx=db_ctx),
+        CoinGeckoAdapter(config=config["coingecko"], pools=shared_pools, market_event=market_open_event, db_ctx=db_ctx),
+        EodHistoricalAdapter(config=config["eod_historical"], pools=shared_pools, market_event=market_open_event, db_ctx=db_ctx),
+        VectradeAdapter(config=config["vectrade"], pools=shared_pools, market_event=market_open_event, db_ctx=db_ctx),
+        FCSAdapter(config=config["fcs"], pools=shared_pools, market_event=market_open_event, db_ctx=db_ctx),
     ]
 
     await asyncio.gather(
-        market_clock_broadcaster(market_open_event),
+        *background_tasks,
         *(worker.run_harvest_loop() for worker in workers)
     )
 
