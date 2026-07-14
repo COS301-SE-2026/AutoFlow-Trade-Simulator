@@ -22,7 +22,7 @@ class DataPoint(BaseModel):
     high: Optional[float] = None
     low: Optional[float] = None
     close: Optional[float] = None
-    volume: float = 0.0
+    volume: Optional[float] = 0.0
 
 #Allows for the db fields to be changed into smth python will understand
     class Config:
