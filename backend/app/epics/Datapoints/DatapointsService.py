@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import List
 from sqlalchemy import text
 from sqlmodel import Session
@@ -7,21 +7,16 @@ from .DatapointsDTO import DataPoint, QueryParameters
 
 def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
 
-    timeframe_mapping = {
-        "1 month": timedelta(days=30),
-        "1 year": timedelta(days=365),
-        "5 years": timedelta(days=365 * 5),
-    }
 
-    #A little code to stop a minor error such as not sending the correct interval
-    duration = timeframe_mapping.get(params.timeframe, timeframe_mapping["1 month"])
+    end_time = params.end_date or datetime.now(UTC)
+
+    start_time = params.start_date or (end_time - timedelta(days=30))
+    
 
     #Calculations to help get the desired data points
-    total_seconds = duration.total_seconds()
-    bucket_seconds = int(total_seconds / params.data_points)
+    total_seconds = (end_time - start_time).total_seconds()
+    bucket_seconds = max(int(total_seconds / params.data_points), 1)
     bucket_interval = f"{bucket_seconds} seconds"
-
-    start_time = datetime.utcnow() - duration
 
     #Query to get all desired data alias the names so their a bit more descriptive
     query = text("""
@@ -35,6 +30,7 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
         FROM dailyohlcv
         Where asset_id = :asset_id
             AND "timestamp" >= :start_time
+            AND "timestamp" <= :end_time
         GROUP BY bucket_time
         ORDER BY bucket_time ASC;
     """)
@@ -44,7 +40,8 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
         {
             "bucket_interval": bucket_interval,
             "asset_id": asset_id,
-            "start_time": start_time
+            "start_time": start_time,
+            "end_time": end_time
         }
     )
 
@@ -56,7 +53,7 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
             high=round(float(row.high_price), 4) if row.high_price else None,
             low=round(float(row.low_price), 4) if row.low_price else None,
             close=round(float(row.close_price), 4) if row.close_price else None,
-            volume=round(float(row.total_volume), 4) if row.total_volume else None,
+            volume=round(float(row.total_volume), 4) if row.total_volume is not None else 0.0,
         )
         for row in result
     ]

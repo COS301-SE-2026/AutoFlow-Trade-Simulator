@@ -4,9 +4,13 @@ from pydantic import BaseModel, Field
 
 #validate the json body we are getting feels ood not coding a validator for this stuff...
 class QueryParameters(BaseModel):
-    timeframe: str = Field(
-        default="1 month",
-        description="Timeframe to fetch: '1 month', '1 year', '5 years', etc... "
+    start_date: Optional[datetime] = Field(
+        None,
+        description="Start date (YYYY-MM-DD). If omitted, defaults to 30 days ago. (ex 2026-01-01)"
+    )
+    end_date: Optional[datetime] = Field(
+        None,
+        description="End date (YYYY-MM-DD). If omitted, defaults to current time. (ex 2026-06-01)"
     )
     data_points: int = Field(
         default=20,
@@ -22,7 +26,7 @@ class DataPoint(BaseModel):
     high: Optional[float] = None
     low: Optional[float] = None
     close: Optional[float] = None
-    volume: Optional[float] = 0.0
+    volume: float = 0.0
 
 #Allows for the db fields to be changed into smth python will understand
     class Config:
