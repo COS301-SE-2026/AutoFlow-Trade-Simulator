@@ -19,31 +19,44 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
     bucket_interval = f"{bucket_seconds} seconds"
 
     #Query to get all desired data alias the names so their a bit more descriptive
-    query = text("""
-        SELECT
-            time_bucket(:bucket_interval, "timestamp") AS bucket_time,
-            first(open, "timestamp") AS open_price,
-            max(high) AS high_price,
-            min(low) AS low_price,
-            last(close, "timestamp") AS close_price,
-            sum(volume) AS total_volume
-        FROM dailyohlcv
-        Where asset_id = :asset_id
-            AND "timestamp" >= :start_time
-            AND "timestamp" <= :end_time
-        GROUP BY bucket_time
-        ORDER BY bucket_time ASC;
-    """)
 
-    result = session.execute(
-        query,
-        {
-            "bucket_interval": bucket_interval,
-            "asset_id": asset_id,
-            "start_time": start_time,
-            "end_time": end_time
-        }
-    )
+    total_duration = (end_time - start_time).total_seconds()
+
+    if total_duration > 86400:
+        query = text("""
+            SELECT 
+                bucket_time AS bucket_time, 
+                open AS open_price, 
+                high AS high_price, 
+                low AS low_price, 
+                close AS close_price, 
+                volume AS total_volume
+            FROM ohlcv_1h
+            WHERE asset_id = :asset_id AND bucket_time >= :start_time AND bucket_time <= :end_time
+            ORDER BY bucket_time ASC
+        """)
+
+        query_params = {"asset_id": asset_id, "start_time": start_time, "end_time": end_time}
+    else:
+        query = text("""
+            SELECT
+                time_bucket(:bucket_interval, "timestamp") AS bucket_time,
+                first(open, "timestamp") AS open_price,
+                max(high) AS high_price,
+                min(low) AS low_price,
+                last(close, "timestamp") AS close_price,
+                sum(volume) AS total_volume
+            FROM dailyohlcv
+            Where asset_id = :asset_id
+                AND "timestamp" >= :start_time
+                AND "timestamp" <= :end_time
+            GROUP BY bucket_time
+            ORDER BY bucket_time ASC;
+        """)
+
+        query_params = {"bucket_interval": bucket_interval, "asset_id": asset_id,"start_time": start_time,"end_time": end_time}
+
+    result = session.execute(query, query_params)
 
     #loop through the raw rows returned by the db making a List of Datapoint then we return the data
     return [
