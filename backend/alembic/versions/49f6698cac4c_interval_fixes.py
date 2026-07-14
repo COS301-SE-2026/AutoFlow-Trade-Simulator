@@ -58,6 +58,9 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     #can the refresh policy on going back
+    op.execute("""
+        SELECT remove_continuous_aggregate_policy('realtimeticks_hourly', if_exists => true);
+    """)
     op.execute("DROP MATERIALIZED VIEW IF EXISTS realtimeticks_hourly CASCADE;")
 
     #Revert the chunk intervals back to how they use to be
