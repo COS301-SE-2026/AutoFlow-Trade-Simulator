@@ -43,9 +43,13 @@ def upgrade() -> None:
         WITH NO DATA;
     """)
 
+    #Im going to forget if I dont write this down
+    #start_offset we got back a week and look for data or what ever the interval is
+    #end_offset dont look at the data from the last hour or what ever the interval is
+    #schedule_interval Every 15 mins or what ever the interval is the process responsible for this will wake up and do the respective calculations
     op.execute("""
         SELECT add_continuous_aggregate_policy('realtimeticks_hourly',
-            start_offset => INTERVAL '1 week',
+            start_offset => INTERVAL '1 week', 
             end_offset => INTERVAl '1 hour',
             schedule_interval => INTERVAL '15 minutes'
         );
