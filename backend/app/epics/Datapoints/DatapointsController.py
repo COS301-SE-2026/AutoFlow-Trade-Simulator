@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
+from typing import Annotated
 from .DatapointsService import sampled_ohlcv
 from .DatapointsDTO import QueryParameters
 from ...database import get_session
 
-SessionDep = Annoted[Session, Depends(get_session)]
-QueryDep = Annoted[QueryParameters, Depends()]
+SessionDep = Annotated[Session, Depends(get_session)]
+QueryDep = Annotated[QueryParameters, Depends()]
 
 router = APIRouter(prefix="/assets", tags=["Charts"])
 
