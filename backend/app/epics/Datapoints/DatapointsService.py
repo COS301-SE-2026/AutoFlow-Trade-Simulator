@@ -5,7 +5,7 @@ from sqlmodel import Session
 
 from .DatapointsDTO import DataPoint, QueryParameters
 
-def sampled_ohlcv( session: Session, asset_id: int, params: QueryParameters) -> List[CandleDataPoint]:
+def sampled_ohlcv(asset_id: int, params: QueryParameters) -> List[DataPoint]:
 
     timeframe_mapping = {
         "1 month": timedelta(days=30),
@@ -39,14 +39,15 @@ def sampled_ohlcv( session: Session, asset_id: int, params: QueryParameters) -> 
         ORDER BY bucket_time ASC;
     "")
 
-    result = session.execute(
-        query,
-        {
-            "bucket_interval": bucket_interval,
-            "asset_id": asset_id,
-            "start_time": start_time
-        }
-    )
+    with Session() as session:
+        result = session.execute(
+            query,
+            {
+                "bucket_interval": bucket_interval,
+                "asset_id": asset_id,
+                "start_time": start_time
+            }
+        )
 
     #loop through the raw rows returned by the db making a List of Datapoint then we return the data
     return [
