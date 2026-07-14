@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 #validate the json body we are getting feels ood not coding a validator for this stuff...
 class QueryParameters(BaseModel):
     timeframe: str = Field(
-        default="1month",
+        default="1 month",
         description="Timeframe to fetch: '1 month', '1 year', '5 years', etc... "
     )
     data_points: int = Field(

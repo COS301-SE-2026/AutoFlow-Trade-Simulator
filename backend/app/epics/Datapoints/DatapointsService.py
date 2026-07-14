@@ -2,10 +2,11 @@ from datetime import datetime, timedelta
 from typing import List
 from sqlalchemy import text
 from sqlmodel import Session
+from ...database import get_session
 
 from .DatapointsDTO import DataPoint, QueryParameters
 
-def sampled_ohlcv(asset_id: int, params: QueryParameters) -> List[DataPoint]:
+def sampled_ohlcv(sesion: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
 
     timeframe_mapping = {
         "1 month": timedelta(days=30),
@@ -24,7 +25,7 @@ def sampled_ohlcv(asset_id: int, params: QueryParameters) -> List[DataPoint]:
     start_time = datetime.utcnow() - duration
 
     #Query to get all desired data alias the names so their a bit more descriptive
-    query = text(""
+    query = text("""
         SELECT
             time_bucket(:bucket_interval, "timestamp") AS bucket_time,
             first(open, "timestamp") AS open_price,
@@ -37,9 +38,8 @@ def sampled_ohlcv(asset_id: int, params: QueryParameters) -> List[DataPoint]:
             AND "timestamp" >= :start_time
         GROUP BY bucket_time
         ORDER BY bucket_time ASC;
-    "")
+    """)
 
-    with Session() as session:
         result = session.execute(
             query,
             {
