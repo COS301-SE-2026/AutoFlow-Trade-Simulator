@@ -54,13 +54,41 @@ def upgrade() -> None:
         );
     """)
 
+    op.execute("""
+        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1h
+        WITH(timescaledb.continuous, timescaledb.materialized_only = false) AS
+        SELECT
+            time_bucket('1 hour', "timestamp") AS bucket_time,
+            asset_id,
+            first(open, "timestamp") AS open,
+            max(high) AS high,
+            min(low) AS low,
+            last(close, "timestamp") AS close,
+            sum(volume) AS volume
+        From dailyohlcv
+        GROUP BY bucket_time, asset_id
+        WITH NO DATA;
+    """)
+
+    op.execute("""
+        SELECT add_continuous_aggregate_policy('ohlcv_1h',
+            start_offset => INTERVAL '1 month', 
+            end_offset => INTERVAl '1 hour',
+            schedule_interval => INTERVAL '1 hour'
+        );
+    """)
+
 
 def downgrade() -> None:
     #can the refresh policy on going back
     op.execute("""
         SELECT remove_continuous_aggregate_policy('realtimeticks_hourly', if_exists => true);
     """)
+    op.execute("""
+        SELECT remove_continuous_aggregate_policy('ohlcv_1h', if_exists => true);
+    """)
     op.execute("DROP MATERIALIZED VIEW IF EXISTS realtimeticks_hourly CASCADE;")
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1h CASCADE;")
 
     #Revert the chunk intervals back to how they use to be
     op.execute("SELECT set_chunk_time_interval('realtimeticks', INTERVAL '1 day');")
