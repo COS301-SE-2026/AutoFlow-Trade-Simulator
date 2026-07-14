@@ -251,7 +251,7 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
         (is_valid, msg) = await self._validate_payload(payload)
         if not is_valid:
-            logging.error(f"Failed to validate TwelveData response for {asset_class}: {msg}")
+            logging.error(f"Failed to validate CoinMarketCap response for {asset_class}: {msg}")
             return []
 
         rows = []
@@ -300,9 +300,70 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
         response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
         return response
 
+    async def _validate_payload(self, payload) -> tuple[bool, str]:
+        if not isinstance(payload, list):
+            return False, "Payload root must be an array"
+        if len(payload) == 0:
+            return False, "Payload array must not be empty"
+
+        for idx, item in enumerate(payload):
+            if not isinstance(item, dict):
+                return False, f"Item {idx} must be an object"
+
+            symbol = item.get("symbol")
+            if not isinstance(symbol, str) or not symbol.strip():
+                return False, f"Item {idx} missing or invalid 'symbol' (must be non-empty string)"
+
+            price = item.get("current_price")
+            if price is not None and not isinstance(price, (int, float)):
+                return False, f"Item {idx} 'current_price' must be a number or null"
+
+            volume = item.get("total_volume")
+            if volume is not None and not isinstance(volume, (int, float)):
+                return False, f"Item {idx} 'total_volume' must be a number or null"
+
+            last_updated = item.get("last_updated")
+            if not isinstance(last_updated, str) or not last_updated.strip():
+                return False, f"Item {idx} missing or invalid 'last_updated' (must be non-empty string)"
+
+        return True, "Valid"
+
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        # TODO: map CoinGecko coins/markets payload -> rows
-        raise NotImplementedError("CoinGeckoAdapter.transform_payload not implemented yet")
+        (is_valid, msg) = await self._validate_payload(payload)
+        if not is_valid:
+            logging.error(f"Failed to validate CoinGecko response for {asset_class}: {msg}")
+            return []
+
+        rows = []
+        for coin in payload:
+            symbol = coin.get("symbol")
+            price = coin.get("current_price")
+            volume = coin.get("total_volume")
+            last_updated = coin.get("last_updated")
+
+            if price is None:
+                continue
+
+            if not symbol or not last_updated:
+                continue
+
+            try:
+                timestamp = datetime.fromisoformat(last_updated)
+                timestamp = timestamp.replace(tzinfo=None)
+            except ValueError:
+                logging.warning(f"Invalid last_updated format: {last_updated} for {symbol}")
+                continue
+
+            rows.append({
+                "symbol": symbol.upper(),
+                "table": "realtimeticks",
+                "timestamp": timestamp,
+                "price": price,
+                "volume": volume if volume is not None else 0,
+                "currency": "USD",
+            })
+
+        return rows
 
 class EodHistoricalAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
