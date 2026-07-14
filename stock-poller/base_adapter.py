@@ -86,7 +86,7 @@ class BaseMarketDataAdapter(ABC):
             await target_queue.put((table, row))
 
     async def fetch_and_store(self, index:int):
-        asset_type: str = [name for name, enabled in self.config["asset_classes"].items() if enabled][index]
+        asset_type: str = [name for name, details in self.config["asset_classes"].items() if details.get("enabled", False)][index]
         symbols = await self.get_symbol_batch(asset_type)
         if not symbols:
             logging.info("No symbols to request")
@@ -132,7 +132,7 @@ class BaseMarketDataAdapter(ABC):
     async def run_harvest_loop(self):
         logging.info(f"Starting harvest loop for {self.provider_name}...")
         counter = 0
-        num_enabled_assets = len([name for name, enabled in self.config["asset_classes"].items() if enabled])
+        num_enabled_assets = len([name for name, details in self.config["asset_classes"].items() if details.get("enabled", False)])
 
         if not self.run_during_market_close:
             while True:

@@ -393,9 +393,88 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=params, timeout=12.0)
         return response
 
+    async def _validate_payload(self, payload) -> tuple[bool, str]:
+        if not isinstance(payload, list):
+            return False, "Payload root must be an array"
+        if len(payload) == 0:
+            return False, "Payload array must not be empty"
+
+        for idx, item in enumerate(payload):
+            if not isinstance(item, dict):
+                return False, f"Item {idx} must be an object"
+
+            open_price = item.get("open")
+            if open_price is not None and not isinstance(open_price, (int, float)):
+                return False, f"Item {idx} 'open' must be a number or null"
+
+            volume = item.get("volume")
+            if volume is not None and not isinstance(volume, (int, float)):
+                return False, f"Item {idx} 'volume' must be a number or null"
+
+            date = item.get("date")
+            if not isinstance(date, str) or not date.strip():
+                return False, f"Item {idx} missing or invalid 'date' (must be non-empty string)"
+
+            high = item.get("high")
+            if high is not None and not isinstance(high, (int, float)):
+                return False, f"Item {idx} 'high' must be a number or null"
+
+            low = item.get("low")
+            if low is not None and not isinstance(low, (int, float)):
+                return False, f"Item {idx} 'low' must be a number or null"
+
+            close = item.get("close")
+            if close is not None and not isinstance(close, (int, float)):
+                return False, f"Item {idx} 'close' must be a number or null"
+
+        return True, "Valid"
+
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        # TODO: map EOD historical payload -> rows (likely dailyohlcv table)
-        raise NotImplementedError("EodHistoricalAdapter.transform_payload not implemented yet")
+        if len(symbols)<=0:
+            logging.error(f"No symbol passed in to EOD transform_payload")
+            return []
+        (is_valid, msg) = await self._validate_payload(payload)
+        if not is_valid:
+            logging.error(f"Failed to validate EOD response for {asset_class}: {msg}")
+            return []
+
+        symbol = symbols[0]
+        rows = []
+        for forex in payload:
+            open = forex.get("open")
+            high = forex.get("high")
+            low = forex.get("low")
+            close = forex.get("close")
+            volume = forex.get("volume")
+            date = forex.get("date")
+
+            if open is None or high is None or low is None or close is None or volume is None:
+                continue
+
+            if not date:
+                continue
+
+            try:
+                timestamp = datetime.fromisoformat(date)
+                timestamp = timestamp.replace(tzinfo=None)
+            except ValueError:
+                logging.warning(f"Invalid date format: {date} for {symbol}")
+                continue
+
+            rows.append({
+                "symbol": symbol,
+                "table": "dailyohlcv",
+                "timestamp": timestamp,
+                "open": open,
+                "high": high,
+                "low": low,
+                "close": close,
+                "volume": volume,
+                "currency": "USD",
+                "exchange": "US"
+            })
+
+        return rows
 
 class VectradeAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):

@@ -85,13 +85,13 @@ eod_historical:
     stocks:
       enabled: false
       lane: "slow"
-    currencies:
+    forex:
       enabled: true
       lane: "slow"
   rest:
     batch_limits:
       stocks: 1
-      currencies: 1
+      forex: 1
     credit_system: false
 
 finnhub: #currently broken
@@ -103,7 +103,7 @@ finnhub: #currently broken
   seconds_per_request: 1
   requests_per_min: 60
   asset_classes:
-    currencies:
+    forex:
       enabled: true
       lane: "fast"
     crypto:
