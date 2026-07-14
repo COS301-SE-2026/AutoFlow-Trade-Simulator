@@ -5,7 +5,6 @@ import asyncio
 from datetime import datetime
 from abc import ABC, abstractmethod
 import logging
-import aiofiles
 import httpx
 from typing import List, Union
 

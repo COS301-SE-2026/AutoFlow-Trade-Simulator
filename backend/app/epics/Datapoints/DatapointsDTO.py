@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel, Field
 
 #validate the json body we are getting feels ood not coding a validator for this stuff...

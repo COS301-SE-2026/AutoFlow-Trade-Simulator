@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from typing import List
 from sqlalchemy import text
 from sqlmodel import Session
-from ...database import get_session
 
 from .DatapointsDTO import DataPoint, QueryParameters
 
@@ -40,14 +39,14 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
         ORDER BY bucket_time ASC;
     """)
 
-        result = session.execute(
-            query,
-            {
-                "bucket_interval": bucket_interval,
-                "asset_id": asset_id,
-                "start_time": start_time
-            }
-        )
+    result = session.execute(
+        query,
+        {
+            "bucket_interval": bucket_interval,
+            "asset_id": asset_id,
+            "start_time": start_time
+        }
+    )
 
     #loop through the raw rows returned by the db making a List of Datapoint then we return the data
     return [

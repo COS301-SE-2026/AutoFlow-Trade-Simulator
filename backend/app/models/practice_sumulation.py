@@ -1,6 +1,4 @@
-from datetime import datetime
 from sqlmodel import Field, SQLModel
-from decimal import Decimal
 from typing import Optional
 
 class PraticeSimulation(SQLModel, table=True):
