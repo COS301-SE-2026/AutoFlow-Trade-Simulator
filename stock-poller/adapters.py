@@ -207,9 +207,69 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
         response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
         return response
 
+    async def _validate_payload(self, payload) -> tuple[bool, str]:
+        if not isinstance(payload, dict):
+            return False, "Payload root must be an object"
+
+        if "data" not in payload or not isinstance(payload["data"], dict):
+            return False, "Missing or invalid 'data' (must be an object)"
+        if "status" not in payload or not isinstance(payload["status"], dict):
+            return False, "Missing or invalid 'status' (must be an object)"
+
+        data = payload["data"]
+        if not data:
+            return False, "'data' must not be empty"
+
+        for ticker_key, crypto in data.items():
+            if not isinstance(crypto, dict):
+                return False, f"Crypto entry for '{ticker_key}' must be an object"
+
+            if "symbol" not in crypto or not isinstance(crypto["symbol"], str):
+                return False, f"Missing or invalid 'symbol' in '{ticker_key}'"
+
+            quote = crypto.get("quote")
+            if not isinstance(quote, dict):
+                return False, f"Missing or invalid 'quote' in '{ticker_key}'"
+            usd = quote.get("USD")
+            if not isinstance(usd, dict):
+                return False, f"Missing or invalid 'quote.USD' in '{ticker_key}'"
+
+            price = usd.get("price")
+            if price is not None and not isinstance(price, (int, float)):
+                return False, f"'price' in '{ticker_key}' must be a number or null"
+
+            volume = usd.get("volume_24h")
+            if not isinstance(volume, (int, float)):
+                return False, f"Missing or invalid 'volume_24h' in '{ticker_key}' (must be a number)"
+
+            last_updated = usd.get("last_updated")
+            if not isinstance(last_updated, str):
+                return False, f"Missing or invalid 'last_updated' in '{ticker_key}' (must be a string)"
+
+        return True, "Valid"
+
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        # TODO: map CMC quotes/latest payload -> rows
-        raise NotImplementedError("CoinMarketCapAdapter.transform_payload not implemented yet")
+        (is_valid, msg) = await self._validate_payload(payload)
+        if not is_valid:
+            logging.error(f"Failed to validate TwelveData response for {asset_class}: {msg}")
+            return []
+
+        rows = []
+        data = payload["data"]
+        for ticker_key, crypto in data.items():
+            usd = crypto["quote"]["USD"]
+            price = usd["price"]
+            if price is None:
+                continue
+            rows.append({
+                "symbol": crypto["symbol"],
+                "table": "realtimeticks",
+                "timestamp": datetime.fromisoformat(usd["last_updated"]).replace(tzinfo=None),
+                "price": price,
+                "volume": usd["volume_24h"],
+                "currency": "USD",
+            })
+        return rows
 
 class CoinGeckoAdapter(BaseMarketDataAdapter):
     """

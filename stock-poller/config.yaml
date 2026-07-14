@@ -32,7 +32,7 @@ massive:
 
 twelve_data:
   base_url: "https://api.twelvedata.com"
-  run_during_market_close: true
+  run_during_market_close: false
   key_location: query
   key_param_name: "apikey"
   api_key_env_var: "TWELVEDATA_KEY"
