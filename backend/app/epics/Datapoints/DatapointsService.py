@@ -6,7 +6,7 @@ from ...database import get_session
 
 from .DatapointsDTO import DataPoint, QueryParameters
 
-def sampled_ohlcv(sesion: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
+def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
 
     timeframe_mapping = {
         "1 month": timedelta(days=30),
