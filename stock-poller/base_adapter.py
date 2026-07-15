@@ -73,7 +73,8 @@ class BaseMarketDataAdapter(ABC):
         lane = self.config["asset_classes"][asset_type].get("lane", "slow")
         target_queue = self.database_service["fast_queue"] if lane == "fast" else self.database_service["slow_queue"]
 
-        fixed_asset_type = "stocks" if asset_type=="twelve_stocks" else asset_type
+        convert_to_stocks = ["twelve_stocks", "vectrade_stocks"]
+        fixed_asset_type = "stocks" if asset_type in convert_to_stocks else asset_type
         for row in rows:
             symbol = row.pop("symbol")
             exchange = row.pop("exchange", "UNKNOWN")

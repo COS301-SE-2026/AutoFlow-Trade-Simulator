@@ -165,7 +165,6 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
             })
         return rows
 
-
 class FinnhubAdapter(BaseMarketDataAdapter):
     """
     Handles standard Forex and Crypto quotes via URL query parameter authentication.
@@ -495,9 +494,88 @@ class VectradeAdapter(BaseMarketDataAdapter):
             logging.error("Invalid asset type passed in to VectradeAdapter: make_request")
             return {}
 
+    async def _validate_stock_payload(self, payload) -> tuple[bool, str]:
+        if not isinstance(payload, dict):
+            return False, "Payload root must be an object"
+
+        if "data" not in payload or not isinstance(payload["data"], dict):
+            return False, "Missing or invalid 'data' (must be an object)"
+
+        data = payload["data"]
+        if len(data.items())==0:
+            return False, "'data' must have at least one entry"
+
+        for key, entry in data.items():
+            if "ticker" not in entry or not isinstance(entry["ticker"], str):
+                return False, "Missing or invalid 'ticker' (must be a string)"
+
+            if "open" not in entry or not isinstance(entry["open"], (float, int)):
+                return False, "Missing or invalid 'open' (must be a number)"
+
+            if "high" not in entry or not isinstance(entry["high"], (float, int)):
+                return False, "Missing or invalid 'high' (must be a number)"
+
+            if "low" not in entry or not isinstance(entry["low"], (float, int)):
+                return False, "Missing or invalid 'low' (must be a number)"
+
+            if "prevClose" not in entry or not isinstance(entry["prevClose"], (float, int)):
+                return False, "Missing or invalid 'prevClose' (must be a number)"
+
+            if "volume" not in entry or not isinstance(entry["volume"], (float, int)):
+                return False, "Missing or invalid 'volume' (must be a number)"
+
+            if "timestamp" not in entry or not isinstance(entry["timestamp"], str):
+                return False, "Missing or invalid 'timestamp' (must be a string)"
+
+        return True, "Valid"
+
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        # TODO: map Vectrade quotes/batch (fast, realtimeticks) or options/chain (slow) -> rows
-        raise NotImplementedError("VectradeAdapter.transform_payload not implemented yet")
+        if asset_class=="vectrade_stocks":
+            (is_valid, msg) = await self._validate_stock_payload(payload)
+            if not is_valid:
+                logging.error(f"Failed to validate EOD response for {asset_class}: {msg}")
+                return []
+            rows = []
+            for key, entry in payload["data"].items():
+                symbol = entry.get("ticker")
+                open_price = entry.get("open")
+                high = entry.get("high")
+                low = entry.get("low")
+                close = entry.get("prevClose")
+                volume = entry.get("volume")
+                date = entry.get("timestamp")
+
+                if open is None or high is None or low is None or close is None or volume is None:
+                    continue
+                if not date:
+                    continue
+
+                try:
+                    timestamp = datetime.fromisoformat(date)
+                    timestamp = timestamp.replace(tzinfo=None)
+                except ValueError:
+                    logging.warning(f"Invalid date format: {date} for {symbol}")
+                    continue
+
+                rows.append({
+                    "symbol": symbol,
+                    "table": "realtimeticks",
+                    "timestamp": timestamp,
+                    "open": open_price,
+                    "high": high,
+                    "low": low,
+                    "close": close,
+                    "volume": volume,
+                    "currency": "USD",
+                    "exchange": "US"
+                })
+
+            return rows
+        elif asset_class=="options":
+            raise NotImplementedError("VectradeAdapter.transform_payload not implemented yet")
+        else:
+            logging.error("Invalid asset type passed in to VectradeAdapter: transform_payload")
+            return []
 
 class FCSAdapter(BaseMarketDataAdapter):
     """
