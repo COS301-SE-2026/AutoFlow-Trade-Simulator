@@ -43,6 +43,21 @@ class SimulationSummary(SQLModel):
     trades_count:int
     per_symbol_results:Dict[str,PerSymbolResult]
     
+class SimulationSessionResponse(SQLModel):
+    simulation_id:int
+    status:str
+    positions:Dict[str,Decimal]
+    nav:Decimal
+
+class SimulationFinishResponse(SQLModel):
+    simulation_id:int
+    status:str
+    start_date:date
+    end_date:date
+    initial_balance:Decimal
+    summary:SimulationSummary
+    errors:Optional[List[str]]=None
+
 
 
 
