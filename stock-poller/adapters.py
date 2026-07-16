@@ -599,6 +599,149 @@ class FCSAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=params, timeout=60.0)
         return response
 
+    async def _validate_payload(self, payload) -> tuple[bool, str]:
+        if not isinstance(payload, dict):
+            return False, "Root must be an object"
+        if "response" not in payload or not isinstance(payload["response"], list):
+            return False, "Missing or invalid 'response' (must be a list)"
+        if not payload["response"]:
+            return False, "'response' must be a non‑empty list"
+
+        for idx, item in enumerate(payload["response"]):
+            if not isinstance(item, dict):
+                return False, f"Item {idx} must be an object"
+            if "ticker" not in item or not isinstance(item["ticker"], str):
+                return False, f"Item {idx} missing/invalid 'ticker'"
+            if "active" not in item or not isinstance(item["active"], dict):
+                return False, f"Item {idx} missing/invalid 'active'"
+            if "previous" not in item or not isinstance(item["previous"], dict):
+                return False, f"Item {idx} missing/invalid 'previous'"
+
+            prev = item["previous"]
+            required_prev = {"o", "h", "l", "c", "v", "t"}
+            for field in required_prev:
+                if field not in prev:
+                    return False, f"Item {idx} missing '{field}' in 'previous'"
+            if not isinstance(prev["o"], (int, float)):
+                return False, f"Item {idx} 'previous.o' must be a number"
+            if not isinstance(prev["h"], (int, float)):
+                return False, f"Item {idx} 'previous.h' must be a number"
+            if not isinstance(prev["l"], (int, float)):
+                return False, f"Item {idx} 'previous.l' must be a number"
+            if not isinstance(prev["c"], (int, float)):
+                return False, f"Item {idx} 'previous.c' must be a number"
+            if prev["v"] is not None and not isinstance(prev["v"], (int, float)):
+                return False, f"Item {idx} 'previous.v' must be a number or null"
+            if not isinstance(prev["t"], int) or not prev["t"]:
+                return False, f"Item {idx} 'previous.t' must be a non‑empty string"
+
+            active = item["active"]
+            if "c" not in active or not isinstance(active["c"], (int, float)):
+                return False, f"Item {idx} missing/invalid 'active.c'"
+            if "t" not in active or not isinstance(active["t"], int) or not active["t"]:
+                return False, f"Item {idx} missing/invalid 't' in 'active'"
+
+        return True, "Valid"
+
+    def aggregate_previous_data(self, response_list):
+        groups = {}
+        for item in response_list:
+            ticker = item["ticker"]
+            base_symbol = ticker.split(":", 1)[1] if ":" in ticker else ticker
+            prev = item["previous"]
+
+            if base_symbol not in groups:
+                groups[base_symbol] = {
+                    "symbol": base_symbol,
+                    "open_sum": 0.0,
+                    "high_sum": 0.0,
+                    "low_sum": 0.0,
+                    "close_sum": 0.0,
+                    "volume_sum": 0.0,
+                    "count": 0,
+                    "timestamp": prev.get("t")
+                }
+            g = groups[base_symbol]
+            g["open_sum"] += prev["o"]
+            g["high_sum"] += prev["h"]
+            g["low_sum"] += prev["l"]
+            g["close_sum"] += prev["c"]
+            g["volume_sum"] += prev["v"] if prev["v"] is not None else 0
+            g["count"] += 1
+
+        # Compute averages and produce final list
+        result = []
+        for base, g in groups.items():
+            count = g["count"]
+            result.append({
+                "symbol": g["symbol"],
+                "open": g["open_sum"] / count,
+                "high": g["high_sum"] / count,
+                "low": g["low_sum"] / count,
+                "close": g["close_sum"] / count,
+                "volume": g["volume_sum"],
+                "timestamp": g["timestamp"]
+            })
+        return result
+
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        # TODO: map FCS commodities/latest payload -> rows
-        raise NotImplementedError("FCSAdapter.transform_payload not implemented yet")
+        is_valid, msg = await self._validate_payload(payload)
+        if not is_valid:
+            logging.error(f"FCS validation failed: {msg}")
+            return []
+
+        response_list = payload["response"]
+        aggregated_daily = self.aggregate_previous_data(response_list)
+
+        rows = []
+
+        for daily in aggregated_daily:
+            if symbols and daily["symbol"] not in symbols:
+                continue
+
+            ts = daily["timestamp"]
+            dt = datetime.fromtimestamp(ts)
+
+            rows.append({
+                "symbol": daily["symbol"],
+                "table": "dailyohlcv",
+                "timestamp": dt.replace(tzinfo=None),
+                "open": daily["open"],
+                "high": daily["high"],
+                "low": daily["low"],
+                "close": daily["close"],
+                "volume": daily["volume"],
+                "currency": "USD",
+            })
+
+        seen_active = set()
+        for item in response_list:
+            ticker = item["ticker"]
+            base_symbol = ticker.split(":", 1)[1] if ":" in ticker else ticker
+            if symbols and base_symbol not in symbols:
+                continue
+            if base_symbol in seen_active:
+                continue
+            seen_active.add(base_symbol)
+
+            active = item["active"]
+            price = active.get("c")
+            if price is None:
+                continue
+
+            update_str = item.get("updateTime")
+            if update_str:
+                dt = datetime.strptime(update_str, "%Y-%m-%d %H:%M:%S")
+            else:
+                dt = datetime.fromtimestamp(item.get("update", 0))
+
+            rows.append({
+                "symbol": base_symbol,
+                "table": "realtimeticks",
+                "timestamp": dt.replace(tzinfo=None),
+                "price": price,
+                "volume": active.get("v", 0) or 0,
+                "currency": "USD",
+            })
+
+        return rows
