@@ -1,7 +1,7 @@
 
 from datetime import date
 from decimal import Decimal
-from typing import List, Optional
+from typing import Dict, List, Optional
 from sqlalchemy import Select
 from sqlalchemy.engine import result
 from sqlmodel import Session, select
@@ -9,7 +9,8 @@ from sqlmodel import Session, select
 from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
-from .SimulationDTOs import SimulationCreateRequest, SimulationFinishResponse, StrategiesResponse, EpicStatusDTO
+from ...models.practice_simulation import PraticeSimulation
+from .SimulationDTOs import SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse, EpicStatusDTO
 
 MAX_SYMBOLS = 20
 MAX_YEARS = 5
@@ -54,8 +55,48 @@ class SimulationService:
         asset_id= self.session.exec(select(Asset.asset_id).where(Asset.symbol== symbol)).first()
         if asset_id is None:
             raise ValueError("Symbols doesnt exist")
-        result:list= list(self.session.exec(select(DailyOHLCV).where(DailyOHLCV.asset_id==asset_id)).all())
+        result:list= list(self.session.exec(select(DailyOHLCV).where(DailyOHLCV.asset_id==asset_id).where(DailyOHLCV.timestamp < end).where(DailyOHLCV.timestamp>start)).all())
         return result
+
+    def build_allocations(self,symbols:List[str],allocations:Optional[Dict[str,Decimal]])->Dict[str,Decimal]:
+        if allocations is None:
+            return{s:Decimal('0') for s in symbols}
+        relevant = {s: allocations.get(s, Decimal("0")) for s in symbols}
+        total= sum(relevant.values())
+        if total==0 or total>=1:
+            raise ValueError("Allocations must sum to a value between 0 and 1")
+        return relevant
+
+
+
+
+    def create_simulation_session(self,req:SimulationCreateRequest,user_id:int)->SimulationSessionResponse:
+        self.validate_limits(req.symbols,req.start_date,req.end_date)
+        allocations:Dict[str,Decimal]= self.build_allocations(req.symbols,req.allocations)
+        positions:Dict[str,Decimal]={}
+        cash= req.initial_balance
+        for s in req.symbols:
+            bars:List[DailyOHLCV]= self.load_bars(s,req.start_date,req.end_date)
+            if not bars:
+                positions[s]=Decimal('0')
+            budget= allocations[s] * req.initial_balance
+            price =bars[0].close
+            asset_quantity= (budget/price) if price>0 else Decimal('0')
+            positions[s]=asset_quantity.quantize(Decimal("0.0001"))
+            cash-= asset_quantity*price
+
+
+        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=allocations)
+        self.session.add(sim)
+        self.session.commit()
+        self.session.refresh(sim)
+        if sim.id is None:
+            raise ValueError("No simulation id found")
+        return SimulationSessionResponse(simulation_id=sim.id,status=sim.status,positions=positions,nav=req.initial_balance)
+
+
+
+
 
     def run_backtest(self,req:SimulationCreateRequest,user_id:Optional[int])->SimulationFinishResponse:
         self.validate_limits(req.symbols,req.start_date,req.end_date)
