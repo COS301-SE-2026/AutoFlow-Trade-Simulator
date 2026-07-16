@@ -2,10 +2,7 @@
 from datetime import date
 from datetime import datetime
 from decimal import Decimal
-from operator import pos
 from typing import Dict, List, Optional
-from sqlalchemy import Select
-from sqlalchemy.engine import result
 from sqlmodel import Session, select
 
 from ...models.strategies import Strategies
@@ -13,7 +10,6 @@ from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.practice_simulation import PraticeSimulation
 from .SimulationDTOs import SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse, EpicStatusDTO
-from backend.app.models import practice_simulation
 
 MAX_SYMBOLS = 20
 MAX_YEARS = 5
@@ -95,6 +91,7 @@ class SimulationService:
             bars:List[DailyOHLCV]= self.load_bars(s,req.start_date,req.end_date)
             if not bars:
                 positions[s]=Decimal('0')
+                continue
             budget= allocations[s] * req.initial_balance
             price =bars[0].close
             asset_quantity= (budget/price) if price>0 else Decimal('0')
@@ -102,7 +99,9 @@ class SimulationService:
             cash-= asset_quantity*price
 
 
-        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=allocations,current_balance=cash)
+        float_positions:Dict[str,float]={s:float(v) for [s,v] in positions.items()}
+        float_allocations:Dict[str,float]={s:float(v) for [s,v] in allocations.items()}
+        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=float_allocations,current_balance=cash,positions=float_positions)
         self.session.add(sim)
         self.session.commit()
         self.session.refresh(sim)
@@ -114,8 +113,8 @@ class SimulationService:
     def append_simulation_actions(self,req:SimulationAppendRequest)->SimulationSessionResponse:
         # check if simulation_id is valid
         sim:PraticeSimulation= self.session.exec(select(PraticeSimulation).where(PraticeSimulation.id==req.simulation_id)).one()
-        positions:Dict[str,Decimal]= dict(sim.positions or {})
-        last_prices:Dict[str,Decimal]= dict({})
+        positions:Dict[str,Decimal]= dict({s:Decimal(str(v)) for s,v in sim.positions.items()} or {})
+        last_prices:Dict[str,Decimal]= dict({s:Decimal(str(v)) for s,v in sim.last_prices.items()}or {})
 
         for action in req.actions:
         
@@ -149,7 +148,8 @@ class SimulationService:
                 raise ValueError(f"Unknown action type: {action.type} ")
             last_prices[action.symbol]=price
 
-        sim.positions=positions
+        sim.positions={s:float(v) for s,v in positions.items()}
+        sim.last_prices={s:float(v) for s,v in last_prices.items()}
         self.session.add(sim)
         self.session.commit()
         self.session.refresh(sim)
