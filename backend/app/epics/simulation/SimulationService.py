@@ -1,6 +1,8 @@
 
 from datetime import date
+from datetime import datetime
 from decimal import Decimal
+from operator import pos
 from typing import Dict, List, Optional
 from sqlalchemy import Select
 from sqlalchemy.engine import result
@@ -10,7 +12,8 @@ from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.practice_simulation import PraticeSimulation
-from .SimulationDTOs import SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse, EpicStatusDTO
+from .SimulationDTOs import SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse, EpicStatusDTO
+from backend.app.models import practice_simulation
 
 MAX_SYMBOLS = 20
 MAX_YEARS = 5
@@ -51,6 +54,19 @@ class SimulationService:
         if (end-start).days>(MAX_YEARS*365):
             raise ValueError("Date range too large")
 
+    def load_bar_at_date(self,symbol:str,start:date,end:date,timestamp:datetime)->DailyOHLCV:
+        execution_date:date= timestamp.date()
+        if execution_date<start or execution_date>end:
+            raise ValueError("timestamp is not within simulation date range")
+        
+        asset_id= self.session.exec(select(Asset.asset_id).where(Asset.symbol== symbol)).first()
+        if asset_id is None:
+            raise ValueError(f"Symbol: {symbol} does not exist")
+        result= self.session.exec(select(DailyOHLCV).where(DailyOHLCV.timestamp.date()==timestamp.date())).first()
+        if result is None:
+            raise ValueError("No OHLCV found on date")
+        return result
+
     def load_bars(self,symbol:str,start:date,end:date)-> List[DailyOHLCV]:
         asset_id= self.session.exec(select(Asset.asset_id).where(Asset.symbol== symbol)).first()
         if asset_id is None:
@@ -86,7 +102,7 @@ class SimulationService:
             cash-= asset_quantity*price
 
 
-        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=allocations)
+        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=allocations,current_balance=cash)
         self.session.add(sim)
         self.session.commit()
         self.session.refresh(sim)
@@ -94,6 +110,56 @@ class SimulationService:
             raise ValueError("No simulation id found")
         return SimulationSessionResponse(simulation_id=sim.id,status=sim.status,positions=positions,nav=req.initial_balance)
 
+
+    def append_simulation_actions(self,req:SimulationAppendRequest)->SimulationSessionResponse:
+        # check if simulation_id is valid
+        sim:PraticeSimulation= self.session.exec(select(PraticeSimulation).where(PraticeSimulation.id==req.simulation_id)).one()
+        positions:Dict[str,Decimal]= dict(sim.positions or {})
+        last_prices:Dict[str,Decimal]= dict({})
+
+        for action in req.actions:
+        
+            quantity= action.qty
+            if quantity<=0:
+                raise ValueError("buy quantity cannot be non-postive")
+
+            price:Decimal|None=action.price
+            if price is None:
+                price=self.load_bar_at_date(action.symbol,sim.start_date,sim.end_date,action.timestamp).close
+            if action.type=="buy":
+                #do buy action
+                cost= quantity*price
+                if cost> sim.current_balance:
+                    raise ValueError("Insufficent cash for buy") 
+                sim.current_balance-=cost
+                positions[action.symbol]= positions.get(action.symbol,Decimal("0"))+quantity
+                
+
+                #finde bar that matches timestamp
+
+            elif action.type=="sell":
+                #do sell action
+                held=positions.get(action.symbol,Decimal("0"))
+                if held<quantity:
+                    raise ValueError("Insufficient holdings to sell")
+                sim.current_balance+=quantity*price
+                positions[action.symbol]= held - quantity 
+
+            else:
+                raise ValueError(f"Unknown action type: {action.type} ")
+            last_prices[action.symbol]=price
+
+        sim.positions=positions
+        self.session.add(sim)
+        self.session.commit()
+        self.session.refresh(sim)
+        if sim.id  is None:
+            raise ValueError("Sim ID was not found")
+        nav = sim.current_balance + sum(
+        positions[s] * last_prices.get(s, Decimal("0")) for s in positions)
+        return SimulationSessionResponse(simulation_id=sim.id, status=sim.status, positions=positions, nav=nav)
+
+        
 
 
 

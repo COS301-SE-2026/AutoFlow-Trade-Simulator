@@ -25,8 +25,6 @@ class SimulationCreateRequest(SQLModel):
     start_date:date
     end_date:date
     initial_balance:Decimal = Decimal('10000')
-    strategey_id:Optional[int]= None
-    persist:bool = True
 
 class SimulationAppendRequest(SQLModel):
     simulation_id:int
