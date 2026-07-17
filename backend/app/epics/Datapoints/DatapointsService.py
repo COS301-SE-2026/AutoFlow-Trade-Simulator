@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, UTC
 from typing import List
 from sqlalchemy import text
 from sqlmodel import Session
+from fastapi import HTTPException
 
 from .DatapointsDTO import DataPoint, QueryParameters
 
@@ -14,29 +15,34 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
     
 
     #Calculations to help get the desired data points
-    total_seconds = (end_time - start_time).total_seconds()
-    bucket_seconds = max(int(total_seconds / params.data_points), 1)
+    total_duration = (end_time - start_time).total_seconds()
+
+    #Its already in seconds might as well do it like this
+    if total_duration < 0:
+        raise HTTPException(status_code=400, detail="start date greater than end date")
+
+    bucket_seconds = max(int(total_duration / params.data_points), 1)
     bucket_interval = f"{bucket_seconds} seconds"
 
     #Query to get all desired data alias the names so their a bit more descriptive
-
-    total_duration = (end_time - start_time).total_seconds()
-
     if total_duration > 86400:
         query = text("""
             SELECT 
-                bucket_time AS bucket_time, 
-                open AS open_price, 
-                high AS high_price, 
-                low AS low_price, 
-                close AS close_price, 
-                volume AS total_volume
+                time_bucket(:bucket_interval, bucket_time) AS bucket_time, 
+                first(open, bucket_time) AS open_price, 
+                max(high) AS high_price, 
+                min(low) AS low_price, 
+                last(close, bucket_time) AS close_price, 
+                sum(volume) AS total_volume
             FROM ohlcv_1h
-            WHERE asset_id = :asset_id AND bucket_time >= :start_time AND bucket_time <= :end_time
+            WHERE asset_id = :asset_id 
+                AND bucket_time >= :start_time 
+                AND bucket_time <= :end_time
+            GROUP BY bucket_time
             ORDER BY bucket_time ASC
         """)
 
-        query_params = {"asset_id": asset_id, "start_time": start_time, "end_time": end_time}
+        query_params = {"bucket_interval": bucket_interval, "asset_id": asset_id, "start_time": start_time, "end_time": end_time}
     else:
         query = text("""
             SELECT
