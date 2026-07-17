@@ -55,7 +55,16 @@ export default function LearningPage() {
             </div>
         </div>
 
-        
+        <div className='flex-1 p-6'>
+            {activeTab === 'strategies' && (
+                <div className='flex items-center justify-center h-full'>
+                    <p>Strategies go here</p>
+                </div>
+            )}
+
+            {activeTab === 'greeks' && <GreeksDisplay />}
+            {activeTab === 'events' && <HistoricalEventsTab />}
+        </div>
     </>
   );
 }
