@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BookOpen, Play, ChevronRight } from 'lucide-react';
 
 interface EventDefinition {
     id: string;
@@ -26,7 +27,7 @@ const eventDefs: EventDefinition[] = [
         context: "It's February 3rd, 2020. SPY trades at R5380, close to all-time highs. A novel coronavirus has been identified in Wuhan, but equity markets are dismissive. You have R200,000 to manage over the next six months.",
         timeframe: '6m',
     },
-    { //want to test the flex
+    {
     id: 'nvda-surge',
     title: 'NVIDIA AI Surge',
     ticker: 'NVDA',
@@ -50,7 +51,7 @@ export function HistoricalEventsTab() {
                     Each event replays historical market data one day at a time. Buy and sell as you want the event unfold - see how your decisions would have actually played out.
                 </p>
             </div>
-            <div className='flex flex-col items-center gap-4'>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
                 {eventDefs.map((event) => (
                     <button
                         key={event.id}
@@ -66,12 +67,23 @@ export function HistoricalEventsTab() {
                                 <h3 className='font-bold'>{event.title}</h3>
                                 <p className='text-xs text-muted-foreground mt-1'>{event.period}</p>
                             </div>
+                            <div className='shrink-0 w-10 h-10 rounded-xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center'>
+                                <BookOpen className='w-5 h-5 text-[var(--blue)]' />
+                            </div>
                         </div>
                 
                         <p className='text-sm leading-relaxed'>{event.narrative}</p>
-                        <h4 className='mt-4 flex-items-center gap-2 text-xs font-semibold text-[var(--blue)]'>
-                            Start simulation
-                        </h4>
+                        <div className='mt-4 flex flex-row flex-items-center gap-2 text-xs font-semibold text-[var(--blue)]'>
+                            <span>
+                                <Play className='w-3.5 h-3.5' />
+                            </span>
+                            <span>
+                                Start simulation
+                            </span> 
+                            <span>
+                                <ChevronRight className='w-3.5 h-3.5' />
+                            </span>
+                        </div>
                     </button>
                 ))}
             </div>
