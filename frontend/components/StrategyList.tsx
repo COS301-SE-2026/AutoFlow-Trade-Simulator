@@ -2,13 +2,13 @@
 import { StrategyCard } from '@/components/StrategyCard';
 
 export function StrategyList() {
+    const strategies = Array.from({ length: 5 }, (_, i) => i);
 
     return (
         <div>
-            <StrategyCard />
-            <StrategyCard />
-            <StrategyCard />
-            <StrategyCard />
+            {strategies.map((s) => (
+                <StrategyCard id={s} />
+            ))}
         </div>
     );
 }

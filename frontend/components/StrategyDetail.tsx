@@ -1,6 +1,6 @@
 'use client';
 
-export function StrategyDetail() {
+export function StrategyDetail({ id }: { id: number | null }) {
 
     return (
         <div className='rounded-xl p-6 border border-border/60' style={{ background: 'var(--panel)' }}>
