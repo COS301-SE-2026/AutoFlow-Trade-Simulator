@@ -1,9 +1,15 @@
 'use client';
 
-export function StrategyDetail({ id }: { id: number | null }) {
+import { Button } from "./ui/button";
+
+export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
 
     return (
-        <div className='rounded-xl p-6 border border-border/60' style={{ background: 'var(--panel)' }}>
+        <div
+            className='rounded-xl p-6 border border-border/60'
+            style={{ background: 'var(--panel)' }}>
+            <Button onClick={onClose}>X</Button>
+
             <div>{id} strategy name</div>
             <div>{id} strategy level</div>
             <div>{id} strategy category</div>

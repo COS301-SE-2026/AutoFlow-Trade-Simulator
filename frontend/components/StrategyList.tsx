@@ -24,6 +24,7 @@ export function StrategyList() {
                 {selectedStrategy && (
                     <StrategyDetail
                         id={selectedStrategy}
+                        onClose={() => setSelectedId(null)}
                     />
                 )}
             </div>
