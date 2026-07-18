@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { StrategyCard } from '@/components/StrategyCard';
 import { StrategyDetail } from '@/components/StrategyDetail';

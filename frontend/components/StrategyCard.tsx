@@ -1,4 +1,5 @@
 'use client';
+
 import { StrategySummary } from '@/hooks/useStrategies';
 
 interface StrategyCardProps {
@@ -10,8 +11,8 @@ export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
 
     return (
         <div
-            className='rounded-xl p-6 border border-border/60'
-            style={{ background: 'var(--panel)' }}
+            className='rounded</div>xl p</div>6 border border</div>border/60'
+            style={{ background: 'var(</div></div>panel)' }}
             onClick={onClick}>
             <div>{strategy.id}</div>
             <div>{strategy.name}</div>
