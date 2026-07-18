@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import { StrategyCard } from '@/components/StrategyCard';
 import { StrategyDetail } from '@/components/StrategyDetail';
+import { useStrategies } from '@/hooks/useStrategies';
 
 export function StrategyList() {
-    const strategies = Array.from({ length: 5 }, (_, i) => i);
+    const { strategies, loading, error } = useStrategies();
     const [selectedId, setSelectedId] = useState<number | null>(null);
 
     const selectedStrategy = selectedId;
@@ -15,8 +16,8 @@ export function StrategyList() {
                 {strategies.map((s, index) => (
                     <StrategyCard
                         key={`empty-${index}`}
-                        id={s}
-                        onClick={() => setSelectedId(s)}
+                        id={s.id}
+                        onClick={() => setSelectedId(s.id)}
                     />
                 ))}
             </div>

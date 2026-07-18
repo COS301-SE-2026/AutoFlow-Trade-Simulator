@@ -167,14 +167,27 @@ export function useStrategy(id: number | null) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    if (id === null) {
-        return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    setStrategy(MOCK_STRATEGY_DETAILS[id]);
+    const fetch = useCallback(async () => {
+        if (!id) {
+            return;
+        }
+        setLoading(true);
+        setError(null);
+        try {
+            // const response = await apiClient(`/`); to be added when endpoint is done
+            setStrategy(MOCK_STRATEGY_DETAILS[id]);
+        } catch (error: any) {
+            if (error instanceof ApiError && error.status === 401) {
+                setStrategy(null);
+            }
+            else {
+                setError(error.message);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [id]);
+    useEffect(() => { fetch(); }, [fetch]);
 
     return { strategy, loading, error, refetch: fetch }
 }

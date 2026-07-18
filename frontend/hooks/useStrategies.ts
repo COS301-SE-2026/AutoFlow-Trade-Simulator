@@ -25,10 +25,24 @@ export function useStrategies() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    setLoading(true);
-    setError(null);
-
-    setStrategies(MOCK_STRATEGIES);
+    const fetch = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            // const response = await apiClient(`/`); to be added when endpoint is done
+            setStrategies(MOCK_STRATEGIES);
+        } catch (error: any) {
+            if (error instanceof ApiError && error.status === 401) {
+                setStrategies([]);
+            }
+            else {
+                setError(error.message);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+    useEffect(() => { fetch(); }, [fetch]);
 
     return { strategies, loading, error, refetch: fetch }
 }
