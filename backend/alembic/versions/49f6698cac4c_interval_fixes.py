@@ -30,7 +30,7 @@ def upgrade() -> None:
         sa.Column('option_type', sa.Enum('CALL', 'PUT', name='option_type', create_type=False), nullable=False),
         sa.Column('strike_price', sa.Numeric(precision=18, scale=4), nullable=False),
         sa.Column('expr_date', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('imp_vol', sa.Numeric(precision=8, scale=4), nullable=False),
+        sa.Column('imp_vol', sa.Numeric(precision=18, scale=4), nullable=False),
         sa.ForeignKeyConstraint(['asset_id'], ['asset.asset_id'], ondelete='CASCADE'),
     )
 
