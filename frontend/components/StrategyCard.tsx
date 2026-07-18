@@ -1,16 +1,23 @@
 'use client';
+import { StrategySummary } from '@/hooks/useStrategies';
 
-export function StrategyCard({ id, onClick }: { id: number | null, onClick: () => void }) {
+interface StrategyCardProps {
+    strategy: StrategySummary,
+    onClick: () => void
+}
+
+export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
 
     return (
         <div
             className='rounded-xl p-6 border border-border/60'
             style={{ background: 'var(--panel)' }}
             onClick={onClick}>
-            <div>{id} strategy name</div>
-            <div>{id} strategy level</div>
-            <div>{id} strategy category</div>
-            <div>{id} strategy description</div>
+            <div>{strategy.id}</div>
+            <div>{strategy.name}</div>
+            <div>{strategy.level}</div>
+            <div>{strategy.category}</div>
+            <div>{strategy.description}</div>
         </div>
     );
 }

@@ -16,7 +16,7 @@ export function StrategyList() {
                 {strategies.map((s, index) => (
                     <StrategyCard
                         key={`empty-${index}`}
-                        id={s.id}
+                        strategy={s}
                         onClick={() => setSelectedId(s.id)}
                     />
                 ))}
