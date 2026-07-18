@@ -4,14 +4,14 @@ export function StrategyDetail({ id }: { id: number | null }) {
 
     return (
         <div className='rounded-xl p-6 border border-border/60' style={{ background: 'var(--panel)' }}>
-            strategy name
-            strategy level
-            strategy category
-            strategy description
+            <div>{id} strategy name</div>
+            <div>{id} strategy level</div>
+            <div>{id} strategy category</div>
+            <div>{id} strategy description</div>
 
-            strategy steps
-            strategy pros
-            strategy cons
+            <div>{id} strategy steps</div>
+            <div>{id} strategy pros</div>
+            <div>{id} strategy cons</div>
         </div>
     );
 }
