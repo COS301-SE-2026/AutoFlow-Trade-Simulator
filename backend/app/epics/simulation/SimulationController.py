@@ -7,7 +7,7 @@ from ...core.security import get_current_user
 from ...models.user import User
 from .SimulationService import SimulationService
 from ...database import get_session
-from .SimulationDTOs import EpicStatusDTO, SimulationAppendRequest, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse,SimulationCreateRequest
+from .SimulationDTOs import EpicStatusDTO, SimulationAppendRequest, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse,SimulationCreateRequest, StrategyDetail
 
 
 router = APIRouter(prefix="/simulation",tags=["Simulation"])
@@ -23,7 +23,9 @@ def get_epic_status() -> EpicStatusDTO:
 @router.get("/strategies")
 def get_strategies(service:Annotated[SimulationService, Depends(get_simulation_service)])->StrategiesResponse:
     return service.get_strategies()
-
+@router.get("/strategies/{strategy_id}")
+def get_strategy_detail(strategy_id:int,service:Annotated[SimulationService, Depends(get_simulation_service)],current_user:Annotated[User,Depends(get_current_user)])->StrategyDetail:
+    return service.get_strategy_detail(strategy_id)
 @router.post("/practice/simulate")
 def create_practice_simulation(req:SimulationCreateRequest,service:Annotated[SimulationService, Depends(get_simulation_service)],current_user:Annotated[User,Depends(get_current_user)])->SimulationSessionResponse:
     if current_user.id is None:

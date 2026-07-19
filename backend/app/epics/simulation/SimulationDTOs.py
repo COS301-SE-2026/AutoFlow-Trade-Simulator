@@ -7,9 +7,25 @@ from datetime import date, datetime
 class EpicStatusDTO(SQLModel):
     epic: str
     status: str
+class StrategySummary(SQLModel):
+    id: int
+    name: str
+    level: str
+    category: str
+    description: str
+
+class StrategyDetail(StrategySummary):
+    id: int
+    name: str
+    level: str
+    category: str
+    description: str
+    steps: List[str]
+    pros: List[str]
+    cons: List[str]
 
 class StrategiesResponse(SQLModel):
-    strategies: list[Strategies]
+    strategies: list[StrategySummary]
 
 class SimulationAction(SQLModel):
     type:str #buy or sell
