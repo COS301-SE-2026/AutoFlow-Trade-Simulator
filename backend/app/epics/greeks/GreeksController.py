@@ -29,7 +29,7 @@ def get_market_condition(
 @router.get("/{symbol}")
 def get_greeks(
     symbol: str,
-    service: Annotated[GreeksService, Depends(get_greeks_service)],User: Annotated[User, Depends(get_current_user)]
+    service: Annotated[GreeksService, Depends(get_greeks_service)],user: Annotated[User, Depends(get_current_user)]
 ) -> GreekValues:
     return service.get_greeks(symbol)
 
@@ -37,7 +37,7 @@ def get_greeks(
 @router.get("/{symbol}/history")
 def get_greeks_history(
     symbol: str,
-    service: Annotated[GreeksService, Depends(get_greeks_service)],User: Annotated[User, Depends(get_current_user)],
+    service: Annotated[GreeksService, Depends(get_greeks_service)],user: Annotated[User, Depends(get_current_user)],
     period: Annotated[TimePeriod, Query(description="The time period for the historical data")],
 ) -> HistPriceHistoryResponse:
     return service.get_history(symbol, period)
