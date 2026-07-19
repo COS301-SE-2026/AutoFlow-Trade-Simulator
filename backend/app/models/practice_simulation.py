@@ -15,6 +15,7 @@ class PraticeSimulation(SQLModel, table=True):
     positions:Dict[str,float]=Field(sa_column=Column(JSONB))
     allocations:Optional[Dict[str,float]]=Field(default=None,sa_column=Column(JSONB))
     last_prices: Dict[str, float]=Field(default_factory=dict,sa_column=Column(JSONB))
+    actions:List[Dict]=Field(default_factory=list,sa_column=Column(JSONB))
     summary:Optional[Dict]=Field(default=None,sa_column=Column(JSONB))
     status:str=Field(nullable=False, max_length=15,default="in_progress")
     created_at:datetime=Field(default_factory=datetime.utcnow)
