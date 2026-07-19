@@ -10,7 +10,7 @@ from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.practice_simulation import PraticeSimulation
-from .SimulationDTOs import PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO
+from .SimulationDTOs import PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO, StrategyDetail, StrategySummary
 
 MAX_SYMBOLS = 20
 MAX_YEARS = 5
@@ -43,7 +43,19 @@ class SimulationService:
         
     def get_strategies(self)->StrategiesResponse:
         strategies= self.session.exec(select(Strategies)).all()
-        return StrategiesResponse(strategies=list(strategies))
+        summaries=[]
+        for s in strategies:
+            assert s.strat_id is not None, "Strategy ID should not be None"
+            summaries.append(StrategySummary(id=s.strat_id,name=s.name,level=s.level,category=s.category,description=s.description))
+        return StrategiesResponse(strategies=summaries)
+    
+    def get_strategy_detail(self,strategy_id:int)->StrategyDetail:
+
+        strategy:Strategies|None=self.session.get(Strategies,strategy_id)
+        if strategy is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Strategy not found")
+        assert strategy.strat_id is not None, "Strategy ID should not be None"
+        return StrategyDetail(id=strategy.strat_id,name=strategy.name,level=strategy.level,category=strategy.category,description=strategy.description,steps=strategy.steps,pros=strategy.pros,cons=strategy.cons)
     
     def validate_limits(self,symbol:List[str],start:date,end:date):
         if len(symbol)>MAX_SYMBOLS:
