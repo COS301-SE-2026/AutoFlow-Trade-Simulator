@@ -1,10 +1,13 @@
 from typing import Annotated
-from fastapi import APIRouter,Depends
+from fastapi import APIRouter,Depends, HTTPException
 from sqlalchemy.orm import session
 from sqlmodel import Session
+
+from ...core.security import get_current_user
+from ...models.user import User
 from .SimulationService import SimulationService
 from ...database import get_session
-from .SimulationDTOs import EpicStatusDTO, StrategiesResponse
+from .SimulationDTOs import EpicStatusDTO, SimulationAppendRequest, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse,SimulationCreateRequest
 
 
 router = APIRouter(prefix="/simulation",tags=["Simulation"])
@@ -20,3 +23,21 @@ def get_epic_status() -> EpicStatusDTO:
 @router.get("/strategies")
 def get_strategies(service:Annotated[SimulationService, Depends(get_simulation_service)])->StrategiesResponse:
     return service.get_strategies()
+
+@router.post("/practice/simulate")
+def create_practice_simulation(req:SimulationCreateRequest,service:Annotated[SimulationService, Depends(get_simulation_service)],current_user:Annotated[User,Depends(get_current_user)])->SimulationSessionResponse:
+    if current_user.id is None:
+        raise HTTPException(status_code=401, detail="User not authenticated")   
+    return service.create_simulation_session(req,current_user.id)
+
+@router.post("/practice/simulate/actions")
+def append_simulation_actions(req:SimulationAppendRequest,service:Annotated[SimulationService, Depends(get_simulation_service)],current_user:Annotated[User,Depends(get_current_user)])->SimulationSessionResponse:
+    if current_user.id is None:
+        raise HTTPException(status_code=401, detail="User not authenticated")   
+    return service.append_simulation_actions(req,current_user.id)
+
+@router.post("/practice/simulate/{simulation_id}/finish")
+def finalize_practice_simulation(simulation_id:int,service:Annotated[SimulationService, Depends(get_simulation_service)],current_user:Annotated[User,Depends(get_current_user)])->SimulationFinishResponse:
+    if current_user.id is None:
+        raise HTTPException(status_code=401, detail="User not authenticated")   
+    return service.finalize_simulation(simulation_id,current_user.id)
