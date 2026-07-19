@@ -1,4 +1,5 @@
 
+from fastapi import HTTPException, status
 from datetime import date,  timedelta
 from datetime import datetime
 from decimal import Decimal
@@ -110,9 +111,11 @@ class SimulationService:
         return SimulationSessionResponse(simulation_id=sim.id,status=sim.status,positions=positions,nav=req.initial_balance)
 
 
-    def append_simulation_actions(self,req:SimulationAppendRequest)->SimulationSessionResponse:
+    def append_simulation_actions(self,req:SimulationAppendRequest,user_id:int)->SimulationSessionResponse:
         # check if simulation_id is valid
         sim:PraticeSimulation= self.session.exec(select(PraticeSimulation).where(PraticeSimulation.id==req.simulation_id)).one()
+        if sim.user_id != user_id:
+            raise  HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This simulation does not belong to the current user")
         positions:Dict[str,Decimal]= dict({s:Decimal(str(v)) for s,v in sim.positions.items()} or {})
         last_prices:Dict[str,Decimal]= dict({s:Decimal(str(v)) for s,v in sim.last_prices.items()}or {})
         actions_log:List[Dict]= list(sim.actions or [])
@@ -162,8 +165,10 @@ class SimulationService:
         positions[s] * last_prices.get(s, Decimal("0")) for s in positions)
         return SimulationSessionResponse(simulation_id=sim.id, status=sim.status, positions=positions, nav=nav)
 
-    def finalize_simulation(self,simulation_id:int)->SimulationFinishResponse:
+    def finalize_simulation(self,simulation_id:int,user_id:int)->SimulationFinishResponse:
         sim:PraticeSimulation=self.session.exec(select(PraticeSimulation).where(PraticeSimulation.id==simulation_id)).one()
+        if sim.user_id != user_id:
+            raise  HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This simulation does not belong to the current user")
         #load bars and check rows
         bars_by_symbol:Dict[str,List[DailyOHLCV]]={}
         total_rows=0
