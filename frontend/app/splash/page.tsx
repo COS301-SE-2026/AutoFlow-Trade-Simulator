@@ -74,49 +74,49 @@ export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
                 </div>
 
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                    <div>
-                        <History className='w-6 h-6' />
-                        <h4>Historical Replay</h4>
+                    <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--blue)] transition-colors'>
+                        <History className='w-6 h-6 text-[var(--blue)]' />
+                        <h4 className='text-xl font-bold mt-2 mb-2'>Historical Replay</h4>
                         <p>
                             Replay real events like the COVID crash, NVIDIA AI Surge, and more. Trade them day-by-day and see how well you'd perform.
                         </p>
                     </div>
 
-                    <div>
-                        <BookOpen className='w-6 h-6' />
-                        <h4>Strategy Library</h4>
+                    <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
+                        <BookOpen className='w-6 h-6 text-[var(--purple)]' />
+                        <h4 className='text-xl font-bold mt-2 mb-2'>Strategy Library</h4>
                         <p>
                             Learn proven strategies from dollar-cost averaging to iron condors. Step-by-step guides with pros and cons.
                         </p>
                     </div>
 
-                    <div>
-                        <Shield className='w-6 h-6' />
-                        <h4>Risk-Free Practice</h4>
+                    <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--green)] transition-colors'>
+                        <Shield className='w-6 h-6 text-[var(--green)]' />
+                        <h4 className='text-xl font-bold mt-2 mb-2'>Risk-Free Practice</h4>
                         <p>
                             Practice with virtual money in a sandbox environment. Build confidence before risking real capital.
                         </p>
                     </div>
 
-                    <div>
-                        <Triangle className='w-6 h-6' />
-                        <h4>Options Greeks</h4>
+                    <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--red)] transition-colors'>
+                        <Triangle className='w-6 h-6 text-[var(--red)]' />
+                        <h4 className='text-xl font-bold mt-2 mb-2'>Options Greeks</h4>
                         <p>
                             Master Delta, Gamma, Theta, Vega, and Rho with interactice charts and real-world examples.
                         </p>
                     </div>
 
-                    <div>
-                        <ChartLine className='w-6 h-6' />
-                        <h4>Live Charts</h4>
+                    <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--orange)] transition-colors'>
+                        <ChartLine className='w-6 h-6 text-[var(--orange)]' />
+                        <h4 className='text-xl font-bold mt-2 mb-2'>Live Charts</h4>
                         <p>
                             Watch the price unfold with real-time charts. See how your trades would have performed.
                         </p>
                     </div>
 
-                    <div>
-                        <BrainCircuit className='w-6 h-6' />
-                        <h4>AI Insights</h4>
+                    <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--seafoam)] transition-colors'>
+                        <BrainCircuit className='w-6 h-6 text-[var(--seafoam)]' />
+                        <h4 className='text-xl font-bold mt-2 mb-2'>AI Insights</h4>
                         <p>
                             Get intelligent feedback on your trading decisions and learn from your mistakes with AI-powered analysis.
                         </p>
@@ -124,6 +124,47 @@ export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
                 </div>
             </div>
 
+            <div className='bg-[var(--background)] border-y border-[var(--border)]'>
+                <div className='max-w-7xl mx-auto px-6 py-16'>
+                    <div className='grid grid-cols-1 md:grid-cols-4 gap-8 text-center'>
+                        <div>
+                            <p className='text-4xl font-bold text-white mb-2'>50K+</p>
+                            <p className='text-xl'>Active Learners</p>
+                        </div>
+                        <div>
+                            <p className='text-4xl font-bold text-white mb-2'>20+</p>
+                            <p className='text-xl'>Trading Strategies</p>
+                        </div>
+                        <div>
+                            <p className='text-4xl font-bold text-white mb-2'>10+</p>
+                            <p className='text-xl'>Historical Events</p>
+                        </div>
+                        <div>
+                            <p className='text-4xl font-bold text-white mb-2'>R0</p>
+                            <p className='text-xl'>Cost to Start</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className='max-w-7xl mx-auto px-6 py-24'>
+                <h3>Ready To Start Your Trading Journey?</h3>
+                <p>Join thousands of learners who are mastering the markets with AutoFlow's risk-free trading simulations.</p>
+                <div>
+                    <button
+                        onClick={onGetStarted}
+                        className='px-8 py-4 bg-white text-[var(--blue)] rounded-xl'
+                    >
+                        Create Your Free Account
+                    </button>
+                    <button
+                        onClick={onLogin}
+                        className='px-8 py-4 bg-white text-[var(--blue)] rounded-xl'
+                    >
+                        Sign In
+                    </button>
+                </div>
+            </div>
         </div>
         </>
     )
