@@ -32,6 +32,6 @@ __all__ = [
 	"Greeks",
 	"MarketCondition",
 	"Strategies",
-	"PraticeSimulation"
+	"PraticeSimulation",
 	"options"
 ]
