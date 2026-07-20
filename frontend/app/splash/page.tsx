@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Zap, ArrowRight } from 'lucide-react';
+import { Zap, ArrowRight, History, BookOpen, Shield, Triangle, ChartLine, BrainCircuit } from 'lucide-react';
 
 interface SplashPageProps {
     onGetStarted: () => void;
@@ -66,6 +66,64 @@ export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
                     </div>
                 </div>
             </div>
+
+            <div className='max-w-7xl mx-auto px-6 py-20'>
+                <div className='text-center mb-16'>
+                    <h3 className='text-3xl font-bold text-white mb-4'>Everything You Need To Learn Trading</h3>
+                    <p className='text-lg'>Powerful educational tools designed for aspiring traders</p>
+                </div>
+
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                    <div>
+                        <History className='w-6 h-6' />
+                        <h4>Historical Replay</h4>
+                        <p>
+                            Replay real events like the COVID crash, NVIDIA AI Surge, and more. Trade them day-by-day and see how well you'd perform.
+                        </p>
+                    </div>
+
+                    <div>
+                        <BookOpen className='w-6 h-6' />
+                        <h4>Strategy Library</h4>
+                        <p>
+                            Learn proven strategies from dollar-cost averaging to iron condors. Step-by-step guides with pros and cons.
+                        </p>
+                    </div>
+
+                    <div>
+                        <Shield className='w-6 h-6' />
+                        <h4>Risk-Free Practice</h4>
+                        <p>
+                            Practice with virtual money in a sandbox environment. Build confidence before risking real capital.
+                        </p>
+                    </div>
+
+                    <div>
+                        <Triangle className='w-6 h-6' />
+                        <h4>Options Greeks</h4>
+                        <p>
+                            Master Delta, Gamma, Theta, Vega, and Rho with interactice charts and real-world examples.
+                        </p>
+                    </div>
+
+                    <div>
+                        <ChartLine className='w-6 h-6' />
+                        <h4>Live Charts</h4>
+                        <p>
+                            Watch the price unfold with real-time charts. See how your trades would have performed.
+                        </p>
+                    </div>
+
+                    <div>
+                        <BrainCircuit className='w-6 h-6' />
+                        <h4>AI Insights</h4>
+                        <p>
+                            Get intelligent feedback on your trading decisions and learn from your mistakes with AI-powered analysis.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
         </div>
         </>
     )
