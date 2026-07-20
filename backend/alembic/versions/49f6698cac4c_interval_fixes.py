@@ -48,7 +48,7 @@ def upgrade() -> None:
 
         sa.Column('imp_vol', sa.Numeric(precision=18, scale=4), nullable=True),
         sa.Column('timestamp', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('in_the_money', sa.Boolean(), server_default=sa.text('false'), nullable=False),
+        sa.Column('in_the_money', sa.Boolean(), server_default=sa.text('False'), nullable=False),
 
         sa.ForeignKeyConstraint(['asset_id'], ['asset.asset_id'], ondelete='CASCADE'),
     )
