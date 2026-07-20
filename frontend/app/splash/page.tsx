@@ -148,23 +148,49 @@ export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
             </div>
 
             <div className='max-w-7xl mx-auto px-6 py-24'>
-                <h3>Ready To Start Your Trading Journey?</h3>
-                <p>Join thousands of learners who are mastering the markets with AutoFlow's risk-free trading simulations.</p>
-                <div>
-                    <button
-                        onClick={onGetStarted}
-                        className='px-8 py-4 bg-white text-[var(--blue)] rounded-xl'
-                    >
-                        Create Your Free Account
-                    </button>
-                    <button
-                        onClick={onLogin}
-                        className='px-8 py-4 bg-white text-[var(--blue)] rounded-xl'
-                    >
-                        Sign In
-                    </button>
+                <div className='bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] rounded-xl p-12 text-center'>
+                    <h3 className='text-3xl font-bold text-white mb-4'>Ready To Start Your Trading Journey?</h3>
+                    <p className='text-xl mb-8 max-w-2xl mx-auto'>
+                        Join thousands of learners who are mastering the markets with AutoFlow's risk-free trading simulations.
+                    </p>
+                    <div className='flex items-center justify-center gap-4'>
+                        <button
+                            onClick={onGetStarted}
+                            className='px-8 py-4 bg-white text-[var(--blue)] rounded-xl font-medium hover:bg-gray-300 transition-colors'
+                        >
+                            Create Your Free Account
+                        </button>
+                        <button
+                            onClick={onLogin}
+                            className='px-8 py-4 bg-white text-[var(--blue)] rounded-xl font-medium hover:bg-gray-200 transition-colors'
+                        >
+                            Sign In
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <footer className='border-t border-[var(--border)] bg-[var(--background-light)]'>
+                <div className='max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-3'>
+                    <div className='flex items-center gap-3'>
+                        <div className='w-8 h-8 bg-gradient-br from-[var(--blue)] to-[var(--purple)] flex items-center justify-center overflow-hidden'>
+                            <Image 
+                            src='/logo.svg'
+                            alt='AutoFlow'
+                            width={20}
+                            height={20}
+                            className='w-5 h-5 flex self-center'
+                            />
+                        </div>
+                        <span>© 2026 AutoFlow. All rights reserved.</span>
+                    </div>
+                    <div className='flex gap-6'>
+                        <a href='#' className='hover:text-blue-200'>Terms</a>
+                        <a href='#' className='hover:text-blue-200'>Privacy</a>
+                        <a href='#' className='hover:text-blue-200'>Support</a>
+                    </div>
+                </div>
+            </footer>
         </div>
         </>
     )
