@@ -1,10 +1,9 @@
-
 from fastapi import HTTPException, status
 from datetime import date,  timedelta
-from datetime import datetime
+from datetime import datetime,time
 from decimal import Decimal
 from typing import Dict, List, Optional
-from sqlmodel import   Session, select
+from sqlmodel import   Session, col, select
 
 from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
@@ -71,7 +70,9 @@ class SimulationService:
         asset_id= self.session.exec(select(Asset.asset_id).where(Asset.symbol== symbol)).first()
         if asset_id is None:
             raise ValueError(f"Symbol: {symbol} does not exist")
-        result= self.session.exec(select(DailyOHLCV).where(DailyOHLCV.timestamp.date()==timestamp.date())).first()
+        day_start=datetime.combine(execution_date,time.min)
+        day_end = datetime.combine(execution_date,time.max)
+        result= self.session.exec(select(DailyOHLCV).where(DailyOHLCV.timestamp>=day_start).where(DailyOHLCV.timestamp<=day_end).where(DailyOHLCV.asset_id==asset_id)).first()
         if result is None:
             raise ValueError("No OHLCV found on date")
         return result
@@ -80,7 +81,7 @@ class SimulationService:
         asset_id= self.session.exec(select(Asset.asset_id).where(Asset.symbol== symbol)).first()
         if asset_id is None:
             raise ValueError("Symbols doesnt exist")
-        result:list= list(self.session.exec(select(DailyOHLCV).where(DailyOHLCV.asset_id==asset_id).where(DailyOHLCV.timestamp < end).where(DailyOHLCV.timestamp>start)).all())
+        result:list= list(self.session.exec(select(DailyOHLCV).where(DailyOHLCV.asset_id==asset_id).where(DailyOHLCV.timestamp <= end).where(DailyOHLCV.timestamp>=start).order_by(col(DailyOHLCV.timestamp))).all())
         return result
 
     def build_allocations(self,symbols:List[str],allocations:Optional[Dict[str,Decimal]])->Dict[str,Decimal]:
@@ -88,7 +89,7 @@ class SimulationService:
             return{s:Decimal('0') for s in symbols}
         relevant = {s: allocations.get(s, Decimal("0")) for s in symbols}
         total= sum(relevant.values())
-        if total==0 or total>=1:
+        if total<0 or total>1:
             raise ValueError("Allocations must sum to a value between 0 and 1")
         return relevant
 
@@ -139,8 +140,12 @@ class SimulationService:
                 raise ValueError("buy quantity cannot be non-postive")
 
             price:Decimal|None=action.price
+            bar=self.load_bar_at_date(action.symbol,sim.start_date,sim.end_date,action.timestamp)
             if price is None:
-                price=self.load_bar_at_date(action.symbol,sim.start_date,sim.end_date,action.timestamp).close
+                price=bar.close
+            elif (price<bar.low or price>bar.high):
+                raise ValueError(f"Price {action.price} is outside the trading range for {action.symbol} on {action.timestamp.date()}")
+
             if action.type=="buy":
                 #do buy action
                 cost= quantity*price
@@ -163,7 +168,7 @@ class SimulationService:
             else:
                 raise ValueError(f"Unknown action type: {action.type} ")
             last_prices[action.symbol]=price
-            actions_log.append({"type":action.type,"symbol": action.symbol,"qty":action.qty,"price":action.price,"timestamp": action.timestamp})
+            actions_log.append({"type":action.type,"symbol": action.symbol,"qty":float(action.qty),"price":float(price),"timestamp": action.timestamp.isoformat()})
 
         sim.positions={s:float(v) for s,v in positions.items()}
         sim.last_prices={s:float(v) for s,v in last_prices.items()}
