@@ -572,7 +572,7 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
             return rows
         elif asset_class=="options":
-            raise NotImplementedError("VectradeAdapter.transform_payload not implemented yet")
+
         else:
             logging.error("Invalid asset type passed in to VectradeAdapter: transform_payload")
             return []

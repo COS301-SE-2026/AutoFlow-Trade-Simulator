@@ -2,7 +2,7 @@ import asyncio
 import logging
 import asyncpg
 
-from db import upsert_realtime_ticks, upsert_daily_ohlcv
+from db import upsert_realtime_ticks, upsert_daily_ohlcv, upsert_options
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -16,7 +16,7 @@ def build_lanes(ingestion_config: dict) -> tuple[asyncio.Queue, asyncio.Queue]:
 class IngestWorker:
     """
     We chose a one writer policy to minimize collisions on the database.
-    The fast lane always right of way.
+    The fast lane always has right of way.
     Each lane empties/flushes when one of either its temporal or space triggers are met.
     The queue item is a tuple of (table_name:str, row_information: dict)
     """
@@ -29,7 +29,7 @@ class IngestWorker:
         self.slow_cfg = ingestion_config["slow_lane"]
 
     async def _drain_lane(self, queue: asyncio.Queue, volume_trigger: int, temporal_trigger_seconds: float) -> dict:
-        buffer = {"realtimeticks": [], "dailyohlcv": []}
+        buffer = {"realtimeticks": [], "dailyohlcv": [], "options": []}
 
         # wait for the first item
         try:
@@ -41,7 +41,7 @@ class IngestWorker:
         buffer[table].append(row)
         first_item_time = asyncio.get_event_loop().time()
 
-        while len(buffer["realtimeticks"]) + len(buffer["dailyohlcv"]) < volume_trigger:
+        while len(buffer["realtimeticks"]) + len(buffer["dailyohlcv"]) + len(buffer["options"]) < volume_trigger:
             elapsed = asyncio.get_event_loop().time() - first_item_time
             remaining = temporal_trigger_seconds - elapsed
             if remaining <= 0:
@@ -57,7 +57,8 @@ class IngestWorker:
     async def _flush(self, buffer: dict):
         await upsert_realtime_ticks(self.pool, buffer["realtimeticks"])
         await upsert_daily_ohlcv(self.pool, buffer["dailyohlcv"])
-        count = len(buffer["realtimeticks"]) + len(buffer["dailyohlcv"])
+        await upsert_options(self.pool, buffer["options"])
+        count = len(buffer["realtimeticks"]) + len(buffer["dailyohlcv"]) + len(buffer["options"])
         if count:
             logging.info(f"Flushed {count} rows to DB.")
 
@@ -69,7 +70,7 @@ class IngestWorker:
                 self.fast_cfg["volume_trigger"],
                 self.fast_cfg["temporal_trigger_seconds"],
             )
-            if fast_buffer["realtimeticks"] or fast_buffer["dailyohlcv"]:
+            if fast_buffer["realtimeticks"] or fast_buffer["dailyohlcv"] or fast_buffer["options"]:
                 await self._flush(fast_buffer)
                 continue  # fast lane gets right-of-way again immediately
 
@@ -79,7 +80,7 @@ class IngestWorker:
                 self.slow_cfg["volume_trigger"],
                 self.slow_cfg["temporal_trigger_seconds"],
             )
-            if slow_buffer["realtimeticks"] or slow_buffer["dailyohlcv"]:
+            if slow_buffer["realtimeticks"] or slow_buffer["dailyohlcv"] or slow_buffer["options"]:
                 await self._flush(slow_buffer)
             else:
                 # blocks the thread instead of infinite looping and wasting resources

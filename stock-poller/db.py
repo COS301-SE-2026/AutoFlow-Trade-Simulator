@@ -1,7 +1,7 @@
 import os
 import asyncio
 import logging
-import asyncpg # more lightweight than having another ORM layer to try fit into a cheaper AWS container
+import asyncpg
 from datetime import timezone
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -118,3 +118,9 @@ async def upsert_daily_ohlcv(pool: asyncpg.Pool, rows: list[dict]):
                 for r in rows
             ],
         )
+
+async def upsert_options(pool: asyncpg.Pool, rows: list[dict]):
+    if not rows:
+        return
+    async with pool.acquire() as conn:
+        await conn.executemany()
