@@ -36,21 +36,23 @@ export function StrategyList() {
 
     return (
         <div>
-            <Select
-                value={levelFilter}
-                onValueChange={(value: "All" | "Beginner" | "Intermediate" | "Advanced") => setLevelFilter(value)}
-            >
-                <SelectTrigger>
-                    <SelectValue placeholder="Direction" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value='All'>All</SelectItem>
-                    <SelectItem value='Beginner'>Beginner</SelectItem>
-                    <SelectItem value='Intermediate'>Intermediate</SelectItem>
-                    <SelectItem value='Advanced'>Advanced</SelectItem>
-                </SelectContent>
-            </Select>
-            <div>
+            <div className='mb-3'>
+                <Select
+                    value={levelFilter}
+                    onValueChange={(value: "All" | "Beginner" | "Intermediate" | "Advanced") => setLevelFilter(value)}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Direction" />
+                    </SelectTrigger>
+                    <SelectContent style={{ background: '#1c1b22' }}>
+                        <SelectItem value='All'>All</SelectItem>
+                        <SelectItem value='Beginner'>Beginner</SelectItem>
+                        <SelectItem value='Intermediate'>Intermediate</SelectItem>
+                        <SelectItem value='Advanced'>Advanced</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className='flex flex-col gap-3'>
                 {filteredStrategies.map((s, index) => (
                     <StrategyCard
                         key={`empty-${index}`}

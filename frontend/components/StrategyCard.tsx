@@ -13,7 +13,7 @@ export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
         <div
             className='rounded-xl p-6 border border-border/60'
             onClick={onClick}>
-            {strategy.name}
+            <div className='font-bold'>{strategy.name}</div>
             <div>
                 {strategy.level}
                 {strategy.category}

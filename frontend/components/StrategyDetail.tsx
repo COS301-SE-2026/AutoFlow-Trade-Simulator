@@ -35,14 +35,14 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                     </div>
 
                     <div className='grid grid-cols-2 gap-4'>
-                        <div>
-                            pros
+                        <div className='text-green-400'>
+                            <div className='font-bold'>pros</div>
                             {strategy.pros.map((pros, index) => (
                                 <div key={`empty-${index}`}>{index + 1}. {pros}</div>
                             ))}
                         </div>
-                        <div>
-                            cons
+                        <div className='text-red-400'>
+                            <div className='font-bold'>cons</div>
                             {strategy.cons.map((cons, index) => (
                                 <div key={`empty-${index}`}>{index + 1}. {cons}</div>
                             ))}
