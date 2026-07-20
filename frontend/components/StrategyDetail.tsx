@@ -8,23 +8,31 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
 
     return (
         <div
-            className='fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl p-6 border border-border/60'
+            className='fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl p-6 border border-border/60 gap-4'
             style={{ background: '#1c1b22' }}>
-            <Button onClick={onClose}>X</Button>
             {strategy === null ? (
                 <div>
                     console.error();
                 </div>
             ) : (
                 <div>
-                    {strategy.name}
-                    {strategy.level}
-                    {strategy.category}
-                    {strategy.description}
+                    <div className='mb-3 gap-4'>
+                        <div className='flex justify-between'>
+                            <div className=' text-3xl font-bold' style={{ color: 'var(--text)' }}>{strategy.name}</div>
+                            <Button onClick={onClose}>X</Button>
+                        </div>
+                        <div className='flex justify-between'>
+                            <div>{strategy.level}</div>
+                            <div>{strategy.category}</div>
+                        </div>
+                        <div>{strategy.description}</div>
+                    </div>
 
-                    {strategy.steps.map((steps, index) => (
-                        <div key={`empty-${index}`}>{index + 1}. {steps}</div>
-                    ))}
+                    <div className='mb-3 '>
+                        {strategy.steps.map((steps, index) => (
+                            <div key={`empty-${index}`}>{index + 1}. {steps}</div>
+                        ))}
+                    </div>
 
                     <div className='grid grid-cols-2 gap-4'>
                         <div>
