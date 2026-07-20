@@ -2,13 +2,9 @@
 
 import Image from 'next/image';
 import { Zap, ArrowRight, History, BookOpen, Shield, Triangle, ChartLine, BrainCircuit } from 'lucide-react';
+import Link from 'next/link';
 
-interface SplashPageProps {
-    onGetStarted: () => void;
-    onLogin: () => void;
-}
-
-export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
+export default function SplashPage() {
     return (
         <>
         <div className='size-full bg-[var(--background)] overflow-auto'>
@@ -28,18 +24,18 @@ export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
                             <p className='text-2xl font-bold flex self-center'>AutoFlow</p>
                         </div>
                         <div className='flex items-center gap-3'>
-                            <button
-                                onClick={onLogin}
+                            <Link
+                                href='/login'
                                 className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
                             >
                                 Sign In
-                            </button>
-                            <button
-                                onClick={onGetStarted}
+                            </Link>
+                            <Link
+                                href='/register'
                                 className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
                             >
                                 Sign Up
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -59,13 +55,13 @@ export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
                         Learn trading strategies, understand options Greeks, and replay historical market events all in a risk-free environment designed to build real skills.
                     </p>
                     <div className='flex items-center justify-center gap-4 mt-4'>
-                        <button
-                            onClick={onGetStarted}
+                        <Link
+                            href='/register'
                             className='group px-8 py-4 bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] text-white rounded-full font-medium flex items-center gap-2'
                         >
                             Start Learning Free
                             <ArrowRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
-                        </button>
+                        </Link>
                         <button className='px-8 py-4 bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] text-white rounded-full font-medium'>
                             View Features
                         </button>
@@ -160,18 +156,18 @@ export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
                         Join thousands of learners who are mastering the markets with AutoFlow's risk-free trading simulations.
                     </p>
                     <div className='flex items-center justify-center gap-4'>
-                        <button
-                            onClick={onGetStarted}
+                        <Link
+                            href='/register'
                             className='px-8 py-4 bg-white text-[var(--blue)] rounded-xl font-medium hover:bg-gray-300 transition-colors'
                         >
                             Create Your Free Account
-                        </button>
-                        <button
-                            onClick={onLogin}
+                        </Link>
+                        <Link
+                            href='/login'
                             className='px-8 py-4 bg-white text-[var(--blue)] rounded-xl font-medium hover:bg-gray-200 transition-colors'
                         >
                             Sign In
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>
