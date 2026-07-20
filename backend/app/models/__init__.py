@@ -13,6 +13,7 @@ from .greeks import Greeks
 from .market_condition import MarketCondition
 from .strategies import Strategies
 from .practice_simulation import PraticeSimulation
+from .options import options
 
 __all__ = [
     "User",
@@ -32,4 +33,5 @@ __all__ = [
 	"MarketCondition",
 	"Strategies",
 	"PraticeSimulation"
+	"options"
 ]
