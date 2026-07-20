@@ -24,7 +24,14 @@ def upgrade() -> None:
 
     #op.execute("CREATE TYPE option_type AS ENUM ('CALL', 'PUT')")
 
-    
+    op.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'option_type') THEN
+                CREATE TYPE option_type AS ENUM ('CALL', 'PUT');
+            END IF;
+        END $$;
+    """)
 
     op.create_table(
         'options',
