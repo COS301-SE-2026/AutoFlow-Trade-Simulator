@@ -6,6 +6,7 @@ Create Date: 2026-07-14 15:29:52.102266
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ENUM
 
 
 
@@ -36,7 +37,7 @@ def upgrade() -> None:
     op.create_table(
         'options',
         sa.Column('asset_id', sa.Integer(), primary_key=True),
-        sa.Column('option_type', sa.Enum('CALL', 'PUT', name='option_type', create_type=False), nullable=False),
+        sa.Column('option_type', ENUM('CALL', 'PUT', name='option_type', create_type=False), nullable=False),
         sa.Column('strike_price', sa.Numeric(precision=18, scale=4), nullable=False),
         sa.Column('expr_date', sa.DateTime(timezone=True), nullable=False),
 
