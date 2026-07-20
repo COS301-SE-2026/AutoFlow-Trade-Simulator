@@ -11,14 +11,14 @@ export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
 
     return (
         <div
-            className='rounded</div>xl p</div>6 border border</div>border/60'
-            style={{ background: 'var(</div></div>panel)' }}
+            className='rounded-xl p-6 border border-border/60'
             onClick={onClick}>
-            <div>{strategy.id}</div>
-            <div>{strategy.name}</div>
-            <div>{strategy.level}</div>
-            <div>{strategy.category}</div>
-            <div>{strategy.description}</div>
+            {strategy.name}
+            <div>
+                {strategy.level}
+                {strategy.category}
+            </div>
+            {strategy.description}
         </div>
     );
 }

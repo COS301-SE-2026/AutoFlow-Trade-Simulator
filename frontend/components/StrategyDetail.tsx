@@ -8,8 +8,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
 
     return (
         <div
-            className='rounded-xl p-6 border border-border/60'
-            style={{ background: 'var(--panel)' }}>
+            className='rounded-xl p-6 border border-border/60'>
             <Button onClick={onClose}>X</Button>
             {strategy === null ? (
                 <div>
@@ -17,21 +16,29 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 </div>
             ) : (
                 <div>
-                    <div>{strategy.id}</div>
-                    <div>{strategy.name}</div>
-                    <div>{strategy.level}</div>
-                    <div>{strategy.category}</div>
-                    <div>{strategy.description}</div>
+                    {strategy.name}
+                    {strategy.level}
+                    {strategy.category}
+                    {strategy.description}
 
                     {strategy.steps.map((steps, index) => (
-                        <div key={`empty-${index}`}>{steps}</div>
+                        <div key={`empty-${index}`}>{index + 1}. {steps}</div>
                     ))}
-                    {strategy.pros.map((pros, index) => (
-                        <div key={`empty-${index}`}>{pros}</div>
-                    ))}
-                    {strategy.cons.map((cons, index) => (
-                        <div key={`empty-${index}`}>{cons}</div>
-                    ))}
+
+                    <div className='grid grid-cols-2 gap-4'>
+                        <div>
+                            pros
+                            {strategy.pros.map((pros, index) => (
+                                <div key={`empty-${index}`}>{index + 1}. {pros}</div>
+                            ))}
+                        </div>
+                        <div>
+                            cons
+                            {strategy.cons.map((cons, index) => (
+                                <div key={`empty-${index}`}>{index + 1}. {cons}</div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
