@@ -12,32 +12,38 @@ export default function SplashPage({ onGetStarted, onLogin }: SplashPageProps) {
     return (
         <>
         <div className='size-full bg-[var(--background)] overflow-auto'>
-            <div className='mx-auto px-6 py-4 flex items-center justify-space'>
-                <div className='w-10 h-10 rounded-lg flex flex-items-center justify-center'>
-                    <Image
-                        src='/logo.svg'
-                        alt='Autoflow'
-                        width={24}
-                        height={24}
-                        className='2-6 h-6'
-                    />
+            <nav className='border-b border-[var(--border)] bg-[var(--background)] backdrop-blur-sm'>
+                <div className='max-w-7xl mx-auto px-6 py-4'>
+                    <div className='flex items-center gap-3 justify-between'>
+                        <div className='flex items-center'>
+                            <div className='w-10 h-10 rounded-lg flex self-center justify-center'>
+                                <Image
+                                    src='/logo.svg'
+                                    alt='Autoflow'
+                                    width={24}
+                                    height={24}
+                                    className='w-6 w-6'
+                                />
+                            </div>
+                            <p className='text-2xl font-bold flex self-center'>AutoFlow</p>
+                        </div>
+                        <div className='flex items-center gap-3'>
+                            <button
+                                onClick={onLogin}
+                                className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
+                            >
+                                Sign In
+                            </button>
+                            <button
+                                onClick={onGetStarted}
+                                className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
+                            >
+                                Sign Up
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <h1 className='text-2xl font-bold'>AutoFlow</h1>
-            </div>
-            <div className='flex items-center gap-3 m-2'>
-                <button
-                    onClick={onLogin}
-                    className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
-                >
-                    Sign In
-                </button>
-                <button
-                    onClick={onGetStarted}
-                    className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
-                >
-                    Sign Up
-                </button>
-            </div>
+            </nav>
 
             <div className='mx-auto px-6 py-24'>
                 <div className='text-center mx-auto'>
