@@ -15,10 +15,9 @@ export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
             onClick={onClick}>
             <div className='font-bold'>{strategy.name}</div>
             <div>
-                {strategy.level}
-                {strategy.category}
+                {strategy.level} {strategy.category}
             </div>
-            {strategy.description}
+            <div style={{ color: 'var(--muted)' }}>{strategy.description}</div>
         </div>
     );
 }
