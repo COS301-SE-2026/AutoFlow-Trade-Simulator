@@ -8,7 +8,8 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
 
     return (
         <div
-            className='rounded-xl p-6 border border-border/60'>
+            className='fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl p-6 border border-border/60'
+            style={{ background: '#1c1b22' }}>
             <Button onClick={onClose}>X</Button>
             {strategy === null ? (
                 <div>
