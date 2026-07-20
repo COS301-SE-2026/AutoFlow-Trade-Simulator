@@ -6,6 +6,7 @@ Create Date: 2026-07-14 15:29:52.102266
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ENUM
 
 
 
@@ -24,19 +25,42 @@ def upgrade() -> None:
 
     #op.execute("CREATE TYPE option_type AS ENUM ('CALL', 'PUT')")
 
+    op.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'option_type') THEN
+                CREATE TYPE option_type AS ENUM ('CALL', 'PUT');
+            END IF;
+        END $$;
+    """)
+
     op.create_table(
         'options',
-        sa.Column('asset_id', sa.Integer(), primary_key=True),
-        sa.Column('option_type', sa.Enum('CALL', 'PUT', name='option_type', create_type=False), nullable=False),
+        sa.Column('asset_id', sa.Integer(), nullable=False),
+        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False),
+
+        sa.Column('option_type', ENUM('CALL', 'PUT', name='option_type', create_type=False), nullable=False),
         sa.Column('strike_price', sa.Numeric(precision=18, scale=4), nullable=False),
         sa.Column('expr_date', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('imp_vol', sa.Numeric(precision=18, scale=4), nullable=False),
-        sa.ForeignKeyConstraint(['asset_id'], ['asset.asset_id'], ondelete='CASCADE'),
+
+        sa.Column('bid', sa.Numeric(precision=18, scale=4), nullable=False),
+        sa.Column('last_price', sa.Numeric(precision=18, scale=4), nullable=False),
+        sa.Column('volume', sa.Numeric(precision=18, scale=4), nullable=False),
+        sa.Column('open_intrest', sa.Numeric(precision=18, scale=4), nullable=False),
+
+        sa.Column('imp_vol', sa.Numeric(precision=18, scale=4), nullable=True),
+        sa.Column('in_the_money', sa.Boolean(), server_default=sa.text('false'), nullable=False),
+
+        sa.PrimaryKeyConstraint('asset_id', 'timestamp', name='options_pkey'),
+        sa.ForeignKeyConstraint(['asset_id'], ['asset.asset_id'], ondelete='CASCADE')
     )
 
     #Interval adjustments
     op.execute("select set_chunk_time_interval('realtimeticks', INTERVAL '7 days');")
     op.execute("select set_chunk_time_interval('dailyohlcv', INTERVAL '1 year');")
+
+    #new hypertable
+    op.execute("SELECT create_hypertable('options', 'timestamp', chunk_time_interval => INTERVAL '1 year');")
 
     #make the CAGG view
     op.execute("""
