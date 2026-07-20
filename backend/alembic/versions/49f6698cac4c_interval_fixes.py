@@ -24,13 +24,24 @@ def upgrade() -> None:
 
     #op.execute("CREATE TYPE option_type AS ENUM ('CALL', 'PUT')")
 
+    
+
     op.create_table(
         'options',
         sa.Column('asset_id', sa.Integer(), primary_key=True),
         sa.Column('option_type', sa.Enum('CALL', 'PUT', name='option_type', create_type=False), nullable=False),
         sa.Column('strike_price', sa.Numeric(precision=18, scale=4), nullable=False),
         sa.Column('expr_date', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('imp_vol', sa.Numeric(precision=18, scale=4), nullable=False),
+
+        sa.Column('bid', sa.Numeric(precision=18, scale=4), nullable=False),
+        sa.Column('last_price', sa.Numeric(precision=18, scale=4), nullable=False),
+        sa.Column('volume', sa.Numeric(precision=18, scale=4), nullable=False),
+        sa.Column('open_intrest', sa.Numeric(precision=18, scale=4), nullable=False),
+
+        sa.Column('imp_vol', sa.Numeric(precision=18, scale=4), nullable=True),
+        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('in_the_money', sa.Boolean(), server_default=sa.text('false'), nullable=False),
+
         sa.ForeignKeyConstraint(['asset_id'], ['asset.asset_id'], ondelete='CASCADE'),
     )
 
