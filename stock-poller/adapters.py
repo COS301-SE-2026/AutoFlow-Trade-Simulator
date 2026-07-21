@@ -622,7 +622,7 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
                 rows.append({
                     "symbol": symbol,
-                    "table": "realtimeticks",
+                    "table": "dailyohlcv",
                     "timestamp": timestamp,
                     "open": open_price,
                     "high": high,
@@ -688,7 +688,6 @@ class FCSAdapter(BaseMarketDataAdapter):
         self.api_key = os.getenv(config["api_key_env_var"], "MOCK_FCS_KEY")
 
     async def make_request(self, client, symbols: list[str], asset:str):
-        print(symbols)
         params = {
             self.config["key_param_name"]: self.api_key,
             "symbol": ",".join(symbols),

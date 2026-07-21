@@ -41,8 +41,19 @@ async def main():
 
     # 1. Initialize the shared ring buffers for each asset class
     shared_pools = {}
+    asset_class_maps = {}
     for asset_class, symbols in config.get("ticker_pools", {}).items():
-        shared_pools[asset_class] = TickerRingBuffer(symbols)
+        if isinstance(symbols, dict):
+            flat_symbols = []
+            symbol_to_subclass = {}
+            for sub_class, sub_symbols in symbols.items():
+                flat_symbols.extend(sub_symbols)
+                for sym in sub_symbols:
+                    symbol_to_subclass[sym] = sub_class
+            shared_pools[asset_class] = TickerRingBuffer(flat_symbols)
+            asset_class_maps[asset_class] = symbol_to_subclass
+        else:
+            shared_pools[asset_class] = TickerRingBuffer(symbols)
 
     market_open_event = asyncio.Event()
 
@@ -62,6 +73,7 @@ async def main():
             "asset_cache": asset_cache,
             "fast_queue": fast_queue,
             "slow_queue": slow_queue,
+            "asset_class_maps": asset_class_maps,
         }
 
         ingest_worker = IngestWorker(pool, fast_queue, slow_queue, config["ingestion"])

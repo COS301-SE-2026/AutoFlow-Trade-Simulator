@@ -76,12 +76,21 @@ class BaseMarketDataAdapter(ABC):
         target_queue = self.database_service["fast_queue"] if lane == "fast" else self.database_service["slow_queue"]
 
         convert_to_stocks = ["twelve_stocks", "vectrade_stocks"]
-        fixed_asset_type = "stocks" if asset_type in convert_to_stocks else asset_type
+
+        symbol_overrides = self.database_service.get("asset_class_maps", {}).get(asset_type, {})
+
         for row in rows:
             symbol = row.pop("symbol")
             exchange = row.pop("exchange", "UNKNOWN")
             currency = row.pop("currency", "USD")
             table = row.pop("table")
+
+            if symbol in symbol_overrides:
+                fixed_asset_type = symbol_overrides[symbol]
+            elif asset_type in convert_to_stocks:
+                fixed_asset_type = "stocks"
+            else:
+                fixed_asset_type = asset_type
 
             row["asset_id"] = await asset_cache.get_or_create_asset_id(
                 symbol=symbol, asset_class=fixed_asset_type, exchange=exchange, currency=currency
