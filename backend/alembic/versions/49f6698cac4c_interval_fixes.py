@@ -72,7 +72,7 @@ def upgrade() -> None:
             last(close, "timestamp") AS close,
             sum(volume) AS volume
         From dailyohlcv
-        GROUP BY bucket_time, asset_id
+        GROUP BY time_bucket(INTERVAL '1 hour', "timestamp"), asset_id
         WITH NO DATA;
     """)
 
@@ -95,18 +95,44 @@ def upgrade() -> None:
             first(open, bucket_time) AS open,
             max(high) AS high,
             min(low) AS low,
-            last(close, "timestamp") AS close,
+            last(close, bucket_time) AS close,
             sum(volume) AS volume
         From ohlcv_1h
-        GROUP BY bucket_time, asset_id
+        GROUP BY time_bucket(INTERVAL '1 day', bucket_time), asset_id
         WITH NO DATA;
     """)
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1d',
-            start_offset => INTERVAL '1 year', 
-            end_offset => INTERVAl '1 hour',
-            schedule_interval => INTERVAL '1 hour',
+            start_offset => INTERVAL '1 month', 
+            end_offset => INTERVAL '1 day',
+            schedule_interval => INTERVAL '12 hours',
+            if_not_exists => true
+        );
+    """)
+
+    #The 1 week interval + refresh policy
+    op.execute("""
+        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1w
+        WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
+        SELECT
+            time_bucket(INTERVAL '1 week', bucket_time) AS bucket_time,
+            asset_id,
+            first(open, bucket_time) AS open,
+            max(high) AS high,
+            min(low) AS low,
+            last(close, bucket_time) AS close,
+            sum(volume) AS volume
+        From ohlcv_1d
+        GROUP BY time_bucket(INTERVAL '1 week', bucket_time), asset_id
+        WITH NO DATA;
+    """)
+
+    op.execute("""
+        SELECT add_continuous_aggregate_policy('ohlcv_1w',
+            start_offset => INTERVAL '6 weeks', 
+            end_offset => INTERVAl '1 week',
+            schedule_interval => INTERVAL '1 day',
             if_not_exists => true
         );
     """)
