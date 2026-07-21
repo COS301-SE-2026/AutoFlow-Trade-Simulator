@@ -1,5 +1,5 @@
 from sqlmodel import Field, SQLModel
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 from decimal import Decimal
 
@@ -8,14 +8,16 @@ class option_type(Enum):
     PUT = "PUT"
 
 class options(SQLModel, table=True):
-    asset_id: int = Field(primary_key=True, foreign_key="asset.asset_id", ondelete="CASCADE")
+    contract_symbol: str = Field(max_length=32, primary_key=True)
     timestamp: datetime = Field(primary_key=True)
+    asset_id: int = Field(foreign_key="asset.asset_id", ondelete="CASCADE", index=True, nullable=False)
     option_type: option_type = Field(nullable=False)
     strike_price: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
-    expr_date: datetime = Field(nullable=False)
-    bid: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
-    last_price: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
-    volume: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
-    open_intrest: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
+    expr_date: date = Field(nullable=False)
+    bid: Decimal = Field(max_digits=18, decimal_places=4, nullable=True)
+    ask: Decimal = Field(max_digits=18, decimal_places=4, nullable=True)
+    last_price: Decimal = Field(max_digits=18, decimal_places=4, nullable=True)
+    volume: Decimal = Field(max_digits=18, decimal_places=4, nullable=True)
+    open_interest: Decimal = Field(max_digits=18, decimal_places=4, nullable=True)
     imp_vol: Decimal = Field(default=None, max_digits=18, decimal_places=4, nullable=True)
     in_the_money: bool = Field(default=False)
