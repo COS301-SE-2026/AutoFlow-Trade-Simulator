@@ -27,33 +27,39 @@ def upgrade() -> None:
     op.execute("select set_chunk_time_interval('dailyohlcv', INTERVAL '1 year');")
 
     #make the CAGG view
-    op.execute("""
-        CREATE MATERIALIZED VIEW IF NOT EXISTS realtimeticks_hourly
-        WITH (timescaledb.continuous) AS
-        SELECT
-            asset_id,
-            time_bucket(INTERVAL '1 hour', "timestamp") AS bucket,
-            MAX(price) AS high_price,
-            MIN(price) AS low_price,
-            SUM(volume) AS total_volume,
-            COUNT(*) AS tick_count
-        FROM realtimeticks
-        GROUP BY asset_id, bucket
-        WITH NO DATA;
-    """)
+    
+    # op.execute("""
+    #     CREATE MATERIALIZED VIEW IF NOT EXISTS realtimeticks_hourly
+    #     WITH (timescaledb.continuous) AS
+    #     SELECT
+    #         asset_id,
+    #         time_bucket(INTERVAL '1 hour', "timestamp") AS bucket,
+    #         MAX(price) AS high_price,
+    #         MIN(price) AS low_price,
+    #         SUM(volume) AS total_volume,
+    #         COUNT(*) AS tick_count
+    #     FROM realtimeticks
+    #     GROUP BY asset_id, bucket
+    #     WITH NO DATA;
+    # """)
 
     #Im going to forget if I dont write this down
     #start_offset we got back a week and look for data or what ever the interval is
     #end_offset dont look at the data from the last hour or what ever the interval is
     #schedule_interval Every 15 mins or what ever the interval is the process responsible for this will wake up and do the respective calculations
-    op.execute("""
-        SELECT add_continuous_aggregate_policy('realtimeticks_hourly',
-            start_offset => INTERVAL '1 week', 
-            end_offset => INTERVAl '1 hour',
-            schedule_interval => INTERVAL '15 minutes'
-        );
-    """)
+    
+    # op.execute("""
+    #     SELECT add_continuous_aggregate_policy('realtimeticks_hourly',
+    #         start_offset => INTERVAL '1 week', 
+    #         end_offset => INTERVAl '1 hour',
+    #         schedule_interval => INTERVAL '15 minutes'
+    #     );
+    # """)
 
+    #Okay after some digging I will build each view off the last view in order to avoid making amazon
+    #drain our budget like a vampire drinking blood.
+
+    #This is the 1 hour view + refresh policy
     op.execute("""
         CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1h
         WITH(timescaledb.continuous, timescaledb.materialized_only = false) AS
@@ -74,7 +80,34 @@ def upgrade() -> None:
         SELECT add_continuous_aggregate_policy('ohlcv_1h',
             start_offset => INTERVAL '1 month', 
             end_offset => INTERVAl '1 hour',
-            schedule_interval => INTERVAL '1 hour'
+            schedule_interval => INTERVAL '1 hour',
+            if_not_exists => true
+        );
+    """)
+
+    #The 1 day view + refresh policy
+    op.execute("""
+        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1d
+        WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
+        SELECT
+            time_bucket(INTERVAL '1 day', bucket_time) AS bucket_time,
+            asset_id,
+            first(open, bucket_time) AS open,
+            max(high) AS high,
+            min(low) AS low,
+            last(close, "timestamp") AS close,
+            sum(volume) AS volume
+        From ohlcv_1h
+        GROUP BY bucket_time, asset_id
+        WITH NO DATA;
+    """)
+
+    op.execute("""
+        SELECT add_continuous_aggregate_policy('ohlcv_1d',
+            start_offset => INTERVAL '1 year', 
+            end_offset => INTERVAl '1 hour',
+            schedule_interval => INTERVAL '1 hour',
+            if_not_exists => true
         );
     """)
 
