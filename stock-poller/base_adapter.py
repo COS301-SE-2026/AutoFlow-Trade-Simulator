@@ -60,9 +60,11 @@ class BaseMarketDataAdapter(ABC):
 
         transform_payload must return a list of dicts, each carrying:
           - "symbol": str
-          - "table": "realtimeticks" | "dailyohlcv"
+          - "table": "realtimeticks" | "dailyohlcv" | "options"
           - "timestamp": datetime
-          - the value columns for that table (price/volume, or open/high/low/close/volume)
+          - the value columns for that table (price/volume, or
+            open/high/low/close/volume or
+            contract_symbol/option_type/strike_price/expr_date/bid/ask/last_price/volume/open_interest/imp_vol/in_the_money)
           - optional "exchange" / "currency" overrides (default UNKNOWN/USD)
         """
         rows = await self.transform_payload(asset_type, symbols, payload)

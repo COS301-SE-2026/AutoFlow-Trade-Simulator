@@ -529,6 +529,69 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
         return True, "Valid"
 
+    async def _validate_options_payload(self, payload) -> tuple[bool, str]:
+        if not isinstance(payload, dict):
+            return False, "Root must be an object"
+
+        required_top = {"ticker", "expiration", "calls", "puts"}
+        for field in required_top:
+            if field not in payload:
+                return False, f"Missing top-level field '{field}'"
+        if not isinstance(payload["ticker"], str):
+            return False, "ticker must be a string"
+        if not isinstance(payload["expiration"], str):
+            return False, "expiration must be a string (date)"
+        if not isinstance(payload["calls"], list):
+            return False, "calls must be a list"
+        if not isinstance(payload["puts"], list):
+            return False, "puts must be a list"
+
+        for idx, opt in enumerate(payload["calls"]):
+            if not isinstance(opt, dict):
+                return False, f"Call option {idx} must be an object"
+            if "contractSymbol" not in opt or not isinstance(opt["contractSymbol"], str):
+                return False, f"Call {idx} missing/invalid contractSymbol"
+            if "lastTradeDate" not in opt or not isinstance(opt["lastTradeDate"], str):
+                return False, f"Call {idx} missing/invalid lastTradeDate"
+            if "strike" not in opt or not isinstance(opt["strike"], (int, float)):
+                return False, f"Call {idx} missing/invalid strike"
+            if "lastPrice" not in opt or not isinstance(opt["lastPrice"], (int, float)):
+                return False, f"Call {idx} missing/invalid lastPrice"
+            if "bid" not in opt or not isinstance(opt["bid"], (int, float)):
+                return False, f"Call {idx} missing/invalid bid"
+            if "volume" in opt and opt["volume"] is not None and not isinstance(opt["volume"], (int, float)):
+                return False, f"Call {idx} volume must be a number or null"
+            if "openInterest" in opt and opt["openInterest"] is not None and not isinstance(opt["openInterest"], (int, float)):
+                return False, f"Call {idx} openInterest must be a number or null"
+            if "impliedVolatility" in opt and opt["impliedVolatility"] is not None and not isinstance(opt["impliedVolatility"], (int, float)):
+                return False, f"Call {idx} impliedVolatility must be a number or null"
+            if "inTheMoney" not in opt or not isinstance(opt["inTheMoney"], bool):
+                return False, f"Call {idx} inTheMoney must be a boolean"
+
+        for idx, opt in enumerate(payload["puts"]):
+            if not isinstance(opt, dict):
+                return False, f"Put option {idx} must be an object"
+            if "contractSymbol" not in opt or not isinstance(opt["contractSymbol"], str):
+                return False, f"Put {idx} missing/invalid contractSymbol"
+            if "lastTradeDate" not in opt or not isinstance(opt["lastTradeDate"], str):
+                return False, f"Put {idx} missing/invalid lastTradeDate"
+            if "strike" not in opt or not isinstance(opt["strike"], (int, float)):
+                return False, f"Put {idx} missing/invalid strike"
+            if "lastPrice" not in opt or not isinstance(opt["lastPrice"], (int, float)):
+                return False, f"Put {idx} missing/invalid lastPrice"
+            if "bid" not in opt or not isinstance(opt["bid"], (int, float)):
+                return False, f"Put {idx} missing/invalid bid"
+            if "volume" in opt and opt["volume"] is not None and not isinstance(opt["volume"], (int, float)):
+                return False, f"Put {idx} volume must be a number or null"
+            if "openInterest" in opt and opt["openInterest"] is not None and not isinstance(opt["openInterest"], (int, float)):
+                return False, f"Put {idx} openInterest must be a number or null"
+            if "impliedVolatility" in opt and opt["impliedVolatility"] is not None and not isinstance(opt["impliedVolatility"], (int, float)):
+                return False, f"Put {idx} impliedVolatility must be a number or null"
+            if "inTheMoney" not in opt or not isinstance(opt["inTheMoney"], bool):
+                return False, f"Put {idx} inTheMoney must be a boolean"
+
+        return True, "Valid"
+
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
         if asset_class=="vectrade_stocks":
             (is_valid, msg) = await self._validate_stock_payload(payload)
@@ -572,7 +635,45 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
             return rows
         elif asset_class=="options":
+            (is_valid, msg) = await self._validate_options_payload(payload)
+            if not is_valid:
+                logging.error(f"Failed to validate options response: {msg}")
+                return []
 
+            ticker = payload["ticker"]
+
+            expr_date_str = payload["expiration"]
+            try:
+                expr_date = datetime.strptime(expr_date_str, "%Y-%m-%d")
+            except ValueError:
+                logging.error(f"Invalid expiration date format: {expr_date_str}")
+                return []
+
+            rows = []
+            all_options = [("CALL", opt) for opt in payload["calls"]] + [("PUT", opt) for opt in payload["puts"]]
+
+            for opt_type, opt in all_options:
+                ts = datetime.now().replace(tzinfo=None)
+
+                row = {
+                    "symbol": ticker,
+                    "contract_symbol": opt["contractSymbol"],
+                    "timestamp": ts,
+                    "option_type": opt_type,
+                    "strike_price": opt["strike"],
+                    "expr_date": expr_date,
+                    "bid": opt["bid"],
+                    "ask": opt["ask"],
+                    "last_price": opt["lastPrice"],
+                    "volume": opt.get("volume") or 0,
+                    "open_interest": opt.get("openInterest") or 0,
+                    "imp_vol": opt.get("impliedVolatility") or 0.0,
+                    "in_the_money": opt.get("inTheMoney", False),
+                    "table": "options"
+                }
+                rows.append(row)
+
+            return rows
         else:
             logging.error("Invalid asset type passed in to VectradeAdapter: transform_payload")
             return []

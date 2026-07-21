@@ -65,7 +65,7 @@ vectrade:
       enabled: true
       lane: "fast"
     options:
-      enabled: false
+      enabled: true
       lane: "slow"
   rest:
     batch_limits:

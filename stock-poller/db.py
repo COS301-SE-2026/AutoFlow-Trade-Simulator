@@ -123,4 +123,28 @@ async def upsert_options(pool: asyncpg.Pool, rows: list[dict]):
     if not rows:
         return
     async with pool.acquire() as conn:
-        await conn.executemany()
+        await conn.executemany(
+            """
+            INSERT INTO options (contract_symbol, timestamp, asset_id, option_type, strike_price, expr_date, bid, ask, last_price, volume, open_interest, imp_vol, in_the_money)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                ON CONFLICT (contract_symbol, timestamp) DO NOTHING
+            """,
+            [
+                (
+                    r["contract_symbol"],
+                    _naive_utc(r["timestamp"]),
+                    r["asset_id"],
+                    r["option_type"],
+                    r["strike_price"],
+                    r["expr_date"],
+                    r["bid"],
+                    r["ask"],
+                    r["last_price"],
+                    r["volume"],
+                    r["open_interest"],
+                    r["imp_vol"],
+                    r["in_the_money"],
+                )
+                for r in rows
+            ],
+        )

@@ -65,7 +65,7 @@ def upgrade() -> None:
     op.execute("select set_chunk_time_interval('dailyohlcv', INTERVAL '1 year');")
 
     #new hypertable
-    op.execute("SELECT create_hypertable('options', 'timestamp', chunk_time_interval => INTERVAL '1 year');")
+    op.execute("SELECT create_hypertable('options', 'timestamp', chunk_time_interval => INTERVAL '7 days');")
 
     #make the CAGG view
     op.execute("""
