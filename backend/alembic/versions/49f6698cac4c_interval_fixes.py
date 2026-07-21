@@ -78,7 +78,7 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1h',
-            start_offset => INTERVAL '1 month', 
+            start_offset => INTERVAL '2 hours', 
             end_offset => INTERVAl '1 hour',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
@@ -104,7 +104,7 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1d',
-            start_offset => INTERVAL '1 month', 
+            start_offset => INTERVAL '2 days', 
             end_offset => INTERVAL '1 day',
             schedule_interval => INTERVAL '12 hours',
             if_not_exists => true
@@ -130,9 +130,35 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1w',
-            start_offset => INTERVAL '6 weeks', 
+            start_offset => INTERVAL '2 weeks', 
             end_offset => INTERVAl '1 week',
             schedule_interval => INTERVAL '1 day',
+            if_not_exists => true
+        );
+    """)
+
+    #the 1 month interval + refresh policy
+    op.execute("""
+        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1m
+        WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
+        SELECT
+            time_bucket(INTERVAL '1 month', bucket_time) AS bucket_time,
+            asset_id,
+            first(open, bucket_time) AS open,
+            max(high) AS high,
+            min(low) AS low,
+            last(close, bucket_time) AS close,
+            sum(volume) AS volume
+        From ohlcv_1w
+        GROUP BY time_bucket(INTERVAL '1 month', bucket_time), asset_id
+        WITH NO DATA;
+    """)
+
+    op.execute("""
+        SELECT add_continuous_aggregate_policy('ohlcv_1m',
+            start_offset => INTERVAL '2 months', 
+            end_offset => INTERVAl '1 month',
+            schedule_interval => INTERVAL '12 hours',
             if_not_exists => true
         );
     """)
