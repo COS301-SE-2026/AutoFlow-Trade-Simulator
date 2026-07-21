@@ -106,7 +106,7 @@ def upgrade() -> None:
         SELECT add_continuous_aggregate_policy('ohlcv_1d',
             start_offset => INTERVAL '2 days', 
             end_offset => INTERVAL '1 day',
-            schedule_interval => INTERVAL '12 hours',
+            schedule_interval => INTERVAL '1 day',
             if_not_exists => true
         );
     """)
@@ -132,7 +132,7 @@ def upgrade() -> None:
         SELECT add_continuous_aggregate_policy('ohlcv_1w',
             start_offset => INTERVAL '2 weeks', 
             end_offset => INTERVAl '1 week',
-            schedule_interval => INTERVAL '1 day',
+            schedule_interval => INTERVAL '1 week',
             if_not_exists => true
         );
     """)
@@ -158,11 +158,38 @@ def upgrade() -> None:
         SELECT add_continuous_aggregate_policy('ohlcv_1m',
             start_offset => INTERVAL '2 months', 
             end_offset => INTERVAl '1 month',
-            schedule_interval => INTERVAL '12 hours',
+            schedule_interval => INTERVAL '1 month',
             if_not_exists => true
         );
     """)
 
+
+#Added the 6 month policy + refresh policy
+
+    op.execute("""
+        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_6m
+        WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
+        SELECT
+            time_bucket(INTERVAL '6 months', bucket_time) AS bucket_time,
+            asset_id,
+            first(open, bucket_time) AS open,
+            max(high) AS high,
+            min(low) AS low,
+            last(close, bucket_time) AS close,
+            sum(volume) AS volume
+        From ohlcv_1d
+        GROUP BY time_bucket(INTERVAL '6 month', bucket_time), asset_id
+        WITH NO DATA;
+    """)
+
+    op.execute("""
+        SELECT add_continuous_aggregate_policy('ohlcv_6m',
+            start_offset => INTERVAL '12 months', 
+            end_offset => INTERVAl '6 months',
+            schedule_interval => INTERVAL '6 months',
+            if_not_exists => true
+        );
+    """)
 
 def downgrade() -> None:
     #can the refresh policy on going back
