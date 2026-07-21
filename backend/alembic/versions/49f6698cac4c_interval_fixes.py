@@ -78,7 +78,7 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1h',
-            start_offset => INTERVAL '2 hours', 
+            start_offset => INTERVAL '3 hours', 
             end_offset => INTERVAl '1 hour',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
@@ -104,7 +104,7 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1d',
-            start_offset => INTERVAL '2 days', 
+            start_offset => INTERVAL '3 days', 
             end_offset => INTERVAL '1 day',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
@@ -130,7 +130,7 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1w',
-            start_offset => INTERVAL '2 weeks', 
+            start_offset => INTERVAL '3 weeks', 
             end_offset => INTERVAl '1 week',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
@@ -156,7 +156,7 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1m',
-            start_offset => INTERVAL '2 months', 
+            start_offset => INTERVAL '3 months', 
             end_offset => INTERVAl '1 month',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
@@ -184,7 +184,7 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_6m',
-            start_offset => INTERVAL '12 months', 
+            start_offset => INTERVAL '18 months', 
             end_offset => INTERVAl '6 months',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
@@ -211,7 +211,7 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1y',
-            start_offset => INTERVAL '2 years', 
+            start_offset => INTERVAL '3 years', 
             end_offset => INTERVAl '1 year',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
