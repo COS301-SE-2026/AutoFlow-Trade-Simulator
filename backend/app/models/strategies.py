@@ -1,6 +1,4 @@
-from datetime import datetime
 from sqlmodel import Field, SQLModel
-from sqlalchemy.dialects.postgresql import JSONB
 from typing import Optional
 
 class Strategies(SQLModel, table=True):

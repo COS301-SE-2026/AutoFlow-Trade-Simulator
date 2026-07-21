@@ -52,6 +52,7 @@ export function Navbar() {
                     { label: 'Markets',    href: '/#' },
                     { label: 'Leaderboard', href: '/#' },
                     { label: 'AI Assistant', href: '/#' },
+                    { label: 'Learning', href: '/learning' },
                 ].map(({ label, href }) => (
                     <Link
                         key={label}
