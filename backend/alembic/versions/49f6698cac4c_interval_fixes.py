@@ -51,7 +51,7 @@ def upgrade() -> None:
     # op.execute("""
     #     SELECT add_continuous_aggregate_policy('realtimeticks_hourly',
     #         start_offset => INTERVAL '1 week', 
-    #         end_offset => INTERVAl '1 hour',
+    #         end_offset => INTERVAL '1 hour',
     #         schedule_interval => INTERVAL '15 minutes'
     #     );
     # """)
@@ -78,8 +78,8 @@ def upgrade() -> None:
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1h',
-            start_offset => INTERVAL '3 hours', 
-            end_offset => INTERVAl '1 hour',
+            start_offset => INTERVAL '7 hours', 
+            end_offset => INTERVAL '1 hour',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -105,7 +105,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1d',
             start_offset => INTERVAL '3 days', 
-            end_offset => INTERVAL '1 day',
+            end_offset => INTERVAL '1 hour',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -131,7 +131,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1w',
             start_offset => INTERVAL '3 weeks', 
-            end_offset => INTERVAl '1 week',
+            end_offset => INTERVAL '1 hour',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -157,7 +157,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1m',
             start_offset => INTERVAL '3 months', 
-            end_offset => INTERVAl '1 month',
+            end_offset => INTERVAL '1 hour',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -185,7 +185,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_6m',
             start_offset => INTERVAL '18 months', 
-            end_offset => INTERVAl '6 months',
+            end_offset => INTERVAL '1 hour',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -212,7 +212,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1y',
             start_offset => INTERVAL '3 years', 
-            end_offset => INTERVAl '1 year',
+            end_offset => INTERVAL '1 hour',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
