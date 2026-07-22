@@ -29,7 +29,7 @@ class Interval(str, Enum):
 
 class IntervalParameters(BaseModel):
     interval: Interval = Field(
-        default=Interval.H1,
+        default=Interval.D1,
         description="Please send an interval 1d, 1w, 1m, 6m, 1y"
     )
 

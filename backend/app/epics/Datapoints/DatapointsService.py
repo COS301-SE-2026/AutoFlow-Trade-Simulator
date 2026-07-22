@@ -6,9 +6,9 @@ from fastapi import HTTPException
 
 from .DatapointsDTO import DataPoint, QueryParameters, IntervalParameters
 
-def predef_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
+def predef_ohlcv(session: Session, asset_id: int, params: IntervalParameters) -> List[DataPoint]:
 
-    interval_length = params.interval or "1h"
+    interval_length = params.interval.value if params.interval else "1d"
 
     view_name: str = ""
     data_points: int = 0
@@ -17,6 +17,9 @@ def predef_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> Li
         case "1d":
             view_name = "ohlcv_1d"
             data_points = 20
+        case "1w":
+            view_name = "ohlcv_1w"
+            data_points = 25
         case "1m":
             view_name = "ohlcv_1m"
             data_points = 30
@@ -72,43 +75,23 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
     bucket_seconds = max(int(total_duration / params.data_points), 1)
     bucket_interval = f"{bucket_seconds} seconds"
 
-    #Query to get all desired data alias the names so their a bit more descriptive
-    if total_duration > 86400:
-        query = text("""
-            SELECT 
-                time_bucket(:bucket_interval, bucket_time) AS bucket_time, 
-                first(open, bucket_time) AS open_price, 
-                max(high) AS high_price, 
-                min(low) AS low_price, 
-                last(close, bucket_time) AS close_price, 
-                sum(volume) AS total_volume
-            FROM ohlcv_1h
-            WHERE asset_id = :asset_id 
-                AND bucket_time >= :start_time 
-                AND bucket_time <= :end_time
-            GROUP BY bucket_time
-            ORDER BY bucket_time ASC
-        """)
+    query = text("""
+        SELECT
+            time_bucket(:bucket_interval, "timestamp") AS bucket_time,
+            first(open, "timestamp") AS open_price,
+            max(high) AS high_price,
+            min(low) AS low_price,
+            last(close, "timestamp") AS close_price,
+            sum(volume) AS total_volume
+        FROM dailyohlcv
+        Where asset_id = :asset_id
+            AND "timestamp" >= :start_time
+            AND "timestamp" <= :end_time
+        GROUP BY bucket_time
+        ORDER BY bucket_time ASC;
+    """)
 
-        query_params = {"bucket_interval": bucket_interval, "asset_id": asset_id, "start_time": start_time, "end_time": end_time}
-    else:
-        query = text("""
-            SELECT
-                time_bucket(:bucket_interval, "timestamp") AS bucket_time,
-                first(open, "timestamp") AS open_price,
-                max(high) AS high_price,
-                min(low) AS low_price,
-                last(close, "timestamp") AS close_price,
-                sum(volume) AS total_volume
-            FROM dailyohlcv
-            Where asset_id = :asset_id
-                AND "timestamp" >= :start_time
-                AND "timestamp" <= :end_time
-            GROUP BY bucket_time
-            ORDER BY bucket_time ASC;
-        """)
-
-        query_params = {"bucket_interval": bucket_interval, "asset_id": asset_id,"start_time": start_time,"end_time": end_time}
+    query_params = {"bucket_interval": bucket_interval, "asset_id": asset_id,"start_time": start_time,"end_time": end_time}
 
     result = session.execute(query, query_params)
 
