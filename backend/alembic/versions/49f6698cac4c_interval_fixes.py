@@ -60,11 +60,39 @@ def upgrade() -> None:
     #drain our budget like a vampire drinking blood.
 
     #This is the 1 hour view + refresh policy
+    #To many headaches
+
+    # op.execute("""
+    #     CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1h
+    #     WITH(timescaledb.continuous, timescaledb.materialized_only = false) AS
+    #     SELECT
+    #         time_bucket(INTERVAL '1 hour', "timestamp") AS bucket_time,
+    #         asset_id,
+    #         first(open, "timestamp") AS open,
+    #         max(high) AS high,
+    #         min(low) AS low,
+    #         last(close, "timestamp") AS close,
+    #         sum(volume) AS volume
+    #     From dailyohlcv
+    #     GROUP BY time_bucket(INTERVAL '1 hour', "timestamp"), asset_id
+    #     WITH NO DATA;
+    # """)
+
+    # op.execute("""
+    #     SELECT add_continuous_aggregate_policy('ohlcv_1h',
+    #         start_offset => INTERVAL '7 hours', 
+    #         end_offset => INTERVAL '1 hour',
+    #         schedule_interval => INTERVAL '1 hour',
+    #         if_not_exists => true
+    #     );
+    # """)
+
+    #The 1 day view + refresh policy
     op.execute("""
-        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1h
-        WITH(timescaledb.continuous, timescaledb.materialized_only = false) AS
+        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1d
+        WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
         SELECT
-            time_bucket(INTERVAL '1 hour', "timestamp") AS bucket_time,
+            time_bucket(INTERVAL '1 day', "timestamp") AS bucket_time,
             asset_id,
             first(open, "timestamp") AS open,
             max(high) AS high,
@@ -72,40 +100,14 @@ def upgrade() -> None:
             last(close, "timestamp") AS close,
             sum(volume) AS volume
         From dailyohlcv
-        GROUP BY time_bucket(INTERVAL '1 hour', "timestamp"), asset_id
-        WITH NO DATA;
-    """)
-
-    op.execute("""
-        SELECT add_continuous_aggregate_policy('ohlcv_1h',
-            start_offset => INTERVAL '7 hours', 
-            end_offset => INTERVAL '1 hour',
-            schedule_interval => INTERVAL '1 hour',
-            if_not_exists => true
-        );
-    """)
-
-    #The 1 day view + refresh policy
-    op.execute("""
-        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1d
-        WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
-        SELECT
-            time_bucket(INTERVAL '1 day', bucket_time) AS bucket_time,
-            asset_id,
-            first(open, bucket_time) AS open,
-            max(high) AS high,
-            min(low) AS low,
-            last(close, bucket_time) AS close,
-            sum(volume) AS volume
-        From ohlcv_1h
-        GROUP BY time_bucket(INTERVAL '1 day', bucket_time), asset_id
+        GROUP BY time_bucket(INTERVAL '1 day', "timestamp"), asset_id
         WITH NO DATA;
     """)
 
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1d',
             start_offset => INTERVAL '3 days', 
-            end_offset => INTERVAL '1 hour',
+            end_offset => INTERVAL '1 day',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -131,7 +133,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1w',
             start_offset => INTERVAL '3 weeks', 
-            end_offset => INTERVAL '1 hour',
+            end_offset => INTERVAL '1 day',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -157,7 +159,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1m',
             start_offset => INTERVAL '3 months', 
-            end_offset => INTERVAL '1 hour',
+            end_offset => INTERVAL '1 day',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -185,7 +187,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_6m',
             start_offset => INTERVAL '18 months', 
-            end_offset => INTERVAL '1 hour',
+            end_offset => INTERVAL '1 month',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -212,7 +214,7 @@ def upgrade() -> None:
     op.execute("""
         SELECT add_continuous_aggregate_policy('ohlcv_1y',
             start_offset => INTERVAL '3 years', 
-            end_offset => INTERVAL '1 hour',
+            end_offset => INTERVAL '6 months',
             schedule_interval => INTERVAL '1 hour',
             if_not_exists => true
         );
@@ -223,7 +225,6 @@ def downgrade() -> None:
     # op.execute("""
     #     SELECT remove_continuous_aggregate_policy('realtimeticks_hourly', if_exists => true);
     # """)
-
 
     op.execute("""
         SELECT remove_continuous_aggregate_policy('ohlcv_1y', if_exists => true);
@@ -245,24 +246,24 @@ def downgrade() -> None:
         SELECT remove_continuous_aggregate_policy('ohlcv_1d', if_exists => true);
     """)
 
-    op.execute("""
-        SELECT remove_continuous_aggregate_policy('ohlcv_1h', if_exists => true);
-    """)
+    # op.execute("""
+    #     SELECT remove_continuous_aggregate_policy('ohlcv_1h', if_exists => true);
+    # """)
 
 
     #op.execute("DROP MATERIALIZED VIEW IF EXISTS realtimeticks_hourly;")
 
-    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1y;")
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1y CASCADE;")
 
-    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_6m;")
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_6m CASCADE;")
 
-    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1m;")
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1m CASCADE;")
 
-    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1w;")
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1w CASCADE;")
 
-    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1d;")
+    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1d CASCADE;")
 
-    op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1h;")
+    #op.execute("DROP MATERIALIZED VIEW IF EXISTS ohlcv_1h;")
 
     #Revert the chunk intervals back to how they use to be
     op.execute("SELECT set_chunk_time_interval('realtimeticks', INTERVAL '1 day');")
