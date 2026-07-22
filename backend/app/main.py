@@ -17,6 +17,7 @@ from .epics.auth.AuthController import router as auth_router
 from .epics.accounts.AccountsController import router as accounts_router
 from .epics.portfolio.ReportController import router as report_router
 from .epics.simulation.SimulationController import router as simulation_router
+from .epics.Datapoints.DatapointsController import router as chart_router
 
 
 @asynccontextmanager
