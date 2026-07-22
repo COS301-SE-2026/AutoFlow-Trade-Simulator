@@ -7,17 +7,28 @@ interface StrategyCardProps {
     onClick: () => void
 }
 
+const strategyLevelColors = {
+    Beginner: 'text-green-400',
+    Intermediate: 'text-orange-400',
+    Advanced: 'text-red-400'
+}
+
+type strategyLevel = keyof typeof strategyLevelColors;
+
 export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
 
     return (
         <div
-            className='rounded-xl p-6 border border-border/60'
+            className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--seafoam)] transition-colors'
             onClick={onClick}>
-            <div className='font-bold'>{strategy.name}</div>
-            <div>
-                {strategy.level} {strategy.category}
+            <div className='flex'>
+                <span className='font-bold'>{strategy.name}</span>
+                <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
+                    <span className={`${strategyLevelColors[strategy.level as strategyLevel]}`}>{strategy.level}</span> -
+                    <span>{strategy.category}</span>
+                </div>
             </div>
-            <div style={{ color: 'var(--muted)' }}>{strategy.description}</div>
+            <span style={{ color: 'var(--muted)' }}>{strategy.description}</span>
         </div>
     );
 }
