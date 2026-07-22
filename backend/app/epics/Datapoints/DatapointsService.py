@@ -10,19 +10,39 @@ def predef_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> Li
 
     interval_length = param.interval or "1h"
 
+    view_name = ""
+    data_points = int
+
     match interval_length:
         case "1h":
-            
+            view_name = "ohlcv_1h"
+            data_points = 10
         case "1d":
-
+            view_name = "ohlcv_1d"
+            data_points = 20
         case "1m":
-
+            view_name = "ohlcv_1m"
+            data_points = 30
         case "6m":
-
+            view_name = "ohlcv_6m"
+            data_points = 50
         case "1y":
-
+            view_name = "ohlcv_1y"
+            data_points = 80
         case _:
             raise HTTPException(status_code=400, detail="Invalid interval")
+        
+    query = text("""
+        SELECT bucket_time, open, high, low, close, volume
+        FROM :view_name
+        where asset_id = :asset_id
+        Order BY bucket_time DESC
+        LIMIT :data_points;
+    """)
+
+    query_params = {"view_name": view_name, "asset_id": asset_id, "data_points": data_points}
+
+    result = session.execute(query, query_params)
 
 
 
