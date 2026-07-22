@@ -14,9 +14,6 @@ def predef_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> Li
     data_points: int = 0
 
     match interval_length:
-        case "1h":
-            view_name = "ohlcv_1h"
-            data_points = 10
         case "1d":
             view_name = "ohlcv_1d"
             data_points = 20
