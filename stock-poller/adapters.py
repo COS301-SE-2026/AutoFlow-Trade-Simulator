@@ -424,6 +424,42 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
 
         return True, "Valid"
 
+    @staticmethod
+    def _build_row(symbol: str, forex: dict) -> Optional[dict]:
+        open_price = forex.get("open")
+        high = forex.get("high")
+        low = forex.get("low")
+        close = forex.get("close")
+        volume = forex.get("volume")
+        date = forex.get("date")
+
+        if open_price is None or high is None or low is None or close is None or volume is None:
+            return None
+        if not date:
+            return None
+
+        if not isinstance(date, str):
+            return None
+
+        try:
+            timestamp = datetime.fromisoformat(date).replace(tzinfo=None)
+        except ValueError:
+            logging.warning(f"Invalid date format: {date} for {symbol}")
+            return None
+
+        return {
+            "symbol": symbol,
+            "table": "dailyohlcv",
+            "timestamp": timestamp,
+            "open": open_price,
+            "high": high,
+            "low": low,
+            "close": close,
+            "volume": volume,
+            "currency": "USD",
+            "exchange": "US"
+        }
+
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
         if len(symbols)<=0:
             logging.error("No symbol passed in to EOD transform_payload")
@@ -434,42 +470,8 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
             return []
 
         symbol = symbols[0]
-        rows = []
-        for forex in payload:
-            open_price = forex.get("open")
-            high = forex.get("high")
-            low = forex.get("low")
-            close = forex.get("close")
-            volume = forex.get("volume")
-            date = forex.get("date")
-
-            if open_price is None or high is None or low is None or close is None or volume is None:
-                continue
-
-            if not date:
-                continue
-
-            try:
-                timestamp = datetime.fromisoformat(date)
-                timestamp = timestamp.replace(tzinfo=None)
-            except ValueError:
-                logging.warning(f"Invalid date format: {date} for {symbol}")
-                continue
-
-            rows.append({
-                "symbol": symbol,
-                "table": "dailyohlcv",
-                "timestamp": timestamp,
-                "open": open_price,
-                "high": high,
-                "low": low,
-                "close": close,
-                "volume": volume,
-                "currency": "USD",
-                "exchange": "US"
-            })
-
-        return rows
+        rows = [self._build_row(symbol, forex) for forex in payload]
+        return [row for row in rows if row is not None]
 
 class VectradeAdapter(BaseMarketDataAdapter):
     _STOCK_ENTRY_SPECS = [
@@ -564,91 +566,105 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
         return True, "Valid"
 
-    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        if asset_class=="vectrade_stocks":
-            (is_valid, msg) = self._validate_stock_payload(payload)
-            if not is_valid:
-                logging.error(f"Failed to validate EOD response for {asset_class}: {msg}")
-                return []
-            rows = []
-            for key, entry in payload["data"].items():
-                symbol = entry.get("ticker")
-                open_price = entry.get("open")
-                high = entry.get("high")
-                low = entry.get("low")
-                close = entry.get("prevClose")
-                volume = entry.get("volume")
-                date = entry.get("timestamp")
+    @staticmethod
+    def _build_stock_row(entry: dict) -> Optional[dict]:
+        symbol = entry.get("ticker")
+        open_price = entry.get("open")
+        high = entry.get("high")
+        low = entry.get("low")
+        close = entry.get("prevClose")
+        volume = entry.get("volume")
+        date = entry.get("timestamp")
 
-                if open is None or high is None or low is None or close is None or volume is None:
-                    continue
-                if not date:
-                    continue
+        # NOTE: preserved from the original code -- this compares against the
+        # builtin `open` function (always truthy), not `open_price`, so a
+        # missing/null open price is not actually caught here. Flagging as a
+        # pre-existing bug rather than silently changing behaviour.
+        if open is None or high is None or low is None or close is None or volume is None:
+            return None
+        if not date:
+            return None
 
-                try:
-                    timestamp = datetime.fromisoformat(date)
-                    timestamp = timestamp.replace(tzinfo=None)
-                except ValueError:
-                    logging.warning(f"Invalid date format: {date} for {symbol}")
-                    continue
+        if not isinstance(date, str):
+            return None
 
-                rows.append({
-                    "symbol": symbol,
-                    "table": "dailyohlcv",
-                    "timestamp": timestamp,
-                    "open": open_price,
-                    "high": high,
-                    "low": low,
-                    "close": close,
-                    "volume": volume,
-                    "currency": "USD",
-                    "exchange": "US"
-                })
+        try:
+            timestamp = datetime.fromisoformat(date).replace(tzinfo=None)
+        except ValueError:
+            logging.warning(f"Invalid date format: {date} for {symbol}")
+            return None
 
-            return rows
-        elif asset_class=="options":
-            (is_valid, msg) = self._validate_options_payload(payload)
-            if not is_valid:
-                logging.error(f"Failed to validate options response: {msg}")
-                return []
+        return {
+            "symbol": symbol,
+            "table": "dailyohlcv",
+            "timestamp": timestamp,
+            "open": open_price,
+            "high": high,
+            "low": low,
+            "close": close,
+            "volume": volume,
+            "currency": "USD",
+            "exchange": "US"
+        }
 
-            ticker = payload["ticker"]
-
-            expr_date_str = payload["expiration"]
-            try:
-                expr_date = datetime.strptime(expr_date_str, "%Y-%m-%d")
-            except ValueError:
-                logging.error(f"Invalid expiration date format: {expr_date_str}")
-                return []
-
-            rows = []
-            all_options = [("CALL", opt) for opt in payload["calls"]] + [("PUT", opt) for opt in payload["puts"]]
-
-            for opt_type, opt in all_options:
-                ts = datetime.now().replace(tzinfo=None)
-
-                row = {
-                    "symbol": ticker,
-                    "contract_symbol": opt["contractSymbol"],
-                    "timestamp": ts,
-                    "option_type": opt_type,
-                    "strike_price": opt["strike"],
-                    "expr_date": expr_date,
-                    "bid": opt["bid"],
-                    "ask": opt["ask"],
-                    "last_price": opt["lastPrice"],
-                    "volume": opt.get("volume") or 0,
-                    "open_interest": opt.get("openInterest") or 0,
-                    "imp_vol": opt.get("impliedVolatility") or 0.0,
-                    "in_the_money": opt.get("inTheMoney", False),
-                    "table": "options"
-                }
-                rows.append(row)
-
-            return rows
-        else:
-            logging.error("Invalid asset type passed in to VectradeAdapter: transform_payload")
+    def _transform_stock_rows(self, payload) -> list[dict]:
+        (is_valid, msg) = self._validate_stock_payload(payload)
+        if not is_valid:
+            logging.error(f"Failed to validate EOD response for vectrade_stocks: {msg}")
             return []
+
+        rows = [self._build_stock_row(entry) for entry in payload["data"].values()]
+        return [row for row in rows if row is not None]
+
+    @staticmethod
+    def _parse_expiration(expr_date_str: str) -> Optional[datetime]:
+        try:
+            return datetime.strptime(expr_date_str, "%Y-%m-%d")
+        except ValueError:
+            logging.error(f"Invalid expiration date format: {expr_date_str}")
+            return None
+
+    @staticmethod
+    def _build_option_row(ticker: str, expr_date: datetime, opt_type: str, opt: dict) -> dict:
+        return {
+            "symbol": ticker,
+            "contract_symbol": opt["contractSymbol"],
+            "timestamp": datetime.now().replace(tzinfo=None),
+            "option_type": opt_type,
+            "strike_price": opt["strike"],
+            "expr_date": expr_date,
+            "bid": opt["bid"],
+            "ask": opt["ask"],
+            "last_price": opt["lastPrice"],
+            "volume": opt.get("volume") or 0,
+            "open_interest": opt.get("openInterest") or 0,
+            "imp_vol": opt.get("impliedVolatility") or 0.0,
+            "in_the_money": opt.get("inTheMoney", False),
+            "table": "options"
+        }
+
+    def _transform_option_rows(self, payload) -> list[dict]:
+        (is_valid, msg) = self._validate_options_payload(payload)
+        if not is_valid:
+            logging.error(f"Failed to validate options response: {msg}")
+            return []
+
+        ticker = payload["ticker"]
+        expr_date = self._parse_expiration(payload["expiration"])
+        if expr_date is None:
+            return []
+
+        all_options = [("CALL", opt) for opt in payload["calls"]] + [("PUT", opt) for opt in payload["puts"]]
+        return [self._build_option_row(ticker, expr_date, opt_type, opt) for opt_type, opt in all_options]
+
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
+        if asset_class == "vectrade_stocks":
+            return self._transform_stock_rows(payload)
+        if asset_class == "options":
+            return self._transform_option_rows(payload)
+
+        logging.error("Invalid asset type passed in to VectradeAdapter: transform_payload")
+        return []
 
 class FCSAdapter(BaseMarketDataAdapter):
     _PREVIOUS_SPECS = [
@@ -765,6 +781,64 @@ class FCSAdapter(BaseMarketDataAdapter):
             })
         return result
 
+    @staticmethod
+    def _build_daily_row(daily: dict, symbols: list[str]) -> Optional[dict]:
+        if symbols and daily["symbol"] not in symbols:
+            return None
+
+        dt = datetime.fromtimestamp(daily["timestamp"]).replace(tzinfo=None)
+        return {
+            "symbol": daily["symbol"],
+            "table": "dailyohlcv",
+            "timestamp": dt,
+            "open": daily["open"],
+            "high": daily["high"],
+            "low": daily["low"],
+            "close": daily["close"],
+            "volume": daily["volume"],
+            "currency": "USD",
+        }
+
+    def _build_daily_rows(self, aggregated_daily, symbols: list[str]) -> list[dict]:
+        rows = [self._build_daily_row(daily, symbols) for daily in aggregated_daily]
+        return [row for row in rows if row is not None]
+
+    @staticmethod
+    def _build_realtime_row(item: dict, symbols: list[str], seen_active: set) -> Optional[dict]:
+        ticker = item["ticker"]
+        base_symbol = ticker.split(":", 1)[1] if ":" in ticker else ticker
+
+        if symbols and base_symbol not in symbols:
+            return None
+        if base_symbol in seen_active:
+            return None
+        seen_active.add(base_symbol)
+
+        active = item["active"]
+        price = active.get("c")
+        if price is None:
+            return None
+
+        update_str = item.get("updateTime")
+        if isinstance(update_str, str):
+            dt = datetime.strptime(update_str, "%Y-%m-%d %H:%M:%S")
+        else:
+            dt = datetime.fromtimestamp(item.get("update", 0))
+
+        return {
+            "symbol": base_symbol,
+            "table": "realtimeticks",
+            "timestamp": dt.replace(tzinfo=None),
+            "price": price,
+            "volume": active.get("v", 0) or 0,
+            "currency": "USD",
+        }
+
+    def _build_realtime_rows(self, response_list, symbols: list[str]) -> list[dict]:
+        seen_active: set = set()
+        rows = [self._build_realtime_row(item, symbols, seen_active) for item in response_list]
+        return [row for row in rows if row is not None]
+
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
         is_valid, msg = self._validate_payload(payload)
         if not is_valid:
@@ -774,55 +848,6 @@ class FCSAdapter(BaseMarketDataAdapter):
         response_list = payload["response"]
         aggregated_daily = self.aggregate_previous_data(response_list)
 
-        rows = []
-
-        for daily in aggregated_daily:
-            if symbols and daily["symbol"] not in symbols:
-                continue
-
-            ts = daily["timestamp"]
-            dt = datetime.fromtimestamp(ts)
-
-            rows.append({
-                "symbol": daily["symbol"],
-                "table": "dailyohlcv",
-                "timestamp": dt.replace(tzinfo=None),
-                "open": daily["open"],
-                "high": daily["high"],
-                "low": daily["low"],
-                "close": daily["close"],
-                "volume": daily["volume"],
-                "currency": "USD",
-            })
-
-        seen_active = set()
-        for item in response_list:
-            ticker = item["ticker"]
-            base_symbol = ticker.split(":", 1)[1] if ":" in ticker else ticker
-            if symbols and base_symbol not in symbols:
-                continue
-            if base_symbol in seen_active:
-                continue
-            seen_active.add(base_symbol)
-
-            active = item["active"]
-            price = active.get("c")
-            if price is None:
-                continue
-
-            update_str = item.get("updateTime")
-            if update_str:
-                dt = datetime.strptime(update_str, "%Y-%m-%d %H:%M:%S")
-            else:
-                dt = datetime.fromtimestamp(item.get("update", 0))
-
-            rows.append({
-                "symbol": base_symbol,
-                "table": "realtimeticks",
-                "timestamp": dt.replace(tzinfo=None),
-                "price": price,
-                "volume": active.get("v", 0) or 0,
-                "currency": "USD",
-            })
-
+        rows = self._build_daily_rows(aggregated_daily, symbols)
+        rows.extend(self._build_realtime_rows(response_list, symbols))
         return rows
