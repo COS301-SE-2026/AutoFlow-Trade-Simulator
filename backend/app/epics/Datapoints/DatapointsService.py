@@ -8,10 +8,10 @@ from .DatapointsDTO import DataPoint, QueryParameters, IntervalParameters
 
 def predef_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
 
-    interval_length = param.interval or "1h"
+    interval_length = params.interval or "1h"
 
-    view_name = ""
-    data_points = int
+    view_name: str = ""
+    data_points: int = 0
 
     match interval_length:
         case "1h":
@@ -32,18 +32,29 @@ def predef_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> Li
         case _:
             raise HTTPException(status_code=400, detail="Invalid interval")
         
-    query = text("""
+    query = text(f"""
         SELECT bucket_time, open, high, low, close, volume
-        FROM :view_name
+        FROM {view_name}
         where asset_id = :asset_id
         Order BY bucket_time DESC
         LIMIT :data_points;
     """)
 
-    query_params = {"view_name": view_name, "asset_id": asset_id, "data_points": data_points}
+    query_params = {"asset_id": asset_id, "data_points": data_points}
 
     result = session.execute(query, query_params)
 
+    return [
+        DataPoint(
+            time=row.bucket_time,
+            open=round(float(row.open), 4) if row.open else None,
+            high=round(float(row.high), 4) if row.high else None,
+            low=round(float(row.low), 4) if row.low else None,
+            close=round(float(row.close), 4) if row.close else None,
+            volume=round(float(row.volume), 4) if row.volume is not None else 0.0,
+        )
+        for row in result
+    ]
 
 
 def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
