@@ -142,15 +142,15 @@ def upgrade() -> None:
         CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1m
         WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
         SELECT
-            time_bucket(INTERVAL '1 month', "timestamp") AS bucket_time,
+            time_bucket(INTERVAL '1 month', bucket_time) AS bucket_time,
             asset_id,
-            first(open, "timestamp") AS open,
+            first(open, bucket_time) AS open,
             max(high) AS high,
             min(low) AS low,
-            last(close, "timestamp") AS close,
+            last(close, bucket_time) AS close,
             sum(volume) AS volume
-        From dailyohlcv
-        GROUP BY time_bucket(INTERVAL '1 month', "timestamp"), asset_id
+        From ohlcv_1d
+        GROUP BY time_bucket(INTERVAL '1 month', bucket_time), asset_id
         WITH NO DATA;
     """)
 
@@ -170,15 +170,15 @@ def upgrade() -> None:
         CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_6m
         WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
         SELECT
-            time_bucket(INTERVAL '6 months', "timestamp") AS bucket_time,
+            time_bucket(INTERVAL '6 months', bucket_time) AS bucket_time,
             asset_id,
-            first(open, "timestamp") AS open,
+            first(open, bucket_time) AS open,
             max(high) AS high,
             min(low) AS low,
-            last(close, "timestamp") AS close,
+            last(close, bucket_time) AS close,
             sum(volume) AS volume
-        From dailyohlcv
-        GROUP BY time_bucket(INTERVAL '6 months', "timestamp"), asset_id
+        From ohlcv_1m
+        GROUP BY time_bucket(INTERVAL '6 months', bucket_time), asset_id
         WITH NO DATA;
     """)
 
@@ -197,15 +197,15 @@ def upgrade() -> None:
         CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1y
         WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS 
         SELECT
-            time_bucket(INTERVAL '1 year', "timestamp") AS bucket_time,
+            time_bucket(INTERVAL '1 year', bucket_time) AS bucket_time,
             asset_id,
-            first(open, "timestamp") AS open,
+            first(open, bucket_time) AS open,
             max(high) AS high,
             min(low) AS low,
-            last(close, "timestamp") AS close,
+            last(close, bucket_time) AS close,
             sum(volume) AS volume
-        From dailyohlcv
-        GROUP BY time_bucket(INTERVAL '1 year', "timestamp"), asset_id
+        From ohlcv_6m
+        GROUP BY time_bucket(INTERVAL '1 year', bucket_time), asset_id
         WITH NO DATA;
     """)
 
