@@ -37,6 +37,32 @@ def _validate_list_items(items, specs, label: str) -> Optional[str]:
     return None
 
 
+def _build_ohlcv_row(symbol, open_price, high, low, close, volume, date) -> Optional[dict]:
+    if open_price is None or high is None or low is None or close is None or volume is None:
+        return None
+    if not isinstance(date, str):
+        return None
+
+    try:
+        timestamp = datetime.fromisoformat(date).replace(tzinfo=None)
+    except ValueError:
+        logging.warning(f"Invalid date format: {date} for {symbol}")
+        return None
+
+    return {
+        "symbol": symbol,
+        "table": "dailyohlcv",
+        "timestamp": timestamp,
+        "open": open_price,
+        "high": high,
+        "low": low,
+        "close": close,
+        "volume": volume,
+        "currency": "USD",
+        "exchange": "US"
+    }
+
+
 class MassiveAdapter(BaseMarketDataAdapter):
     _RESULT_SPECS = [
         ("o", float, False),
@@ -426,39 +452,15 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
 
     @staticmethod
     def _build_row(symbol: str, forex: dict) -> Optional[dict]:
-        open_price = forex.get("open")
-        high = forex.get("high")
-        low = forex.get("low")
-        close = forex.get("close")
-        volume = forex.get("volume")
-        date = forex.get("date")
-
-        if open_price is None or high is None or low is None or close is None or volume is None:
-            return None
-        if not date:
-            return None
-
-        if not isinstance(date, str):
-            return None
-
-        try:
-            timestamp = datetime.fromisoformat(date).replace(tzinfo=None)
-        except ValueError:
-            logging.warning(f"Invalid date format: {date} for {symbol}")
-            return None
-
-        return {
-            "symbol": symbol,
-            "table": "dailyohlcv",
-            "timestamp": timestamp,
-            "open": open_price,
-            "high": high,
-            "low": low,
-            "close": close,
-            "volume": volume,
-            "currency": "USD",
-            "exchange": "US"
-        }
+        return _build_ohlcv_row(
+            symbol,
+            forex.get("open"),
+            forex.get("high"),
+            forex.get("low"),
+            forex.get("close"),
+            forex.get("volume"),
+            forex.get("date"),
+        )
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
         if len(symbols)<=0:
@@ -568,44 +570,15 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
     @staticmethod
     def _build_stock_row(entry: dict) -> Optional[dict]:
-        symbol = entry.get("ticker")
-        open_price = entry.get("open")
-        high = entry.get("high")
-        low = entry.get("low")
-        close = entry.get("prevClose")
-        volume = entry.get("volume")
-        date = entry.get("timestamp")
-
-        # NOTE: preserved from the original code -- this compares against the
-        # builtin `open` function (always truthy), not `open_price`, so a
-        # missing/null open price is not actually caught here. Flagging as a
-        # pre-existing bug rather than silently changing behaviour.
-        if open is None or high is None or low is None or close is None or volume is None:
-            return None
-        if not date:
-            return None
-
-        if not isinstance(date, str):
-            return None
-
-        try:
-            timestamp = datetime.fromisoformat(date).replace(tzinfo=None)
-        except ValueError:
-            logging.warning(f"Invalid date format: {date} for {symbol}")
-            return None
-
-        return {
-            "symbol": symbol,
-            "table": "dailyohlcv",
-            "timestamp": timestamp,
-            "open": open_price,
-            "high": high,
-            "low": low,
-            "close": close,
-            "volume": volume,
-            "currency": "USD",
-            "exchange": "US"
-        }
+        return _build_ohlcv_row(
+            entry.get("ticker"),
+            entry.get("open"),
+            entry.get("high"),
+            entry.get("low"),
+            entry.get("prevClose"),
+            entry.get("volume"),
+            entry.get("timestamp"),
+        )
 
     def _transform_stock_rows(self, payload) -> list[dict]:
         (is_valid, msg) = self._validate_stock_payload(payload)
