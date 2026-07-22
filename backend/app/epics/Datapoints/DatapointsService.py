@@ -8,6 +8,23 @@ from .DatapointsDTO import DataPoint, QueryParameters, IntervalParameters
 
 def predef_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
 
+    interval_length = param.interval or "1h"
+
+    match interval_length:
+        case "1h":
+            
+        case "1d":
+
+        case "1m":
+
+        case "6m":
+
+        case "1y":
+
+        case _:
+            raise HTTPException(status_code=400, detail="Invalid interval")
+
+
 
 def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
 
