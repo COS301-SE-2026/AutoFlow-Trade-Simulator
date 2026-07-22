@@ -7,13 +7,13 @@ interface StrategyCardProps {
     onClick: () => void
 }
 
-const strategyLevelColors = {
+export const strategyLevelColors = {
     Beginner: 'text-green-400',
     Intermediate: 'text-orange-400',
     Advanced: 'text-red-400'
 }
 
-type strategyLevel = keyof typeof strategyLevelColors;
+export type strategyLevel = keyof typeof strategyLevelColors;
 
 export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
 

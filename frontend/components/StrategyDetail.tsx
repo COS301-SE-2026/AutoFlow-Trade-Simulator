@@ -1,6 +1,7 @@
 'use client';
 
 import { useStrategy } from '@/hooks/useStrategy';
+import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
 import { Button } from "./ui/button";
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
@@ -8,7 +9,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
 
     return (
         <div
-            className='fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl p-6 border border-border/60 gap-4'
+            className='fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6'
             style={{ background: '#1c1b22' }}>
             {strategy === null ? (
                 <div>
@@ -16,19 +17,20 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 </div>
             ) : (
                 <div>
-                    <div className='mb-3 gap-4'>
+                    <div>
                         <div className='flex justify-between'>
-                            <div className=' text-3xl font-bold' style={{ color: 'var(--text)' }}>{strategy.name}</div>
+                            <span className=' text-3xl font-bold' style={{ color: 'var(--text)' }}>{strategy.name}</span>
                             <Button onClick={onClose}>X</Button>
                         </div>
-                        <div className='flex justify-between'>
-                            <div>{strategy.level}</div>
-                            <div>{strategy.category}</div>
+                        <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
+                            <span className={`${strategyLevelColors[strategy.level as strategyLevel]}`}>{strategy.level}</span> -
+                            <span>{strategy.category}</span>
                         </div>
                         <div>{strategy.description}</div>
                     </div>
 
                     <div className='mb-3 '>
+                        <div className='font-bold'>steps</div>
                         {strategy.steps.map((steps, index) => (
                             <div key={`empty-${index}`}>{index + 1}. {steps}</div>
                         ))}

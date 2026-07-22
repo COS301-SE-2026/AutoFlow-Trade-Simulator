@@ -1,17 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { StrategyCard } from '@/components/StrategyCard';
+import { StrategyCard, strategyLevelColors, strategyLevel } from '@/components/StrategyCard';
 import { StrategyDetail } from '@/components/StrategyDetail';
 import { useStrategies } from '@/hooks/useStrategies';
+import { Button } from './ui/button';
 
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+const levelOptions = ['All', 'Beginner', 'Intermediate', 'Advanced'] as const;
+type levelFilter = typeof levelOptions[number];
 
 export function StrategyList() {
     const { strategies, loading, error } = useStrategies();
@@ -33,25 +29,18 @@ export function StrategyList() {
         return temp;
     }, [strategies, levelFilter]);
 
-
     return (
         <div>
-            <div className='mb-3'>
-                <Select
-                    value={levelFilter}
-                    onValueChange={(value: "All" | "Beginner" | "Intermediate" | "Advanced") => setLevelFilter(value)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Direction" />
-                    </SelectTrigger>
-                    <SelectContent style={{ background: '#1c1b22' }}>
-                        <SelectItem value='All'>All</SelectItem>
-                        <SelectItem value='Beginner'>Beginner</SelectItem>
-                        <SelectItem value='Intermediate'>Intermediate</SelectItem>
-                        <SelectItem value='Advanced'>Advanced</SelectItem>
-                    </SelectContent>
-                </Select>
+            <div className='mb-5'>
+                {levelOptions.map((level) => (
+                    <Button
+                        key={level}
+                        onClick={() => setLevelFilter(level)}
+                        className={`${strategyLevelColors[level as strategyLevel]} inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm`}
+                    >{level}</Button>
+                ))}
             </div>
+
             <div className='flex flex-col gap-3'>
                 {filteredStrategies.map((s, index) => (
                     <StrategyCard
