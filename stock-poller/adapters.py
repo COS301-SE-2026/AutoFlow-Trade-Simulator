@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
+payload_message = "Payload root must be an object"
+
 class MassiveAdapter(BaseMarketDataAdapter):
     def __init__(self, config: dict, pools: dict, market_event, db_ctx: Optional[dict] = None):
         super().__init__(provider_name="massive", config=config, market_event=market_event, pools=pools, db_ctx=db_ctx)
@@ -20,9 +22,9 @@ class MassiveAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=self.base_params, timeout=10.0)
         return response
 
-    async def _validate_payload(self, payload) -> tuple[bool, str]:
+    def _validate_payload(self, payload) -> tuple[bool, str]:
         if not isinstance(payload, dict):
-            return False, "Payload root must be an object"
+            return False, payload_message
 
         if "ticker" not in payload or not isinstance(payload["ticker"], str):
             return False, "Missing or invalid 'ticker'"
@@ -59,7 +61,7 @@ class MassiveAdapter(BaseMarketDataAdapter):
         return True, "Valid"
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        (is_valid, msg) = await self._validate_payload(payload)
+        (is_valid, msg) = self._validate_payload(payload)
         if not is_valid:
             logging.error(f"Failed to validate Massive response: {msg}")
             return []
@@ -98,9 +100,9 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=params, timeout=10.0)
         return response
 
-    async def _validate_payload(self, payload) -> tuple[bool, str]:
+    def _validate_payload(self, payload) -> tuple[bool, str]:
         if not isinstance(payload, dict):
-            return False, "Payload root must be an object"
+            return False, payload_message
 
         if "meta" not in payload or not isinstance(payload["meta"], dict):
             return False, "Missing or invalid 'meta' (must be an object)"
@@ -140,7 +142,7 @@ class TwelveDataAdapter(BaseMarketDataAdapter):
         return True, "Valid"
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        (is_valid, msg) = await self._validate_payload(payload)
+        (is_valid, msg) = self._validate_payload(payload)
         if not is_valid:
             logging.error(f"Failed to validate TwelveData response for {asset_class}: {msg}")
             return []
@@ -188,8 +190,7 @@ class FinnhubAdapter(BaseMarketDataAdapter):
         return response
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        # TODO: map Finnhub forex/rates or crypto/candle payload -> rows
-        raise NotImplementedError("FinnhubAdapter.transform_payload not implemented yet")
+        raise NotImplementedError("FinnhubAdapter.transform_payload not implemented due to no valuable pricing data available")
 
 class CoinMarketCapAdapter(BaseMarketDataAdapter):
     """
@@ -206,9 +207,9 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
         response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
         return response
 
-    async def _validate_payload(self, payload) -> tuple[bool, str]:
+    def _validate_payload(self, payload) -> tuple[bool, str]:
         if not isinstance(payload, dict):
-            return False, "Payload root must be an object"
+            return False, payload_message
 
         if "data" not in payload or not isinstance(payload["data"], dict):
             return False, "Missing or invalid 'data' (must be an object)"
@@ -248,7 +249,7 @@ class CoinMarketCapAdapter(BaseMarketDataAdapter):
         return True, "Valid"
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        (is_valid, msg) = await self._validate_payload(payload)
+        (is_valid, msg) = self._validate_payload(payload)
         if not is_valid:
             logging.error(f"Failed to validate CoinMarketCap response for {asset_class}: {msg}")
             return []
@@ -299,7 +300,7 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
         response = await client.get(url, headers=self.headers, params=params, timeout=10.0)
         return response
 
-    async def _validate_payload(self, payload) -> tuple[bool, str]:
+    def _validate_payload(self, payload) -> tuple[bool, str]:
         if not isinstance(payload, list):
             return False, "Payload root must be an array"
         if len(payload) == 0:
@@ -328,7 +329,7 @@ class CoinGeckoAdapter(BaseMarketDataAdapter):
         return True, "Valid"
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        (is_valid, msg) = await self._validate_payload(payload)
+        (is_valid, msg) = self._validate_payload(payload)
         if not is_valid:
             logging.error(f"Failed to validate CoinGecko response for {asset_class}: {msg}")
             return []
@@ -392,7 +393,7 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=params, timeout=12.0)
         return response
 
-    async def _validate_payload(self, payload) -> tuple[bool, str]:
+    def _validate_payload(self, payload) -> tuple[bool, str]:
         if not isinstance(payload, list):
             return False, "Payload root must be an array"
         if len(payload) == 0:
@@ -432,7 +433,7 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
         if len(symbols)<=0:
             logging.error(f"No symbol passed in to EOD transform_payload")
             return []
-        (is_valid, msg) = await self._validate_payload(payload)
+        (is_valid, msg) = self._validate_payload(payload)
         if not is_valid:
             logging.error(f"Failed to validate EOD response for {asset_class}: {msg}")
             return []
@@ -440,14 +441,14 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
         symbol = symbols[0]
         rows = []
         for forex in payload:
-            open = forex.get("open")
+            open_price = forex.get("open")
             high = forex.get("high")
             low = forex.get("low")
             close = forex.get("close")
             volume = forex.get("volume")
             date = forex.get("date")
 
-            if open is None or high is None or low is None or close is None or volume is None:
+            if open_price is None or high is None or low is None or close is None or volume is None:
                 continue
 
             if not date:
@@ -464,7 +465,7 @@ class EodHistoricalAdapter(BaseMarketDataAdapter):
                 "symbol": symbol,
                 "table": "dailyohlcv",
                 "timestamp": timestamp,
-                "open": open,
+                "open": open_price,
                 "high": high,
                 "low": low,
                 "close": close,
@@ -494,9 +495,9 @@ class VectradeAdapter(BaseMarketDataAdapter):
             logging.error("Invalid asset type passed in to VectradeAdapter: make_request")
             return {}
 
-    async def _validate_stock_payload(self, payload) -> tuple[bool, str]:
+    def _validate_stock_payload(self, payload) -> tuple[bool, str]:
         if not isinstance(payload, dict):
-            return False, "Payload root must be an object"
+            return False, payload_message
 
         if "data" not in payload or not isinstance(payload["data"], dict):
             return False, "Missing or invalid 'data' (must be an object)"
@@ -529,7 +530,7 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
         return True, "Valid"
 
-    async def _validate_options_payload(self, payload) -> tuple[bool, str]:
+    def _validate_options_payload(self, payload) -> tuple[bool, str]:
         if not isinstance(payload, dict):
             return False, "Root must be an object"
 
@@ -594,7 +595,7 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
         if asset_class=="vectrade_stocks":
-            (is_valid, msg) = await self._validate_stock_payload(payload)
+            (is_valid, msg) = self._validate_stock_payload(payload)
             if not is_valid:
                 logging.error(f"Failed to validate EOD response for {asset_class}: {msg}")
                 return []
@@ -635,7 +636,7 @@ class VectradeAdapter(BaseMarketDataAdapter):
 
             return rows
         elif asset_class=="options":
-            (is_valid, msg) = await self._validate_options_payload(payload)
+            (is_valid, msg) = self._validate_options_payload(payload)
             if not is_valid:
                 logging.error(f"Failed to validate options response: {msg}")
                 return []
@@ -699,7 +700,7 @@ class FCSAdapter(BaseMarketDataAdapter):
         response = await client.get(url, params=params, timeout=60.0)
         return response
 
-    async def _validate_payload(self, payload) -> tuple[bool, str]:
+    def _validate_payload(self, payload) -> tuple[bool, str]:
         if not isinstance(payload, dict):
             return False, "Root must be an object"
         if "response" not in payload or not isinstance(payload["response"], list):
@@ -785,7 +786,7 @@ class FCSAdapter(BaseMarketDataAdapter):
         return result
 
     async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
-        is_valid, msg = await self._validate_payload(payload)
+        is_valid, msg = self._validate_payload(payload)
         if not is_valid:
             logging.error(f"FCS validation failed: {msg}")
             return []
