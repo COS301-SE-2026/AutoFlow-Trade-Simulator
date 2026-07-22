@@ -2,7 +2,6 @@ import { Card } from "../components/ui/card";
 import { getBackendHealth } from "../lib/api";
 import AssetPage from "../app/assets/[ticker]/page"
 import Link from "next/link";
-import SplashPage from '../app/splash/page'
 
 export default async function HomePage() {
   const health = await getBackendHealth();

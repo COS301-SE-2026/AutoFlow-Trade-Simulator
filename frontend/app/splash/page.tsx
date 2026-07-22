@@ -6,7 +6,6 @@ import Link from 'next/link';
 
 export default function SplashPage() {
     return (
-        <>
         <div className='size-full bg-[var(--background)] overflow-auto'>
             <nav className='border-b border-[var(--border)] bg-[var(--background)] backdrop-blur-sm'>
                 <div className='max-w-7xl mx-auto px-6 py-4'>
@@ -49,7 +48,8 @@ export default function SplashPage() {
                     </div>
                     <h2 className='text-5xl md:text-6xl font-bold text-white mb-6'>
                         Master the markets with
-                        <span className='bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] bg-clip-text text-transparent'> Confidence</span>
+                        <span className='bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] bg-clip-text text-transparent gap-1'> Confidence
+                        </span>
                     </h2>
                     <p>
                         Learn trading strategies, understand options Greeks, and replay historical market events all in a risk-free environment designed to build real skills.
@@ -62,7 +62,7 @@ export default function SplashPage() {
                             Start Learning Free
                             <ArrowRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
                         </Link>
-                        <button className='px-8 py-4 bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] text-white rounded-full font-medium'>
+                        <button type='button' className='px-8 py-4 bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] text-white rounded-full font-medium'>
                             View Features
                         </button>
                     </div>
@@ -184,16 +184,15 @@ export default function SplashPage() {
                             className='w-5 h-5 flex self-center'
                             />
                         </div>
-                        <span>© 2026 AutoFlow. All rights reserved.</span>
+                        <span className='gap-1'>© 2026 AutoFlow. All rights reserved.</span>
                     </div>
                     <div className='flex gap-6'>
-                        <a href='#' className='hover:text-blue-200'>Terms</a>
-                        <a href='#' className='hover:text-blue-200'>Privacy</a>
-                        <a href='#' className='hover:text-blue-200'>Support</a>
+                        <button type='button' className='hover:text-blue-200'>Terms</button>
+                        <button type='button' className='hover:text-blue-200'>Privacy</button>
+                        <button type='button' className='hover:text-blue-200'>Support</button>
                     </div>
                 </div>
             </footer>
         </div>
-        </>
     )
 }
