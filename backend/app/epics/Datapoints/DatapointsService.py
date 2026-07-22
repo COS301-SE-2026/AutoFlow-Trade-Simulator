@@ -4,7 +4,10 @@ from sqlalchemy import text
 from sqlmodel import Session
 from fastapi import HTTPException
 
-from .DatapointsDTO import DataPoint, QueryParameters
+from .DatapointsDTO import DataPoint, QueryParameters, IntervalParameters
+
+def predef_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
+
 
 def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> List[DataPoint]:
 

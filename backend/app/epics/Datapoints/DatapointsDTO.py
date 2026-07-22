@@ -19,6 +19,14 @@ class QueryParameters(BaseModel):
         description="Number of data points desired for graph"
     )
 
+class IntervalParameters(BaseModel):
+    data_points: int = Field(
+        default=20,
+        gt=0,
+        le=500,
+        description="Number of data points desired for graph"
+    )
+
 #DTO to return stuffs
 class DataPoint(BaseModel):
     time: datetime
