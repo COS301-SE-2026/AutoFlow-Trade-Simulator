@@ -8,8 +8,10 @@ export default function LearningPage() {
       <Navbar />
       <div className="h-full p-6">
         <div className='text-4xl flex justify-center mb-3'>links</div>
+        <hr className='border-[#9ca3af] my-6' />
 
         <div className='text-4xl flex justify-center mb-3'>tutorial</div>
+        <hr className='border-[#9ca3af] my-6' />
 
         <div className='text-4xl flex justify-center mb-3'>FAQ</div>
         <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
@@ -46,6 +48,7 @@ export default function LearningPage() {
             <p style={{ color: 'var(--muted' }}>you can make a practice account by interacting with the dropdown on the top right of the screen and choosing a currency and starting amount.</p>
           </div>
         </div>
+        <hr className='border-[#9ca3af] my-6' />
       </div >
     </>
   );
