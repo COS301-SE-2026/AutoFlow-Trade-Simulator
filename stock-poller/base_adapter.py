@@ -6,16 +6,19 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 import logging
 import httpx
-from typing import List, Union
+from typing import List, Union, Optional
+import db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 class BaseMarketDataAdapter(ABC):
-    def __init__(self, provider_name: str, config: dict, market_event:asyncio.Event, pools:dict):
+    def __init__(self, provider_name: str, config: dict, market_event: asyncio.Event, pools: dict, db_ctx: Optional[dict] = None):
         self.provider_name = provider_name
         self.config = config
         self.market_event = market_event
         self.pools = pools
+
+        self.database_service = db_ctx or {} # empty in flat file mode
 
         # Pull timing constraints from the calibrated YAML
         self.seconds_per_request = config.get("seconds_per_request", 1.0)
@@ -48,8 +51,54 @@ class BaseMarketDataAdapter(ABC):
         with gzip.open(file_path, "at", encoding="utf-8") as f:
             f.write(json.dumps(envelope) + "\n")
 
+    async def _route_to_db(self, asset_type: str, symbols: List[str], payload: Union[dict, list]):
+        """
+        DB_MODE path: normalize raw payload -> rows via transform_payload
+        (per-provider, implemented downstream), resolve asset_id lazily
+        through the shared cache, then push each row onto whichever lane
+        this asset_class is configured for.
+
+        transform_payload must return a list of dicts, each carrying:
+          - "symbol": str
+          - "table": "realtimeticks" | "dailyohlcv" | "options"
+          - "timestamp": datetime
+          - the value columns for that table (price/volume, or
+            open/high/low/close/volume or
+            contract_symbol/option_type/strike_price/expr_date/bid/ask/last_price/volume/open_interest/imp_vol/in_the_money)
+          - optional "exchange" / "currency" overrides (default UNKNOWN/USD)
+        """
+        rows = await self.transform_payload(asset_type, symbols, payload)
+        if not rows:
+            return
+
+        asset_cache: db.AssetCache = self.database_service["asset_cache"]
+        lane = self.config["asset_classes"][asset_type].get("lane", "slow")
+        target_queue = self.database_service["fast_queue"] if lane == "fast" else self.database_service["slow_queue"]
+
+        convert_to_stocks = ["twelve_stocks", "vectrade_stocks"]
+
+        symbol_overrides = self.database_service.get("asset_class_maps", {}).get(asset_type, {})
+
+        for row in rows:
+            symbol = row.pop("symbol")
+            exchange = row.pop("exchange", "UNKNOWN")
+            currency = row.pop("currency", "USD")
+            table = row.pop("table")
+
+            if symbol in symbol_overrides:
+                fixed_asset_type = symbol_overrides[symbol]
+            elif asset_type in convert_to_stocks:
+                fixed_asset_type = "stocks"
+            else:
+                fixed_asset_type = asset_type
+
+            row["asset_id"] = await asset_cache.get_or_create_asset_id(
+                symbol=symbol, asset_class=fixed_asset_type, exchange=exchange, currency=currency
+            )
+            await target_queue.put((table, row))
+
     async def fetch_and_store(self, index:int):
-        asset_type: str = [name for name, enabled in self.config["asset_classes"].items() if enabled][index]
+        asset_type: str = [name for name, details in self.config["asset_classes"].items() if details.get("enabled", False)][index]
         symbols = await self.get_symbol_batch(asset_type)
         if not symbols:
             logging.info("No symbols to request")
@@ -62,7 +111,10 @@ class BaseMarketDataAdapter(ABC):
                 if response.status_code == 200:
                     payload = response.json()
                     if payload:
-                        self.save_to_lake(asset_class=asset_type, payload=payload)
+                        if db.DB_MODE:
+                            await self._route_to_db(asset_type, symbols, payload)
+                        else:
+                            self.save_to_lake(asset_class=asset_type, payload=payload)
                 elif response.status_code == 429:
                     logging.info(f"WARN: Rate limit exceeded on {self.provider_name}. Pacing window check required.")
                 else:
@@ -71,7 +123,11 @@ class BaseMarketDataAdapter(ABC):
                 logging.exception(f"ERROR: Failed to make request for {self.provider_name}: {str(e)}")
 
     @abstractmethod
-    async def make_request(self, client, symbols: list[str], asset:str):
+    async def make_request(self, client, symbols: list[str], asset: str):
+        pass
+
+    @abstractmethod
+    async def transform_payload(self, asset_class: str, symbols: list[str], payload) -> list[dict]:
         pass
 
     async def get_symbol_batch(self, asset:str) -> List[str]:
@@ -88,7 +144,7 @@ class BaseMarketDataAdapter(ABC):
     async def run_harvest_loop(self):
         logging.info(f"Starting harvest loop for {self.provider_name}...")
         counter = 0
-        num_enabled_assets = len([name for name, enabled in self.config["asset_classes"].items() if enabled])
+        num_enabled_assets = len([name for name, details in self.config["asset_classes"].items() if details.get("enabled", False)])
 
         if not self.run_during_market_close:
             while True:
