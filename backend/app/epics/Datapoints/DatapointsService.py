@@ -63,7 +63,8 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
     end_time = params.end_date or datetime.now(UTC)
 
     start_time = params.start_date or (end_time - timedelta(days=30))
-    
+
+    data_points:int = params.data_points
 
     #Calculations to help get the desired data points
     total_duration = (end_time - start_time).total_seconds()
@@ -72,7 +73,7 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
     if total_duration < 0:
         raise HTTPException(status_code=400, detail="start date greater than end date")
 
-    bucket_seconds = max(int(total_duration / params.data_points), 1)
+    bucket_seconds = max(int(total_duration / data_points), 1)
     bucket_interval = f"{bucket_seconds} seconds"
 
     query = text("""
@@ -88,10 +89,11 @@ def sampled_ohlcv(session: Session, asset_id: int, params: QueryParameters) -> L
             AND "timestamp" >= :start_time
             AND "timestamp" <= :end_time
         GROUP BY bucket_time
-        ORDER BY bucket_time ASC;
+        ORDER BY bucket_time DESC
+        LIMIT :data_points;
     """)
 
-    query_params = {"bucket_interval": bucket_interval, "asset_id": asset_id,"start_time": start_time,"end_time": end_time}
+    query_params = {"bucket_interval": bucket_interval, "asset_id": asset_id,"start_time": start_time,"end_time": end_time, "data_points": data_points}
 
     result = session.execute(query, query_params)
 
