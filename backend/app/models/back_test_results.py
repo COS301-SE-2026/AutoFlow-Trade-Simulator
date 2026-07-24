@@ -1,8 +1,6 @@
-from datetime import datetime
 from sqlmodel import Field, SQLModel
 from decimal import Decimal
 from typing import Optional
-from sqlalchemy.dialects.postgresql import JSONB
 
 class BackTestResults(SQLModel, table=True):
     backtest_id:Optional[int]=Field(default=None, primary_key=True)

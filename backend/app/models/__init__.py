@@ -11,6 +11,9 @@ from .real_time_ticks import RealTimeTicks
 from .daily_OHLCV import DailyOHLCV
 from .greeks import Greeks
 from .market_condition import MarketCondition
+from .strategies import Strategies
+from .practice_simulation import PraticeSimulation
+from .options import Options
 
 __all__ = [
     "User",
@@ -27,5 +30,8 @@ __all__ = [
 	"RealTimeTicks",
 	"DailyOHLCV",
 	"Greeks",
-	"MarketCondition"
+	"MarketCondition",
+	"Strategies",
+	"PraticeSimulation",
+	"Options"
 ]
