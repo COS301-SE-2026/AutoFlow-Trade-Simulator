@@ -174,8 +174,9 @@ export function useStrategy(id: number | null) {
         setLoading(true);
         setError(null);
         try {
-            // const response = await apiClient(`/`); to be added when endpoint is done
-            setStrategy(MOCK_STRATEGY_DETAILS[id]);
+            const response = await apiClient(`/simulation/strategies/${id}`);
+            console.log(response);
+            setStrategy(response);
         } catch (error: any) {
             if (error instanceof ApiError && error.status === 401) {
                 setStrategy(null);

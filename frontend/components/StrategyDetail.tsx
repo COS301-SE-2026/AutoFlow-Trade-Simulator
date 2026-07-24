@@ -3,6 +3,7 @@
 import { useStrategy } from '@/hooks/useStrategy';
 import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
 import { Button } from "./ui/button";
+import { X } from 'lucide-react';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
     const { strategy, loading, error } = useStrategy(id);
@@ -13,14 +14,18 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
             style={{ background: '#1c1b22' }}>
             {strategy === null ? (
                 <div>
-                    console.error();
-                </div>
-            ) : (
+                    <div>
+                        <div className='flex justify-between'>
+                            <span className=' font-bold' style={{ color: 'var(--text)' }}>strategy not found</span>
+                            <Button onClick={onClose}><X /></Button>
+                        </div>
+                    </div>
+                </div>) : (
                 <div>
                     <div>
                         <div className='flex justify-between'>
                             <span className=' text-3xl font-bold' style={{ color: 'var(--text)' }}>{strategy.name}</span>
-                            <Button onClick={onClose}>X</Button>
+                            <Button onClick={onClose}><X /></Button>
                         </div>
                         <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
                             <span className={`${strategyLevelColors[strategy.level as strategyLevel]}`}>{strategy.level}</span> -

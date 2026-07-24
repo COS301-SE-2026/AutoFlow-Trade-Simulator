@@ -8,9 +8,9 @@ interface StrategyCardProps {
 }
 
 export const strategyLevelColors = {
-    Beginner: 'text-green-400',
-    Intermediate: 'text-orange-400',
-    Advanced: 'text-red-400'
+    beginner: 'text-green-400',
+    intermediate: 'text-orange-400',
+    advanced: 'text-red-400'
 }
 
 export type strategyLevel = keyof typeof strategyLevelColors;

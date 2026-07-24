@@ -29,8 +29,8 @@ export function useStrategies() {
         setLoading(true);
         setError(null);
         try {
-            // const response = await apiClient(`/`); to be added when endpoint is done
-            setStrategies(MOCK_STRATEGIES);
+            const response = await apiClient(`/simulation/strategies`);
+            setStrategies(response.strategies);
         } catch (error: any) {
             if (error instanceof ApiError && error.status === 401) {
                 setStrategies([]);

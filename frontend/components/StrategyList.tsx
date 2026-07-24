@@ -42,13 +42,19 @@ export function StrategyList() {
             </div>
 
             <div className='flex flex-col gap-3'>
-                {filteredStrategies.map((s, index) => (
-                    <StrategyCard
-                        key={`empty-${index}`}
-                        strategy={s}
-                        onClick={() => setSelectedId(s.id)}
-                    />
-                ))}
+                {filteredStrategies.length === 0 ? (
+                    <div>no strategies found</div>
+                ) : (
+                    <div>
+                        {filteredStrategies.map((s, index) => (
+                            <StrategyCard
+                                key={`empty-${index}`}
+                                strategy={s}
+                                onClick={() => setSelectedId(s.id)}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
             <div>
                 {selectedStrategy && (
