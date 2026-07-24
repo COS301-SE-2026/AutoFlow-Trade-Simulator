@@ -7,6 +7,7 @@
 :root {
   color-scheme: dark;
   --background-alt: #141420;
+  --background-light: #17171a;
   --panel: rgba(38, 34, 98, 0.4);
   --text: #ffffff;
   --text-secondary: #e5e5e5;

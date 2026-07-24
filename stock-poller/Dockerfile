@@ -7,7 +7,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py config.yaml base_adapter.py adapters.py ./
+COPY main.py config.yaml base_adapter.py adapters.py db.py ingestion.py ./
 
 RUN chown -R appuser:appgroup /app
 

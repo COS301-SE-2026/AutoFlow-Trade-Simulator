@@ -27,5 +27,28 @@ services:
       timeout: 5s
       retries: 10
 
+  data-harvester:
+    build:
+      context: ./stock-poller
+    container_name: market_data_harvester
+    restart: unless-stopped
+    user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - ./stock-poller/.env
+    volumes:
+      - ./stock-poller/storage/raw_harvest:/app/storage/raw_harvest
+      - ./stock-poller/config.yaml:/app/config.yaml:ro
+    environment:
+      - MOCK_MODE=false
+      - DATA_LAKE_ROOT=/app/storage/raw_harvest
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-autoflow}
+      - DB_USER=${POSTGRES_USER:-autoflow}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-autoflow_password}
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   postgres_data:
