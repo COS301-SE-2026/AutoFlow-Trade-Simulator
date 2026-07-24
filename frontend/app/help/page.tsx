@@ -8,9 +8,15 @@ export default function LearningPage() {
       <Navbar />
       <div className="h-full p-6">
         <div className='text-4xl flex justify-center mb-3'>links</div>
+        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
+          placehodler
+        </div>
         <hr className='border-[#9ca3af] my-6' />
 
         <div className='text-4xl flex justify-center mb-3'>tutorial</div>
+        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
+          placehodler
+        </div>
         <hr className='border-[#9ca3af] my-6' />
 
         <div className='text-4xl flex justify-center mb-3'>FAQ</div>
