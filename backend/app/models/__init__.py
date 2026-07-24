@@ -14,6 +14,7 @@ from .market_condition import MarketCondition
 from .strategies import Strategies
 from .practice_simulation import PraticeSimulation
 from .options import options
+from .options import Options
 
 __all__ = [
     "User",
@@ -34,4 +35,5 @@ __all__ = [
 	"Strategies",
 	"PraticeSimulation",
 	"options"
+	"Options"
 ]

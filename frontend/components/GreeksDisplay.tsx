@@ -233,7 +233,7 @@ export default function GreeksDisplay() {
                                                                 stroke={row.color}
                                                                 strokeWidth={4}
                                                                 fill={`url(#grad-${row.name})`}
-                                                                dot={{ fill: row.color }}
+                                                                dot={false}
                                                                 activeDot={{ r: 8, stroke: '#1c75bc' }}
                                                             />
                                                             </AreaChart>
