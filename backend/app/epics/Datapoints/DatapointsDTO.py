@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
+from enum import Enum
 
 #validate the json body we are getting feels ood not coding a validator for this stuff...
 class QueryParameters(BaseModel):
@@ -17,6 +18,19 @@ class QueryParameters(BaseModel):
         gt=0,
         le=500,
         description="Number of data points desired for graph"
+    )
+
+class Interval(str, Enum):
+    D1 = "1d"
+    W1 = "1w"
+    M1 = "1m"
+    M6 = "6m"
+    Y1 = "1y"
+
+class IntervalParameters(BaseModel):
+    interval: Interval = Field(
+        default=Interval.D1,
+        description="Please send an interval 1d, 1w, 1m, 6m, 1y"
     )
 
 #DTO to return stuffs
