@@ -7,10 +7,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN groupadd --system appgroup && \
+    useradd --system --gid appgroup --create-home appuser
 
-COPY . .
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir --only-binary :all: -r requirements.txt || \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY app /app/app
+
+RUN chown -R appuser:appgroup /app
+
+USER appuser
 
 EXPOSE 8000
 
