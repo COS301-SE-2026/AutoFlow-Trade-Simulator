@@ -21,5 +21,5 @@ def upgrade() -> None: #NOSONAR
     pass
 
 
-def downgrade() -> None:
+def downgrade() -> None: #NOSONAR
     pass
