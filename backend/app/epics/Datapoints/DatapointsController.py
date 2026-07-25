@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 
 from typing import Annotated
@@ -6,7 +6,7 @@ from .DatapointsService import sampled_ohlcv, predef_ohlcv
 from .DatapointsDTO import QueryParameters, IntervalParameters
 from ...database import get_session
 from ...core.security import get_current_user
-from ..models import User
+from ...models import User
 
 SessionDep = Annotated[Session, Depends(get_session)]
 QueryDep = Annotated[QueryParameters, Depends()]
