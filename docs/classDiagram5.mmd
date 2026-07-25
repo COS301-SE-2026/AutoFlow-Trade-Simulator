@@ -112,8 +112,9 @@ classDiagram
     }
 
     class Option {
-        int asset_id PK, FK
+        int asset_id FK
         datetime timestamp PK
+        string contract_symbol PK
         OptionType option_type
         decimal strike_price
         datetime expr_date
