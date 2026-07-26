@@ -53,6 +53,9 @@ services:
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
     container_name: autoflow_backend
     restart: unless-stopped
     ports:

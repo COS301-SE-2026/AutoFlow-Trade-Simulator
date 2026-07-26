@@ -23,6 +23,7 @@ COPY app /app/app
 COPY alembic /app/alembic
 COPY alembic.ini /app/alembic.ini
 COPY seeds.py /app/seeds.py
+COPY .env /app/.env
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && \
     chown -R appuser:appgroup /app /entrypoint.sh
