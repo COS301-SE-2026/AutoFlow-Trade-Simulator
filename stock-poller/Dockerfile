@@ -1,5 +1,7 @@
 FROM python:3.11-slim
 
+ENV PYTHONUNBUFFERED=1
+
 RUN groupadd -r appgroup && useradd -r -g appgroup -s /sbin/nologin appuser
 
 WORKDIR /app

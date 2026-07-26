@@ -20,6 +20,9 @@ RUN pip install \
     --require-hashes \
     -r requirements.txt
 COPY app /app/app
+COPY alembic /app/alembic
+COPY alembic.ini /app/alembic.ini
+COPY seeds.py /app/seeds.py
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && \
     chown -R appuser:appgroup /app /entrypoint.sh

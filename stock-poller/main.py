@@ -5,6 +5,8 @@ from adapters import MassiveAdapter, TwelveDataAdapter, FCSAdapter, CoinMarketCa
 from base_adapter import TickerRingBuffer
 import zoneinfo
 from datetime import datetime
+import sys
+import os
 
 import db
 from ingestion import build_lanes, IngestWorker

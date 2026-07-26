@@ -3,6 +3,7 @@ import asyncio
 import logging
 import asyncpg
 from datetime import timezone
+import sys
 
 logging.basicConfig(
     level=logging.INFO,

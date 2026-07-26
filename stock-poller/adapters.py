@@ -5,6 +5,7 @@ from typing import Optional
 from base_adapter import BaseMarketDataAdapter
 import yaml
 from datetime import datetime, timezone
+import sys
 
 logging.basicConfig(
     level=logging.INFO,

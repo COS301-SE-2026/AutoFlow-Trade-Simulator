@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import asyncpg
+import sys
 
 from db import upsert_realtime_ticks, upsert_daily_ohlcv, upsert_options
 

@@ -8,6 +8,7 @@ import logging
 import httpx
 from typing import List, Union, Optional
 import db
+import sys
 
 logging.basicConfig(
     level=logging.INFO,
