@@ -2,29 +2,33 @@ from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 
 from typing import Annotated
-from .DatapointsService import sampled_ohlcv, predef_ohlcv
-from .DatapointsDTO import QueryParameters, IntervalParameters
+from .DatapointsService import DatapointsService
+from .DatapointsDTO import QueryParameters, IntervalParameters, EpicStatusDTO
 from ...database import get_session
 from ...core.security import get_current_user
 from ...models import User
 
-SessionDep = Annotated[Session, Depends(get_session)]
+
 QueryDep = Annotated[QueryParameters, Depends()]
 PredefDep = Annotated[IntervalParameters, Depends()]
 UserDep = Annotated[User, Depends(get_current_user)]
 
 router = APIRouter(prefix="/assets", tags=["Charts"])
 
+def get_datapoints_service(session: Session = Depends(get_session)) -> DatapointsService:
+    return DatapointsService(session)
+
+ServiceDep = Annotated[DatapointsService, Depends(get_datapoints_service)]
 #Nvm I can pass session should really read code a little slower
 
-@router.get("/chart_health", status_code=status.HTTP_200_OK)
-def health_check(current_user: UserDep):
-    return {"status": "ok"}
+@router.get("/status", status_code=status.HTTP_200_OK)
+def health_check(service: ServiceDep) -> EpicStatusDTO:
+    return service.get_status()
 
 @router.get("/{asset_id}/chart_custom")
-def get_custom_chart(asset_id: int, params: QueryDep, session: SessionDep, current_user: UserDep):
-    return sampled_ohlcv(session=session, asset_id=asset_id, params=params)
+def get_custom_chart(asset_id: int, params: QueryDep, service: ServiceDep, current_user: UserDep):
+    return service.sampled_ohlcv(asset_id=asset_id, params=params)
 
 @router.get("/{asset_id}/chart_predef")
-def get_predef_chart(asset_id: int, params: PredefDep, session: SessionDep, current_user: UserDep):
-    return predef_ohlcv(session=session, asset_id=asset_id, params=params)
+def get_predef_chart(asset_id: int, params: PredefDep, service: ServiceDep, current_user: UserDep):
+    return service.predef_ohlcv(asset_id=asset_id, params=params)
