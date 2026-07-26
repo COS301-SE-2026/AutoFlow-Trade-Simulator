@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { BookOpen, Play, ChevronRight } from 'lucide-react';
+import { EventSimulator } from './EventSimulator';
 
 interface EventDefinition {
     id: string;
@@ -13,35 +14,54 @@ interface EventDefinition {
     narrative: string;
     context: string;
     timeframe: string; // 3m or 1y or maybe even 1m for some event.
+    startYear: number;
+    startMonth: number;
+    startDay: number;
+    tradingDays: number;
+    initialBalance: number;
 }
 
 const eventDefs: EventDefinition[] = [
     {
-        id: 'covid-crash',
-        title: 'COVID-19 Market Crash',
-        ticker: 'SPY',
-        company: 'S&P 500 ETF',
-        sector: 'Broad Market',
-        period: 'Feb - Aug 2020',
-        narrative: 'A new respiratory illness is spreading in China. Global markets are near all-time highs and largely ignoring it. Then everything changes in three weeks.',
-        context: "It's February 3rd, 2020. SPY trades at R5380, close to all-time highs. A novel coronavirus has been identified in Wuhan, but equity markets are dismissive. You have R200,000 to manage over the next six months.",
+        id: 'aapl-iphone12',
+        title: 'Apple iPhone 12 Supercycle',
+        ticker: 'AAPL',
+        company: 'Apple Inc.',
+        sector: 'Technology',
+        period: 'Oct 2020 - Apr 2021',
+        narrative: `Apple launches its first 5G iPhone lineup. Despite pandemic uncertainty, demand explodes, fuelling the biggest iPhone upgrade cycle in years. The market is about to reprice the world's most valuable company.`,
+        context: `It's October 13, 2020. AAPL trades near R2104 after the iPhone 12 reveal. Early pre-order numbers are breaking records, but analysts are still cautious about consumer spending during COVID. You have R200,000 to manage over the next six months.`,
         timeframe: '6m',
+        startYear: 2020,
+        startMonth: 10,
+        startDay: 13,
+        tradingDays: 130,
+        initialBalance: 200000,
     },
     {
-    id: 'nvda-surge',
-    title: 'NVIDIA AI Surge',
-    ticker: 'NVDA',
-    company: 'NVIDIA Corp.',
-    sector: 'Semiconductors',
-    period: 'Jan - Jul 2023',
-    narrative: 'ChatGPT just launched and is adding a million users a day. NVDA has fallen 50% from 2021 highs. Something is about to change.',
-    context: "It's January 3, 2023. NVDA trades at R2520, down sharply from its 2021 peak. OpenAI's ChatGPT launched six weeks ago. The AI compute demand thesis is unproven. You have R200,000 to deploy over the next six months.",
-    timeframe: '6m',
-  },
+        id: 'sanlam-ninetyone',
+        title: 'Sanlam Partnership Boost',
+        ticker: 'N91',                     // Ninety One JSE ticker – verify with your /market-data/assets list
+        company: 'Ninety One',
+        sector: 'Financial Services',
+        period: 'Jan - May 2026',
+        narrative:
+            'A landmark 15-year strategic deal with Sanlam adds £18.3 bn (R412.5 bn) in AUM. The market is about to reprice Ninety One as its total AUM surges 31% to a record R3.9 trillion.',
+        context:
+            "It's January 2, 2026. Ninety One (N91) is trading near the middle of its recent range. Sanlam and Ninety One are in the final stages of a partnership that will bring £18.3 bn in assets under management. The market is yet to fully price in the transformation.",
+        timeframe: '3m',                   // shorter timeframe to capture the immediate reaction
+        startYear: 2026,
+        startMonth: 1,                     // 1‑based: January
+        startDay: 2,
+        tradingDays: 65,                   // roughly 3 calendar months of trading days
+        initialBalance: 200000,            // matches your other ZAR‑based events
+    }
 ];
 
 export function HistoricalEventsTab() {
     const  [selectedEvent, setSelectedEvent] = useState<EventDefinition | null>(null);
+
+    if (selectedEvent) return <EventSimulator event={selectedEvent} onBack={() => setSelectedEvent(null)} />;
 
     return (
         <div className='space-y-6'>
@@ -54,6 +74,7 @@ export function HistoricalEventsTab() {
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
                 {eventDefs.map((event) => (
                     <button
+                        type='button'
                         key={event.id}
                         onClick={() => setSelectedEvent(event)}
                         className='text-left border border-[var(--border)] rounded-xl p-5 bg-[var(--background)]'
