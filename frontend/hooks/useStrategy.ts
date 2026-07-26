@@ -175,7 +175,6 @@ export function useStrategy(id: number | null) {
         setError(null);
         try {
             const response = await apiClient(`/simulation/strategies/${id}`);
-            console.log(response);
             setStrategy(response);
         } catch (error: any) {
             if (error instanceof ApiError && error.status === 401) {

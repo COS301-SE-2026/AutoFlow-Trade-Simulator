@@ -11,7 +11,8 @@ interface StrategyCardProps {
 export const strategyLevelColors = {
     beginner: 'text-green-400',
     intermediate: 'text-orange-400',
-    advanced: 'text-red-400'
+    advanced: 'text-red-400',
+    all: ''
 }
 
 export type strategyLevel = keyof typeof strategyLevelColors;
@@ -29,7 +30,7 @@ export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
                 width: '100%',
             }}>
             <div className='flex'>
-                <span className='font-bold'>{strategy.name}</span>
+                <div className='font-bold my-1'>{strategy.name}</div>
                 <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
                     <span className={`${strategyLevelColors[strategy.level.toLowerCase() as strategyLevel]}`}>{strategy.level}</span> -
                     <span>{strategy.category}</span>

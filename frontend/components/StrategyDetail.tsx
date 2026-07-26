@@ -8,11 +8,28 @@ import { X } from 'lucide-react';
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
     const { strategy, loading, error } = useStrategy(id);
 
+    if (loading) {
+        return (
+            <div
+                className='fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6'
+                style={{ background: '#1c1b22' }}>
+                <div>
+                    <div>
+                        <div className='flex justify-between'>
+                            <span className=' font-bold' style={{ color: 'var(--text)' }}>loading...</span>
+                            <Button onClick={onClose}><X /></Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div
             className='fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6'
             style={{ background: '#1c1b22' }}>
-            {strategy === null ? (
+            {(strategy === null) || error ? (
                 <div>
                     <div>
                         <div className='flex justify-between'>
