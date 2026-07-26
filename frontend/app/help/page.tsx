@@ -20,50 +20,52 @@ export default function LearningPage() {
             // array containing tutorial objects. objects contain question string and answer array. answer array holds answer objects. answer objects contain answer and image reference strings
             {
               q: 'how to create an account', a: [
-                { text: '', image: '/logo.svg' },
-                { text: '', image: '/logo.svg' },
-                { text: '', image: '/logo.svg' },
+                { text: 'after logging in, click on the "add accounts" button visible on the top right of the screen in the navigation bar', image: '/help/create-account-0.png' },
+                { text: 'choose a currency and set a starting amount', image: '/help/create-account-1.png' },
+                { text: 'then click confirm to create an account', image: '/help/create-account-2.png' },
               ]
             },
             {
               q: 'how to buy and sell stocks', a: [
-                { text: '', image: '/logo.svg' },
-                { text: '', image: '/logo.svg' },
-                { text: '', image: '/logo.svg' },
+                { text: 'navigate to the market page using the navigation bar', image: '/help/buy-sell-0.png' },
+                { text: 'choose either select or buy and enter a quantity by either using the input box or MAX to sell or buy the maximum amount of stock', image: '/help/buy-sell-1.png' },
+                { text: 'click the buy or sell button at the bottom of the page', image: '/help/buy-sell-2.png' },
               ]
             },
             {
               q: 'how to learn about strategies', a: [
-                { text: '', image: '/logo.svg' },
-                { text: '', image: '/logo.svg' },
-                { text: '', image: '/logo.svg' },
+                { text: 'go to the learning tab and select strategies', image: '/help/strategy-learning-0.png' },
+                { text: 'choose a strategy you wish to learn or filter them using the selectors', image: '/help/strategylist.png' },
+                { text: 'read about the strategies and practice them in the historical simulation page', image: '/help/strategydetail.png' },
               ]
             },
             {
               q: 'how to view account details', a: [
-                { text: '', image: '/logo.svg' },
-                { text: '', image: '/logo.svg' },
-                { text: '', image: '/logo.svg' },
+                { text: 'navigate to the portfolio page using the navigation bar', image: '/help/portfolio-0.png' },
+                { text: 'the cash balance, amount invested and total value are are visible', image: '/help/portfolio.png' },
               ]
             },
           ].map((f, index) => (
             // mapping array to divs
-            <div key={`empty-${index}`}>
-              <p className='text-1.5x1 mb-3'>{index + 1}. {f.q}</p>
-              {f.a.map((a, index) => (
-                // mapping answer array to text image pairs
-                <div key={`empty-${index}`}>
-                  <p className='mb-4' style={{ color: 'var(--muted' }}>{a.text}</p>
-                  {a.image !== '' && (
-                    <Image
-                      src={a.image}
-                      alt='Autoflow'
-                      width={24}
-                      height={24}
-                    />
-                  )}
-                </div>
-              ))}
+            <div>
+              <div key={`empty-${index}`}>
+                <p className='text-1.5x1 mb-3'>{index + 1}. {f.q}</p>
+                {f.a.map((a, index) => (
+                  // mapping answer array to text image pairs
+                  <div key={`empty-${index}`}>
+                    <p className='mb-4' style={{ color: 'var(--muted' }}>{index + 1}. {a.text}</p>
+                    {a.image !== '' && (
+                      <Image
+                        src={a.image}
+                        alt='Autoflow'
+                        width={960}
+                        height={540}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <hr className='border-[#9ca3af] my-6' />
             </div>
           ))}
         </div>
