@@ -28,7 +28,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                             <Button onClick={onClose}><X /></Button>
                         </div>
                         <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
-                            <span className={`${strategyLevelColors[strategy.level as strategyLevel]}`}>{strategy.level}</span> -
+                            <span className={`${strategyLevelColors[strategy.level.toLowerCase() as strategyLevel]}`}>{strategy.level}</span> -
                             <span>{strategy.category}</span>
                         </div>
                         <div>{strategy.description}</div>
