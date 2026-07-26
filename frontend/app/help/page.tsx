@@ -74,6 +74,7 @@ export default function LearningPage() {
                     alt='Autoflow'
                     width={960}
                     height={540}
+                    style={{ width: 'auto', height: 'auto' }}
                   />
                 </div>
               ))}
