@@ -21,7 +21,7 @@ export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
 
     return (
         <Button
-            className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--seafoam)] transition-colors my-2 p-12'
+            className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl hover:border-[var(--seafoam)] transition-colors my-2 p-12'
             onClick={onClick}
             style={{
                 display: 'flex',
