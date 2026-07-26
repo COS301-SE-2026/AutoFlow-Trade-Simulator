@@ -13,7 +13,7 @@ import {
   Legend,
 } from 'recharts';
 import { apiClient } from '@/lib/api';
-import { MoveLeft, Play, Check } from 'lucide-react';
+import { MoveLeft, Play, ChevronsRight, Pause, Check } from 'lucide-react';
 
 interface EventDefinition {
     id: string;
@@ -102,20 +102,18 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     const [simId, setSimId] = useState<number | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
 
     const allPrices = prices.map(p => p.close)
     const allDates = prices.map(d => new Date(d.timestamp).toLocaleDateString())
 
-    const chartData = allPrices.map((p, i) => ({
+    const chartData = allPrices.slice(0, dayIndex + 1).map((p, i) => ({
         date: allDates[i],
         price: p,
     }))
 
     const startDate = `${event.startYear}-${String(event.startMonth)}-${String(event.startDay)}`;
-    const endDatei = new Date(`${event.startYear}-${String(event.startMonth)}-${String(event.startDay)}`);
-    endDatei.setDate(endDatei.getDate() + event.tradingDays)
-
-    const endDate = endDatei.toString();
+    const endDate = new Date(event.startYear, event.startMonth, event.startDay + event.tradingDays).toISOString().split('T')[0];
 
     useEffect(() => {
         const initialize = async () => {
@@ -148,8 +146,44 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length]);
 
+    const finish = async () => {
+        if (!simId) return;
+        try {
+            const res = await apiClient(`/simulation/practice/simulate/${simId}/finish`, {
+                method: 'POST',
+            }) as SimulationFinishResponse;
+            setFinalSummary(res);
+        } catch (e) {
+            console.error('Simulation finish failed.', e);
+        }
+    }
+
     if (pricesLoading) return <div className='bg-green-950 p-6 white'>Loading market data...</div>
     if (pricesError) return <div className='bg-red-950 p-6 white'>Error loading historical event data: {pricesError}</div>
+
+    if (finalSummary) {
+        const { summary } = finalSummary;
+        return (
+            <div className='p-6'>
+                <div className='text-white font-bold text-xl'>
+                    Simulation Finished
+                </div>
+                <div className='grid grid-cols-2 gap-4'>
+                    <span>Final Balance: {parseFloat(summary.final_balance).toFixed(2)}</span>
+                    <span>Return: {parseFloat(summary.returns_pct)}%</span>
+                    <span>Drawdown: {parseFloat(summary.max_drawdown).toFixed(2)}%</span>
+                    <span>Trades: {summary.trades_count}</span>
+                </div>
+                <button
+                    type='button'
+                    onClick={onBack} 
+                    className='px-4 py-2 bg-blue-900 text-white rounded-xl'
+                >
+                    Back to Events
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className='flex flex-col'>
@@ -167,12 +201,11 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
 
                 <button
                     type='button'
-                    onClick={() => {setIsPlaying(true)}}
+                    onClick={() => {setIsPlaying(b => !b)}}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
-                        <Play />
-                        <span className='text-white'>Play</span>
+                        {isPlaying ? <><Pause /> Pause</> : <><Play /> Play</>}
                     </div>
                 </button>
 
@@ -182,8 +215,19 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
+                        <ChevronsRight />
+                        <span className='text-white'>Skip Forward</span>
+                    </div>
+                </button>
+
+                <button
+                    type='button'
+                    onClick={finish}
+                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
+                >
+                    <div className='flex items-center gap-3'>
                         <Check />
-                        <span className='text-white'>Finish</span>
+                        <span className='text-white'>View Simulation Summary</span>
                     </div>
                 </button>
             </div>
@@ -201,7 +245,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
                     <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
-                    <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                    <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
                     <Tooltip
                         cursor={{ stroke: '#9ca3af' }}
                         content={<CustomTooltip />}
@@ -211,9 +255,9 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         dataKey="price"
                         stroke='var(--blue)'
                         strokeWidth={4}
-                        fill={`url(#sim-grad)`}
+                        fill={`url(#grad-${event.id})`}
                         dot={false}
-                        activeDot={{ r: 8, stroke: '#1c75bc' }}
+                        activeDot={{ r: 4, stroke: '#1c75bc' }}
                     />
                     </AreaChart>
                 </ResponsiveContainer>
