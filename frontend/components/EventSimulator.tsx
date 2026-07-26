@@ -13,7 +13,7 @@ import {
   Legend,
 } from 'recharts';
 import { apiClient } from '@/lib/api';
-import { MoveLeft } from 'lucide-react';
+import { MoveLeft, Play, Check } from 'lucide-react';
 
 interface EventDefinition {
     id: string;
@@ -100,6 +100,8 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(event.ticker, '1d');
 
     const [simId, setSimId] = useState<number | null>(null);
+    const [dayIndex, setDayIndex] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
 
     const allPrices = prices.map(p => p.close)
     const allDates = prices.map(d => new Date(d.timestamp).toLocaleDateString())
@@ -137,12 +139,21 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         if (prices.length > 0) initialize();
     }, [prices, event, startDate, endDate]);
 
+    useEffect(() => {
+        if (!isPlaying || dayIndex >= allPrices.length) {
+            setIsPlaying(false);
+            return;
+        } 
+        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length)), 2000);
+        return () => clearInterval(id);
+    }, [isPlaying, dayIndex, allPrices.length]);
+
     if (pricesLoading) return <div className='bg-green-950 p-6 white'>Loading market data...</div>
     if (pricesError) return <div className='bg-red-950 p-6 white'>Error loading historical event data: {pricesError}</div>
 
     return (
         <div className='flex flex-col'>
-            <div className='flex items-center gap-3'>
+            <div className='flex justify-between items-center gap-3'>
                 <button
                     type='button'
                     onClick={onBack} 
@@ -151,6 +162,28 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     <div className='flex items-center gap-3'>
                         <MoveLeft /> 
                         <span>Back</span>
+                    </div>
+                </button>
+
+                <button
+                    type='button'
+                    onClick={() => {setIsPlaying(true)}}
+                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
+                >
+                    <div className='flex items-center gap-3'>
+                        <Play />
+                        <span className='text-white'>Play</span>
+                    </div>
+                </button>
+
+                <button
+                    type='button'
+                    onClick={() => {setDayIndex(d => Math.min(d + 1, allPrices.length))}}
+                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
+                >
+                    <div className='flex items-center gap-3'>
+                        <Check />
+                        <span className='text-white'>Finish</span>
                     </div>
                 </button>
             </div>
