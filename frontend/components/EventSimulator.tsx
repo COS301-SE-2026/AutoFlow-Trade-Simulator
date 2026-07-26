@@ -13,6 +13,7 @@ import {
   Legend,
 } from 'recharts';
 import { apiClient } from '@/lib/api';
+import { MoveLeft } from 'lucide-react';
 
 interface EventDefinition {
     id: string;
@@ -136,37 +137,54 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         if (prices.length > 0) initialize();
     }, [prices, event, startDate, endDate]);
 
+    if (pricesLoading) return <div className='bg-green-950 p-6 white'>Loading market data...</div>
+    if (pricesError) return <div className='bg-red-950 p-6 white'>Error loading historical event data: {pricesError}</div>
+
     return (
-        <div style={{ width: '100%', height: '250px'}}>
-            <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                data={chartData}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+        <div className='flex flex-col'>
+            <div className='flex items-center gap-3'>
+                <button
+                    type='button'
+                    onClick={onBack} 
+                    className='text-sm text-grey-200 hover:text-white-100 p-4'
                 >
-                <defs>
-                    <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
-                        <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
-                        <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
-                    </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
-                <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
-                <Tooltip
-                    cursor={{ stroke: '#9ca3af' }}
-                    content={<CustomTooltip />}
-                />
-                <Area
-                    type="monotone"
-                    dataKey="price"
-                    stroke='var(--blue)'
-                    strokeWidth={4}
-                    fill={`url(#sim-grad)`}
-                    dot={false}
-                    activeDot={{ r: 8, stroke: '#1c75bc' }}
-                />
-                </AreaChart>
-            </ResponsiveContainer>
+                    <div className='flex items-center gap-3'>
+                        <MoveLeft /> 
+                        <span>Back</span>
+                    </div>
+                </button>
+            </div>
+            <div style={{ width: '100%', height: '250px'}}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                    data={chartData}
+                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                    >
+                    <defs>
+                        <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
+                            <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
+                            <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
+                    <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
+                    <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                    <Tooltip
+                        cursor={{ stroke: '#9ca3af' }}
+                        content={<CustomTooltip />}
+                    />
+                    <Area
+                        type="monotone"
+                        dataKey="price"
+                        stroke='var(--blue)'
+                        strokeWidth={4}
+                        fill={`url(#sim-grad)`}
+                        dot={false}
+                        activeDot={{ r: 8, stroke: '#1c75bc' }}
+                    />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 }
