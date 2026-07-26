@@ -6,7 +6,7 @@ from enum import Enum
 from sqlmodel import SQLModel
 
 #validate the json body we are getting feels ood not coding a validator for this stuff...
-class QueryParameters(BaseModel):
+class QueryParameters(SQLModel):
     start_date: Optional[datetime] = Field(
         None,
         description="Start date (YYYY-MM-DD). If omitted, defaults to 30 days ago. (ex 2026-01-01)"
@@ -33,14 +33,14 @@ class Interval(str, Enum):
     M6 = "6m"
     Y1 = "1y"
 
-class IntervalParameters(BaseModel):
+class IntervalParameters(SQLModel):
     interval: Interval = Field(
         default=Interval.D1,
         description="Please send an interval 1d, 1w, 1m, 6m, 1y"
     )
 
 #DTO to return stuffs
-class DataPoint(BaseModel):
+class DataPoint(SQLModel):
     time: datetime
     open: Optional[float] = None
     high: Optional[float] = None
