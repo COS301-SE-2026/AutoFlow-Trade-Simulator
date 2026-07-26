@@ -3,6 +3,8 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
+from sqlmodel import SQLModel
+
 #validate the json body we are getting feels ood not coding a validator for this stuff...
 class QueryParameters(BaseModel):
     start_date: Optional[datetime] = Field(
@@ -18,7 +20,11 @@ class QueryParameters(BaseModel):
         gt=0,
         le=500,
         description="Number of data points desired for graph"
-    )
+   )
+    
+class EpicStatusDTO(SQLModel):
+    epic: str
+    status: str
 
 class Interval(str, Enum):
     D1 = "1d"
