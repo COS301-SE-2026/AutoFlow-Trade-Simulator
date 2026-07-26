@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePrices } from '@/hooks/usePrices'
 import {
   ResponsiveContainer,
@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { apiClient } from '@/lib/api';
 
 interface EventDefinition {
     id: string;
@@ -30,6 +31,50 @@ interface EventDefinition {
     initialBalance: number;
 }
 
+interface SimulationCreateRequest {
+    symbols: string[];
+    allocations: Record<string, number>;
+    start_date: string;
+    end_date: string;
+    initial_balance: string;
+}
+
+interface SimulationAppendRequest {
+    simulation_id: number;
+    actions: {
+        type: string;
+        symbol: string;
+        qty: number;
+        timestamp: string;
+        meta?: string[];
+    }[];
+}
+
+interface SimulationResponse {
+    simulation_id: number;
+    status: string;
+    positions: string[];
+    nav: string;
+}
+
+interface SimulationFinishResponse {
+    simulation_id: number;
+    status: string;
+    start_date: string;
+    end_date: string;
+    initial_balance: string;
+    summary: {
+        final_balance: string;
+        returns_pct: string;
+        max_drawdown: string;
+        trades_count: number;
+        per_symbol_results: Record<string, {
+            final_value: string;
+            returns_pct: string;
+        }>;
+    };
+}
+
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) 
   {
@@ -41,8 +86,8 @@ const CustomTooltip = ({ active, payload }: any) => {
         padding: '8px',
         borderRadius: '4px',
       }}>
-        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>x: {data.x}</p>
-        <p style={{ margin: '2px 0', fontSize: '12px'}}>y: {data.y.toFixed(4)}</p>
+        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Data: {data.date}</p>
+        <p style={{ margin: '2px 0', fontSize: '12px'}}>Price {data.price}</p>
       </div>
     );
   }
@@ -53,7 +98,43 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
 
     const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(event.ticker, '1d');
 
-    const chartData = prices.map(d => d.close);
+    const [simId, setSimId] = useState<number | null>(null);
+
+    const allPrices = prices.map(p => p.close)
+    const allDates = prices.map(d => new Date(d.timestamp).toLocaleDateString())
+
+    const chartData = allPrices.map((p, i) => ({
+        date: allDates[i],
+        price: p,
+    }))
+
+    const startDate = `${event.startYear}-${String(event.startMonth)}-${String(event.startDay)}`;
+    const endDatei = new Date(`${event.startYear}-${String(event.startMonth)}-${String(event.startDay)}`);
+    endDatei.setDate(endDatei.getDate() + event.tradingDays)
+
+    const endDate = endDatei.toString();
+
+    useEffect(() => {
+        const initialize = async () => {
+            try {
+                const body: SimulationCreateRequest = {
+                    symbols: [event.ticker],
+                    allocations: { [event.ticker]: 1 },
+                    start_date: startDate,
+                    end_date: endDate,
+                    initial_balance: String(event.initialBalance ?? 10000),
+                };
+                const res = await apiClient('/simulation/practice/simulate', {
+                    method: 'POST',
+                    body,
+                }) as SimulationResponse;
+                setSimId(res.simulation_id);
+            } catch (e) {
+                console.error('Failed to create simulation', e);
+            }
+        };
+        if (prices.length > 0) initialize();
+    }, [prices, event, startDate, endDate]);
 
     return (
         <div style={{ width: '100%', height: '250px'}}>
@@ -63,7 +144,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                 margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
                 <defs>
-                    <linearGradient id={`sim-grad`} x1='0' y1='0' x2='0' y2='1'>
+                    <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
                         <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
                         <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
                     </linearGradient>
