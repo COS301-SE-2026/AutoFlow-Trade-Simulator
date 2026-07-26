@@ -53,7 +53,7 @@ export function Navbar() {
                     { label: 'Leaderboard', href: '/#' },
                     { label: 'AI Assistant', href: '/#' },
                     { label: 'Learning', href: '/learning' },
-                    { label: 'help', href: '/help' },
+                    { label: 'Help', href: '/Help' },
                 ].map(({ label, href }) => (
                     <Link
                         key={label}
