@@ -15,11 +15,13 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt
 
 COPY app /app/app
-
-RUN chown -R appuser:appgroup /app
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh && \
+    chown -R appuser:appgroup /app /entrypoint.sh
 
 USER appuser
 
 EXPOSE 8000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
