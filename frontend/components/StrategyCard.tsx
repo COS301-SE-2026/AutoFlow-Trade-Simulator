@@ -1,10 +1,11 @@
 'use client';
 
 import { StrategySummary } from '@/hooks/useStrategies';
+import { Button } from './ui/button';
 
 interface StrategyCardProps {
-    strategy: StrategySummary,
-    onClick: () => void
+    readonly strategy: StrategySummary,
+    readonly onClick: () => void
 }
 
 export const strategyLevelColors = {
@@ -18,9 +19,15 @@ export type strategyLevel = keyof typeof strategyLevelColors;
 export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
 
     return (
-        <div
-            className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--seafoam)] transition-colors'
-            onClick={onClick}>
+        <Button
+            className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--seafoam)] transition-colors my-2 p-12'
+            onClick={onClick}
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                width: '100%',
+            }}>
             <div className='flex'>
                 <span className='font-bold'>{strategy.name}</span>
                 <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
@@ -29,6 +36,6 @@ export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
                 </div>
             </div>
             <span style={{ color: 'var(--muted)' }}>{strategy.description}</span>
-        </div>
+        </Button>
     );
 }
