@@ -9,7 +9,13 @@ from datetime import datetime
 import db
 from ingestion import build_lanes, IngestWorker
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 def load_yaml_sync():
     with open("config.yaml", "r") as f:

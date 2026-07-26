@@ -4,8 +4,13 @@ import asyncpg
 
 from db import upsert_realtime_ticks, upsert_daily_ohlcv, upsert_options
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 def build_lanes(ingestion_config: dict) -> tuple[asyncio.Queue, asyncio.Queue]:
     fast_queue = asyncio.Queue(maxsize=ingestion_config["fast_lane"]["queue_maxsize"])

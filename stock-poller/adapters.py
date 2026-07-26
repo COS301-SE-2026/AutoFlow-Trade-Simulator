@@ -6,8 +6,13 @@ from base_adapter import BaseMarketDataAdapter
 import yaml
 from datetime import datetime, timezone
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 payload_message = "Payload root must be an object"
 
 #refactored generic validation methods to reduce "cognitive complexity" PHP style.
