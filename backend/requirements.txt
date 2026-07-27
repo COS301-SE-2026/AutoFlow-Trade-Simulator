@@ -247,6 +247,12 @@ ecdsa==0.19.2 \
     # via
     #   -r backend/requirements.in
     #   python-jose
+email-validator==2.2.0 \
+    --hash=sha256:32662c5cda49e1f13b5bf998a4422f24d7cb279cc33816ca210b3eb6c33c8752 \
+    --hash=sha256:d808e0638eb655e71465f2a243d46059b02aedec7f3796d11fbfbe9ab5d43899
+    # via
+    #   -r backend/requirements.in
+    #   pydantic
 fastapi==0.136.1 \
     --hash=sha256:7af665ad7acfa0a3baf8983d393b6b471b9da10ede59c60045f49fbc89a0fa7f \
     --hash=sha256:a6e9d7eeada96c93a4d69cb03836b44fa34e2854accb7244a1ece36cd4781c3f
