@@ -1,5 +1,5 @@
-from .MarketDataDTOs import MockOHLCV, EpicStatusDTO, AssetSummary
-from typing import Optional, List
+from .MarketDataDTOs import MockOHLCV, EpicStatusDTO, AssetSummary, MarketHistoryReq
+from typing import Optional, List, Union
 from .generator import LCGPseudoRandomGenerator
 from .tickers import Symbols, intervals, default_start_date, profiles, PlaceholderTicker
 from fastapi import HTTPException
@@ -11,9 +11,12 @@ class MarketDataService:
         pass
 
     # 1. Force the return type here to be List[MockOHLCV]
-    def generate_history(self, payload: Optional[dict] = None) -> List[MockOHLCV]:
+    def generate_history(self, payload: Optional[Union[dict, MarketHistoryReq]] = None) -> List[MockOHLCV]:
         
-        data = payload or {}
+        if isinstance(payload, MarketHistoryReq):
+            data = payload.model_dump(exclude_none=True)
+        else:
+            data = payload or {}
 
         #make a seed based off the symbol
         temp_lcg = LCGPseudoRandomGenerator(seed=101)
@@ -46,7 +49,7 @@ class MarketDataService:
     def get_mock_ticker_data() -> List[MockOHLCV]:
         return [MockOHLCV(**data) for data in PlaceholderTicker]
 
-    def get_asset_prices_data(self, ticker: str, timeframe: str) -> List[MockOHLCV]:
+    def get_asset_prices_data(self, ticker: str, req: MarketHistoryReq) -> List[MockOHLCV]:
 
         #Make the symbol name smth we can process
         FormattedSymbol = ticker.upper().replace("-", "/")
@@ -60,20 +63,12 @@ class MarketDataService:
         
         #Validate the times and throw the expected 422 invalid time stamp error
         allowed_intervals = ["1d", "1w", "1m"]
+        if req.interval and req.interval not in allowed_intervals:
+                raise HTTPException(status_code=422, detail="Invalid time")
 
-        if timeframe not in allowed_intervals:
-             raise HTTPException(
-                status_code=422,
-                detail="Invalid time"
-            )
-    
-        #Payload construction
-        payload = {
-            "symbol": FormattedSymbol,
-            "interval": timeframe,
-        }
+        req.symbol = FormattedSymbol
 
-        RawData = self.generate_history(payload)
+        RawData = self.generate_history(req)
         return RawData
 
     def get_asset_summary_data(self, ticker: str) -> AssetSummary:
