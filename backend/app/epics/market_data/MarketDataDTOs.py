@@ -15,7 +15,6 @@ class MockOHLCV(SQLModel):
 
 #After refactoring logic I no longer think this is in use or was ever in use
 class MarketHistoryReq(SQLModel):
-    symbol: Optional[str] = None
     interval: Optional[str] = None
     start_date: Optional[datetime] = None
     count: Optional[int] = None

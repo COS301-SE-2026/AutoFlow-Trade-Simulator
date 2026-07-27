@@ -1,7 +1,7 @@
 from .MarketDataDTOs import MockOHLCV, EpicStatusDTO, AssetSummary, MarketHistoryReq
 from typing import Optional, List, Union
 from .generator import LCGPseudoRandomGenerator
-from .tickers import Symbols, intervals, default_start_date, profiles, PlaceholderTicker
+from .tickers import intervals, default_start_date, profiles, PlaceholderTicker
 from fastapi import HTTPException
 
 
@@ -22,7 +22,7 @@ class MarketDataService:
         temp_lcg = LCGPseudoRandomGenerator(seed=101)
 
         #Do some validation on the symbol
-        symbol = data.get("symbol") or temp_lcg.choice(Symbols)
+        symbol = data.get("symbol") or temp_lcg.choice(list(profiles.keys()))
         if symbol not in profiles:
             raise ValueError(f"Symbol '{symbol}' is not supported")
 
@@ -66,9 +66,10 @@ class MarketDataService:
         if req.interval and req.interval not in allowed_intervals:
                 raise HTTPException(status_code=422, detail="Invalid time")
 
-        req.symbol = FormattedSymbol
+        payload = req.model_dump(exclude_none=True)
+        payload["symbol"] = FormattedSymbol
 
-        RawData = self.generate_history(req)
+        RawData = self.generate_history(payload)
         return RawData
 
     def get_asset_summary_data(self, ticker: str) -> AssetSummary:
