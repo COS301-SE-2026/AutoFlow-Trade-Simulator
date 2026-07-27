@@ -16,7 +16,6 @@ RUN pip install \
     --default-timeout=100 \
     --retries=5 \
     --no-cache-dir \
-    --only-binary :all: \
     --require-hashes \
     -r requirements.txt
 COPY app /app/app
