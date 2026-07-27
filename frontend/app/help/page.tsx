@@ -3,7 +3,7 @@
 import { Navbar } from '@/components/navbar';
 import Image from 'next/image';
 
-export default function LearningPage() {
+export default function HelpMenu() {
   const getTutorial = (id: string, q: string, a: { id: string, text: string, image: string }[]) => ({
     id: id,
     q: q,
@@ -38,7 +38,7 @@ export default function LearningPage() {
     getTutorial('4', 'How to view account details',
       [
         { id: '1', text: 'Navigate to the portfolio page using the navigation bar.', image: '/help/portfolio-0.png' },
-        { id: '2', text: 'The cash balance, amount invested and total value are are visible.', image: '/help/portfolio.png' },
+        { id: '2', text: 'The cash balance, amount invested and total value are visible.', image: '/help/portfolio.png' },
       ]
     ),
 
@@ -46,7 +46,7 @@ export default function LearningPage() {
 
   const faq = [
     { id: '1', q: 'Is my money real?', a: 'No, money on autoflow trading simulator does not hold any real value and exists the help you practice trading.' },
-    { id: '2', q: 'How do i make more money?', a: 'You can make more money by investing in certain holdings which increase in value or create a new account with a starting amount of your choosing.' },
+    { id: '2', q: 'How do I make more money?', a: 'You can make more money by investing in certain holdings which increase in value or create a new account with a starting amount of your choosing.' },
     { id: '3', q: 'What is stop loss?', a: 'Stop loss is an order to sell your stock when it reaches a specific price so you are protected from losing too much of your investment.' },
     { id: '4', q: 'Is the data real?', a: 'Yes, data on autoflow trading simulator uses historical and real time market data to make learning more engaging and effective.' },
   ];
@@ -54,24 +54,18 @@ export default function LearningPage() {
   return (
     <>
       <Navbar />
-      <div className="h-full p-6">
-        <div className='text-4xl flex justify-center mb-3'>links</div>
-        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
-          placehodler
-        </div>
-        <hr className='border-[#9ca3af] my-6' />
-
-        <div className='text-4xl flex justify-center mb-3'>tutorial</div>
+      <div className="h-full p-6 max-w-7xl mx-auto">
+        <div className='text-4xl flex justify-center mb-3'>Tutorial</div>
         <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
           {tutorials.map((t) => (
             <div key={`tutorials-${t.id}`}>
-              <p className='text-1.5x1 mb-3'>{t.id}. {t.q}</p>
+              <p className='text-1.5xl mb-3'>{t.id}. {t.q}</p>
               {t.a.map((a) => (
                 <div key={`tutorials-${t.id}-step-${a.id}`}>
                   <p className='mb-4' style={{ color: 'var(--muted' }}>{a.text}</p>
                   <Image
                     src={a.image}
-                    alt='Autoflow'
+                    alt={a.text}
                     width={960}
                     height={540}
                     style={{ width: 'auto', height: 'auto' }}
@@ -87,7 +81,7 @@ export default function LearningPage() {
         <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
           {faq.map((f) => (
             <div key={`faq-${f.id}`}>
-              <p className='text-1.5x1 mb-3'>{f.id}. {f.q}</p>
+              <p className='text-1.5xl mb-3'>{f.id}. {f.q}</p>
               <p className='mb-4' style={{ color: 'var(--muted' }}>{f.a}</p>
             </div>
           ))}
