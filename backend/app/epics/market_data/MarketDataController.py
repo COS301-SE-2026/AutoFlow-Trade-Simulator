@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Depends
 from typing import List, Annotated
 
 from .MarketDataDTOs import EpicStatusDTO, MockOHLCV, AssetSummary, MarketHistoryReq
