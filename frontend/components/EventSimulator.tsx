@@ -97,7 +97,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function EventSimulator({ event, onBack }: { event: EventDefinition; onBack: () => void }) {
 
-    const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(event.ticker, '1d');
+    const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(event.ticker, '1d', 10);
 
     const [simId, setSimId] = useState<number | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
@@ -112,8 +112,8 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         price: p,
     }))
 
-    const startDate = `${event.startYear}-${String(event.startMonth)}-${String(event.startDay)}`;
-    const endDate = new Date(event.startYear, event.startMonth, event.startDay + event.tradingDays).toISOString().split('T')[0];
+    const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
+    const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays).toISOString().split('T')[0];
 
     useEffect(() => {
         const initialize = async () => {
@@ -138,11 +138,11 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     }, [prices, event, startDate, endDate]);
 
     useEffect(() => {
-        if (!isPlaying || dayIndex >= allPrices.length) {
+        if (!isPlaying || dayIndex >= allPrices.length - 1) {
             setIsPlaying(false);
             return;
         } 
-        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length)), 2000);
+        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length - 1)), 2000);
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length]);
 

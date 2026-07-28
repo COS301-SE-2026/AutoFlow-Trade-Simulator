@@ -2,9 +2,19 @@ import { AssetSummary, AssetSummarySchema, AssetPricesResponseSchema, OHLCV, OHL
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
-export async function fetchAssetPrices(ticker: string, timeframe: string): Promise<OHLCV[]> 
+export async function fetchAssetPrices(
+  ticker: string,
+  timeframe: string,
+  count?: number,
+): Promise<OHLCV[]> 
 {
-  const res = await fetch(`${apiUrl}/market-data/assets/${encodeURIComponent(ticker)}/prices?timeframe=${timeframe}`);
+  let url = `${apiUrl}/market-data/assets/${encodeURIComponent(ticker)}/prices?timeframe=${timeframe}`;
+
+  if (count !== undefined) {
+    url += `&count=${count}`;
+  }
+  
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to fetch prices: ${res.status}`);
   const data = await res.json();
   return AssetPricesResponseSchema.parse(data);
