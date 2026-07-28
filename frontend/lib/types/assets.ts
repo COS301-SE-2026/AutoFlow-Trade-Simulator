@@ -25,7 +25,7 @@ export const SimCreateResponseSchema = z.object({
   status: z.string(),
   positions: z.record(z.string()),
   nav: z.string(),
-  bar: z.record(z.array(OHLCVBarSchema)),
+  bars: z.record(z.array(OHLCVBarSchema)),
 });
 
 export const AssetSummarySchema = z.object({

@@ -13,6 +13,8 @@ import {
   Legend,
 } from 'recharts';
 import { apiClient } from '@/lib/api';
+import { startSimulation } from '@/lib/api/assets';
+import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check } from 'lucide-react';
 
 interface EventDefinition {
@@ -99,18 +101,10 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
 
     const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(event.ticker, '1d', 10);
 
-    const [simId, setSimId] = useState<number | null>(null);
+    const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
-
-    const allPrices = prices.map(p => p.close)
-    const allDates = prices.map(d => new Date(d.timestamp).toLocaleDateString())
-
-    const chartData = allPrices.slice(0, dayIndex + 1).map((p, i) => ({
-        date: allDates[i],
-        price: p,
-    }))
 
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
     const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays).toISOString().split('T')[0];
@@ -118,25 +112,39 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     useEffect(() => {
         const initialize = async () => {
             try {
-                const body: SimulationCreateRequest = {
-                    symbols: [event.ticker],
-                    allocations: { [event.ticker]: 1 },
-                    start_date: startDate,
-                    end_date: endDate,
-                    initial_balance: String(event.initialBalance ?? 10000),
-                };
-                const res = await apiClient('/simulation/practice/simulate', {
-                    method: 'POST',
-                    body,
-                }) as SimulationResponse;
-                setSimId(res.simulation_id);
+                const res = await startSimulation(
+                    [event.ticker],
+                    { },
+                    startDate,
+                    endDate,
+                    String(event.initialBalance),
+                );
+                setSimData(res);
             } catch (e) {
                 console.error('Failed to create simulation', e);
             }
         };
-        if (prices.length > 0) initialize();
-    }, [prices, event, startDate, endDate]);
+        initialize();
+    }, [event, startDate, endDate]);
+    
+    const allPrices: number[] = [];
+    const allDates: string[] = [];
 
+    if (simData !== null && simData.bars) {
+        const tickerBars = simData.bars[event.ticker];
+            if (tickerBars) {
+                tickerBars.forEach((bar: OHLCVBar) => {
+                allPrices.push(bar.close);
+                allDates.push(new Date(bar.timestamp).toLocaleDateString());
+            });
+        }
+    }
+
+    const chartData = allPrices.slice(0, dayIndex + 1).map((p, i) => ({
+        date: allDates[i],
+        price: p,
+    }))
+    
     useEffect(() => {
         if (!isPlaying || dayIndex >= allPrices.length - 1) {
             setIsPlaying(false);
@@ -146,17 +154,17 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length]);
 
-    const finish = async () => {
-        if (!simId) return;
-        try {
-            const res = await apiClient(`/simulation/practice/simulate/${simId}/finish`, {
-                method: 'POST',
-            }) as SimulationFinishResponse;
-            setFinalSummary(res);
-        } catch (e) {
-            console.error('Simulation finish failed.', e);
-        }
-    }
+    // const finish = async () => {
+    //     if (!simId) return;
+    //     try {
+    //         const res = await apiClient(`/simulation/practice/simulate/${simId}/finish`, {
+    //             method: 'POST',
+    //         }) as SimulationFinishResponse;
+    //         setFinalSummary(res);
+    //     } catch (e) {
+    //         console.error('Simulation finish failed.', e);
+    //     }
+    // }
 
     if (pricesLoading) return <div className='bg-green-950 p-6 white'>Loading market data...</div>
     if (pricesError) return <div className='bg-red-950 p-6 white'>Error loading historical event data: {pricesError}</div>
@@ -222,7 +230,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
 
                 <button
                     type='button'
-                    onClick={finish}
+                    // onClick={finish}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
