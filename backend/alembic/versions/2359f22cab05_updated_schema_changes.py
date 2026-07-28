@@ -52,13 +52,13 @@ def upgrade() -> None:
                     EXECUTE type_drop_stmt;
                 END IF;
 
-                CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
-
                 RAISE NOTICE 'Schema construction beginning';
 
             ELSE
                 RAISE NOTICE 'Schema empty going right to build';
             END IF;
+
+            CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
         END $$;
     """)
 
