@@ -282,19 +282,35 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
-                <div className='p-3 w-64 space-y-4 bg-blue-950 rounded-xl border border-[var(--border)]'>
-                    <div>Portfolio</div>
-                    <div className='flex justify-between'>
-                        <span>Cash</span>
-                        <span>R {cash.toFixed(2)}</span>
+                <div className='w-64 space-y-4'>
+                    <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'>
+                        <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
+                        <div className='flex justify-between'>
+                            <span>Cash</span>
+                            <span>R {cash.toFixed(2)}</span>
+                        </div>
+                        <div className='flex justify-between'>
+                            <span>{event.ticker}</span>
+                            <span>{shares} sh</span>
+                        </div>
+                        <div className='flex justify-between'>
+                            <span>Total</span>
+                            <span>R {portfolioValue.toFixed(2)}</span>
+                        </div>
                     </div>
-                    <div className='flex justify-between'>
-                        <span>{event.ticker}</span>
-                        <span>{shares} sh</span>
-                    </div>
-                    <div className='flex justify-between'>
-                        <span>Total</span>
-                        <span>R {portfolioValue.toFixed(2)}</span>
+                    <div className='flex gap-2'>
+                        <button
+                            className='py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
+                            onClick={() => {setShares(shares + 1), setCash(cash - parseFloat(currentPrice))}}
+                        >
+                            Buy a share
+                        </button>
+                        <button
+                            className='py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
+                            onClick={() => {setShares(shares - 1), setCash(cash - parseFloat(currentPrice))}}
+                        >
+                            Sell a share
+                        </button>
                     </div>
                 </div>
             </div>
