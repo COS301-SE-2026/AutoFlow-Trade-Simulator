@@ -1,7 +1,5 @@
-import decimal
 from typing import Any, Dict, List, Optional
 from sqlmodel import SQLModel
-from ...models.strategies import Strategies
 from decimal import Decimal
 from datetime import date, datetime
 class EpicStatusDTO(SQLModel):

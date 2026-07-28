@@ -80,7 +80,7 @@ export default function SplashPage() {
                         <History className='w-6 h-6 text-[var(--blue)]' />
                         <h4 className='text-xl font-bold mt-2 mb-2'>Historical Replay</h4>
                         <p>
-                            Replay real events like the COVID crash, NVIDIA AI Surge, and more. Trade them day-by-day and see how well you'd perform.
+                            Replay real events like the COVID crash, NVIDIA AI Surge, and more. Trade them day-by-day and see how well you&apos;d perform.
                         </p>
                     </div>
 
@@ -153,7 +153,7 @@ export default function SplashPage() {
                 <div className='bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] rounded-xl p-12 text-center'>
                     <h3 className='text-3xl font-bold text-white mb-4'>Ready To Start Your Trading Journey?</h3>
                     <p className='text-xl mb-8 max-w-2xl mx-auto'>
-                        Join thousands of learners who are mastering the markets with AutoFlow's risk-free trading simulations.
+                        Join thousands of learners who are mastering the markets with AutoFlow&apos;s risk-free trading simulations.
                     </p>
                     <div className='flex items-center justify-center gap-4'>
                         <Link

@@ -1,4 +1,3 @@
-from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Column, Field, SQLModel, JSON
 from typing import List, Optional

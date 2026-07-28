@@ -102,8 +102,8 @@ export default function PriceChart({ ticker }: PriceChartProps) {
                   dataKey="close"
                   stroke="#6950a1"
                   strokeWidth={4}
-                  dot={{ fill: '#6950a1' }}
-                  activeDot={{ r: 8, stroke: '#1c75bc' }}
+                  dot={false}
+                  activeDot={{ r: 2, stroke: '#1c75bc' }}
                 />
               </LineChart>
             </ResponsiveContainer>
