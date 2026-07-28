@@ -1,0 +1,200 @@
+classDiagram
+    class User {
+        int id (PK)
+        string email (UNIQUE)
+        string password_hash
+        string full_name
+    }
+
+    class Portfolio {
+        int id (PK)
+        int user_id (FK)
+        decimal cash_balance
+        string name
+    }
+
+    class InternationalAccount {
+        int id (PK)
+        int portfolio_id (FK)
+        int currency_id (FK)
+        decimal balance
+        datetime created_at
+    }
+
+    class Currency {
+        int id (PK)
+        string code (max 3)
+        string name
+    }
+
+    class Asset {
+        int asset_id (PK)
+        string symbol (UNIQUE)
+        string asset_class
+        string exchange
+        string currency
+    }
+
+    class StockAsset {
+        int id (PK)
+        int asset_id (FK)
+    }
+
+    class Transaction {
+        int id (PK)
+        int account_id (FK)
+        int asset_id (FK)
+        Direction direction
+        float quantity
+        decimal price_at_execution
+        datetime executed_at
+    }
+
+    class Direction {
+        <<enumeration>>
+        BUY
+        SELL
+    }
+
+    class RealtimeTicks {
+        datetime timestamp (PK)
+        int asset_id (FK)
+        decimal price
+        decimal volume
+    }
+
+    class DailyOHLCV {
+        datetime timestamp (PK)
+        int asset_id (FK)
+        decimal open
+        decimal high
+        decimal low
+        decimal close
+        decimal volume
+    }
+
+    class Period {
+        <<enumeration>>
+        WEEKLY
+        DAILY
+    }
+
+    class Report {
+        int id (PK)
+        int user_id (FK)
+        Period period
+        datetime genrated_at
+    }
+
+    class ReportSection {
+        int id (PK)
+        int report_id (FK)
+        string ticker
+        decimal open_price
+        decimal close_price
+        float pct_change
+        decimal period_high
+        decimal period_low
+    }
+
+    class Greeks{
+        int user_id (FK) (PK)
+        string symbol
+        decimal delta
+        decimal gamma
+        decimal theta
+        decimal vega
+        decimal rho
+        datetime timestamp
+    }
+
+    class Condition {
+        <<enumeration>>
+        BULL
+        BEAR
+        RANGING
+    }
+
+    class MarketCondition {
+        int id (PK)
+        datetime date
+        Condition condition
+    }
+
+
+    class strategies {
+        int strat_id (PK)
+        string name
+        string description
+        string level
+        string category
+        jsonb steps
+        jsonb pros
+        jsonb cons
+    }
+
+    class BackTestResults {
+        int backtest_id (PK)
+        int simu_id (FK)
+        int user_id (FK)
+        string asset_symbol
+        string timeframe
+        int total_trade
+    }
+
+    class PracticeSimulation {
+        int id (PK)
+        int user_id (FK)
+        jsonb symbols
+        date start_date
+        date end_date
+        decimal initial_balance
+        decimal current_balance
+        jsonb positions
+        jsonb allocations
+        jsonb last_prices
+        jsonb actions
+        jsonb summary
+        string status
+        datetime created_at
+        datetime finished_at
+    }
+
+    class Options {
+        int asset_id FK
+        datetime timestamp PK
+        string contract_symbol PK
+        OptionType option_type
+        decimal strike_price
+        datetime expr_date
+        decimal bid
+        decimal ask
+        decimal last_price
+        decimal volume
+        decimal open_interest
+        decimal imp_vol
+    }
+
+    class OptionType{
+        <<enumeration>>
+        CALL
+        PUT
+    }
+
+    User "1" --> "*" Portfolio : owns
+    Portfolio "1" --> "*" InternationalAccount : contains
+    InternationalAccount "1" --> "*" Transaction : records
+    Currency "1" --> "*" InternationalAccount : denominated_in
+    Asset "1" --> "*" Transaction : executes
+    Asset "1" --> "*" StockAsset : specializes
+    Transaction "1" --> "1" Direction : uses
+    User "1" --> "*" Greeks : has
+    Asset "1" --> "*" RealtimeTicks : streams
+    Asset "1" --> "*" DailyOHLCV : tracks
+    User "1" --> "*" BackTestResults : Has
+    PracticeSimulation "1" --> "*" BackTestResults : yield
+    Asset "1" --> "0..*" Option : can have
+    Option "1" --> "1" OptionType : categorised as
+    User "1" --> "*" Report : generates
+    Report "1" --> "*" ReportSection : contains
+    Report "1" --> "1" Period : categorized by
