@@ -1,6 +1,5 @@
 import logging
 import os
-import httpx
 from typing import Optional
 from base_adapter import BaseMarketDataAdapter
 import yaml

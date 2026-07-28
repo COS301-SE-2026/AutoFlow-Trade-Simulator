@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -15,7 +16,7 @@ class Settings(BaseSettings):
 
     database_url: str
     secret_key: str
-    algorithm: str = "HS256"
+    algorithm: str = "A256GCM"
     access_token_expire_minutes: int = 30
     redis_url: str = "redis://localhost:6379/0"
     # When true, the app will call SQLModel.metadata.create_all(engine)
@@ -26,7 +27,10 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    return Settings(
+        database_url=os.environ.get("DATABASE_URL", "sqlite:///./test.db"),
+        secret_key=os.environ.get("SECRET_KEY", "default_secret_key"),
+    )
 
 
 settings = get_settings()

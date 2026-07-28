@@ -112,11 +112,18 @@ classDiagram
     }
 
     class Option {
-        int asset_id (PK) (FK)
+        int asset_id FK
+        datetime timestamp PK
+        string contract_symbol PK
         OptionType option_type
         decimal strike_price
         datetime expr_date
-        string exercise_style
+        decimal bid
+        decimal last_price
+        decimal volume
+        decimal open_intrest
+        decimal imp_vol
+        bool in_the_money
     }
 
     class OptionType{
