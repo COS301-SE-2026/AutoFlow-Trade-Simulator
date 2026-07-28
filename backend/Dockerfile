@@ -13,6 +13,7 @@ RUN apt-get update && \
 COPY requirements.txt .
 
 RUN pip install \
+    --only-binary :all: \
     --default-timeout=100 \
     --retries=5 \
     --no-cache-dir \
