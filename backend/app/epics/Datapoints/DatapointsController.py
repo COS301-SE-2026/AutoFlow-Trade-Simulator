@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 
-from typing import Annotated
+from typing import Annotated, List
 from .DatapointsService import DatapointsService
-from .DatapointsDTO import QueryParameters, IntervalParameters, EpicStatusDTO
+from .DatapointsDTO import QueryParameters, IntervalParameters, EpicStatusDTO, DataPoint
 from ...database import get_session
 from ...core.security import get_current_user
 from ...models import User
@@ -26,9 +26,9 @@ def health_check(service: ServiceDep) -> EpicStatusDTO:
     return service.get_status()
 
 @router.get("/{asset_id}/chart_custom")
-def get_custom_chart(asset_id: int, params: QueryDep, service: ServiceDep, current_user: UserDep):
+def get_custom_chart(asset_id: int, params: QueryDep, service: ServiceDep, current_user: UserDep) -> List[DataPoint]:
     return service.sampled_ohlcv(asset_id=asset_id, params=params)
 
 @router.get("/{asset_id}/chart_predef")
-def get_predef_chart(asset_id: int, params: PredefDep, service: ServiceDep, current_user: UserDep):
+def get_predef_chart(asset_id: int, params: PredefDep, service: ServiceDep, current_user: UserDep) -> List[DataPoint]:
     return service.predef_ohlcv(asset_id=asset_id, params=params)
