@@ -25,27 +25,27 @@
       "secrets": [
         {
           "name": "DB_MODE",
-          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/stock-poller/DB_MODE"
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_MODE"
         },
         {
           "name": "DB_HOST",
-          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/stock-poller/DB_HOST"
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_HOST"
         },
         {
           "name": "DB_PORT",
-          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/POSTGRES_PORT"
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_PORT"
         },
         {
           "name": "DB_NAME",
-          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/POSTGRES_DB"
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_NAME"
         },
         {
           "name": "DB_USER",
-          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/POSTGRES_USER"
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod//autoflow/prod/DB_USER"
         },
         {
           "name": "DB_PASSWORD",
-          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/POSTGRES_PASSWORD"
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_PASSWORD"
         },
         {
           "name": "FINFEED_API_KEY",
