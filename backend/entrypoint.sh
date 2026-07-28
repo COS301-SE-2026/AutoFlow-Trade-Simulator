@@ -1,32 +1,28 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-# Wait for PostgreSQL to be ready before proceeding
-echo "--> Waiting for PostgreSQL..."
-python -c "
-import os, time, psycopg2
+MAX_ATTEMPTS=30
+COUNTER=0
 
-host = os.getenv('POSTGRES_HOST', 'db')
-user = os.getenv('POSTGRES_USER')
-password = os.getenv('POSTGRES_PASSWORD')
-database = os.getenv('POSTGRES_DB')
-port = os.getenv('POSTGRES_PORT', '5432')
+echo "Waiting for PostgreSQL database connection at $DB_HOST:$DB_PORT..."
 
-while True:
-    try:
-        conn = psycopg2.connect(
-            host=host, user=user, password=password, dbname=database, port=port, connect_timeout=3
-        )
-        conn.close()
-        print('--> PostgreSQL is ready!')
-        break
-    except Exception:
-        print('Database is unavailable - waiting...')
-        time.sleep(2)
-"
+until python -c "
+import socket, sys
+try:
+    s = socket.create_connection(('$DB_HOST', int('$DB_PORT')), timeout=2)
+    s.close()
+    sys.exit(0)
+except Exception:
+    sys.exit(1)
+" 2>/dev/null; do
+  COUNTER=$((COUNTER + 1))
+  if [ $COUNTER -ge $MAX_ATTEMPTS ]; then
+    echo "ERROR: DB unreachable after 60 seconds."
+    exit 1
+  fi
+  echo "Database unavailable - retrying in 2 seconds ($COUNTER/$MAX_ATTEMPTS)..."
+  sleep 2
+done
 
-echo "--> Running database migrations..."
-alembic upgrade head
-
-echo "--> Starting backend process..."
+echo "Database is reachable. Starting application..."
 exec "$@"
