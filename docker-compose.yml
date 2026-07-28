@@ -3,15 +3,15 @@ services:
     image: timescale/timescaledb:latest-pg16
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-autoflow}
-      POSTGRES_USER: ${POSTGRES_USER:-autoflow}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autoflow_password}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-autoflow} -d ${POSTGRES_DB:-autoflow}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -41,11 +41,11 @@ services:
     environment:
       - MOCK_MODE=false
       - DATA_LAKE_ROOT=/app/storage/raw_harvest
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=${POSTGRES_DB:-autoflow}
-      - DB_USER=${POSTGRES_USER:-autoflow}
-      - DB_PASSWORD=${POSTGRES_PASSWORD:-autoflow_password}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
@@ -61,12 +61,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=${POSTGRES_DB:-autoflow}
-      - DB_USER=${POSTGRES_USER:-autoflow}
-      - DB_PASSWORD=${POSTGRES_PASSWORD:-autoflow_password}
-      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
     depends_on:
       db:
         condition: service_healthy
