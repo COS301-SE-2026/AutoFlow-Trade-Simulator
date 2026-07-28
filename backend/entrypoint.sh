@@ -17,10 +17,10 @@ except Exception:
 " 2>/dev/null; do
   COUNTER=$((COUNTER + 1))
   if [ $COUNTER -ge $MAX_ATTEMPTS ]; then
-    echo "ERROR: DB unreachable after 60 seconds."
+    echo "ERROR: DB unreachable after 60 seconds." >&2
     exit 1
   fi
-  echo "Database unavailable - retrying in 2 seconds ($COUNTER/$MAX_ATTEMPTS)..."
+  echo "Database unavailable - retrying in 2 seconds ($COUNTER/$MAX_ATTEMPTS)..." >&2
   sleep 2
 done
 
