@@ -47,8 +47,6 @@ export function usePrices(ticker: string, timeframe: string, count?: number) {
         setLoading(false);
       }
     };
-
-  getPrices();
     
   }
 
