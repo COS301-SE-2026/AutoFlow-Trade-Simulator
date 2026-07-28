@@ -9,6 +9,10 @@ on:
       - 'docker-compose.yml'
       - '.github/workflows/deploy-backend.yml'
 
+concurrency:
+  group: deploy-backend-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   deploy-backend:
     name: Build and Restart Backend Containers
@@ -31,8 +35,14 @@ jobs:
 
       - name: Verify Container Health
         run: |
-          # Confirm the containers are running
-          docker compose ps
+          # Assert that active containers are running
+          RUNNING_CONTAINERS=$(docker compose ps --status running --quiet)
+          if [ -z "$RUNNING_CONTAINERS" ]; then
+            echo "ERROR: No containers are actively running!"
+            docker compose logs --tail=50
+            exit 1
+          fi
+          echo "Containers verified up and running."
 
       - name: Clean Up Unused Docker Images
         if: always()
