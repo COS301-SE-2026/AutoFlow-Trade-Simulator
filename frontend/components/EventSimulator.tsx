@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePrices } from '@/hooks/usePrices'
 import {
   ResponsiveContainer,
   AreaChart,
@@ -99,8 +98,6 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function EventSimulator({ event, onBack }: { event: EventDefinition; onBack: () => void }) {
 
-    const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(event.ticker, '1d', 10);
-
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -114,7 +111,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
             try {
                 const res = await startSimulation(
                     [event.ticker],
-                    { },
+                    { [event.ticker]: 0 },
                     startDate,
                     endDate,
                     String(event.initialBalance),
@@ -127,14 +124,14 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         initialize();
     }, [event, startDate, endDate]);
     
-    const allPrices: number[] = [];
+    const allPrices: string[] = [];
     const allDates: string[] = [];
 
-    if (simData !== null && simData.bars) {
+    if (simData?.bars) {
         const tickerBars = simData.bars[event.ticker];
             if (tickerBars) {
                 tickerBars.forEach((bar: OHLCVBar) => {
-                allPrices.push(bar.close);
+                allPrices.push((bar.close).toString());
                 allDates.push(new Date(bar.timestamp).toLocaleDateString());
             });
         }
@@ -154,20 +151,25 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length]);
 
-    // const finish = async () => {
-    //     if (!simId) return;
-    //     try {
-    //         const res = await apiClient(`/simulation/practice/simulate/${simId}/finish`, {
-    //             method: 'POST',
-    //         }) as SimulationFinishResponse;
-    //         setFinalSummary(res);
-    //     } catch (e) {
-    //         console.error('Simulation finish failed.', e);
-    //     }
-    // }
+    const finish = async () => {
+        if (!simData) return;
+        try {
+            const res = await apiClient(`/simulation/practice/simulate/${simData.simulation_id}/finish`, {
+                method: 'POST',
+            }) as SimulationFinishResponse;
+            setFinalSummary(res);
+        } catch (e) {
+            console.error('Simulation finish failed.', e);
+        }
+    }
 
-    if (pricesLoading) return <div className='bg-green-950 p-6 white'>Loading market data...</div>
-    if (pricesError) return <div className='bg-red-950 p-6 white'>Error loading historical event data: {pricesError}</div>
+    if (!simData) {
+        return (
+        <div className='bg-green-950 p-6 white rounded-xl border border-[var(--border)]'>
+            Loading simulation...
+        </div>
+        ) 
+    }
 
     if (finalSummary) {
         const { summary } = finalSummary;
@@ -230,7 +232,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
 
                 <button
                     type='button'
-                    // onClick={finish}
+                    onClick={finish}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>

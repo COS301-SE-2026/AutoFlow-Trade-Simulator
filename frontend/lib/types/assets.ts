@@ -13,11 +13,11 @@ export const OHLCVSchema = z.object({
 
 export const OHLCVBarSchema = z.object({
   timestamp: z.string(),
-  open: z.number().positive(),
-  high: z.number().positive(),
-  low: z.number().positive(),
-  close: z.number().positive(),
-  volume: z.number().nonnegative(),
+  open: z.string(),
+  high: z.string(),
+  low: z.string(),
+  close: z.string(),
+  volume: z.string(),
 });
 
 export const SimCreateResponseSchema = z.object({

@@ -29,23 +29,18 @@ export async function startSimulation(
   initial_balance: string
 ): Promise<SimCreateResponse>
 {
-  const res = await apiClient(`${apiUrl}/simulation/practice/simulate`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: {
-        symbols,
-        allocations,
-        start_date,
-        end_date,
-        initial_balance,
-      },
-    });
-  if (!res.ok) throw new Error(`Failed to start simulation: ${res.status}`);
-  const data = await res.json();
-  return SimCreateResponseSchema.parse(data);
+  const res = await apiClient(`/simulation/practice/simulate`,
+  {
+    method: 'POST',
+    body: {
+      symbols,
+      allocations,
+      start_date,
+      end_date,
+      initial_balance,
+    },
+  });
+  return SimCreateResponseSchema.parse(res);
 }
 
 export async function fetchAssetSummary(ticker: string): Promise<AssetSummary> 
