@@ -145,15 +145,17 @@ export default function GreeksDisplay() {
 
     return (
         <div className='flex flex-col h-full gap-4'>
-            <div className='flex items-center gap-3'>
-                <div className='w-8 h-8 rounded-xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center'>
-                    <Activity className='w-4 h-4 text-white'/>
-                </div>
-                <div>
-                    <h2 className='text-lg font-bold text-white'>Options Greeks Reference</h2>
-                    <p className='text-sm text-muted-foreground'>
-                        Click any row to expand with charts and examples
-                    </p>
+            <div className='flex-col items-center gap-3'>
+                <div className='flex flex-row gap-3 m-2 justify-center items-center'>
+                    <div className='w-8 h-8 rounded-xl bg-[var(--background)] border border-[var(--border)] flex justify-center'>
+                        <Activity className='w-4 h-4 text-white self-center'/>
+                    </div>
+                    <div className='mb-2'>
+                        <h2 className='text-lg font-bold text-white'>Options Greeks Reference</h2>
+                        <p className='text-sm text-muted-foreground'>
+                            Click any row to expand with charts and examples
+                        </p>
+                    </div>
                 </div>
                 <div className='flex-1 flex flex-col bg-card border rounded-xl'>
                     <div className='grid grid-cols-[60px_1.2fr_1fr_1fr_1.2fr_1.2fr] gap-3 px-5 py-3 bg-blur/50 border-b text-xs font-semibold uppercase'>
