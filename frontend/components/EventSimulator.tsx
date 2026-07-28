@@ -15,6 +15,7 @@ import { apiClient } from '@/lib/api';
 import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check } from 'lucide-react';
+import { timeStamp } from 'console';
 
 interface EventDefinition {
     id: string;
@@ -103,6 +104,10 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     const [isPlaying, setIsPlaying] = useState(false);
     const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
 
+    const [shares, setShares] = useState(0);
+    const [qty, setQty] = useState('0');
+    const [cash, setCash] = useState(event.initialBalance);
+
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
     const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays).toISOString().split('T')[0];
 
@@ -150,6 +155,10 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length - 1)), 2000);
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length]);
+
+    const currentPrice = allPrices[dayIndex] ?? 0;
+    const portfolioValue = cash + shares * parseFloat(currentPrice);
+    const startPrice = allPrices[0];
 
     const finish = async () => {
         if (!simData) return;
@@ -241,36 +250,53 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     </div>
                 </button>
             </div>
-            <div style={{ width: '100%', height: '250px'}}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                    data={chartData}
-                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                    >
-                    <defs>
-                        <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
-                            <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
-                            <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                    <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
-                    <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
-                    <Tooltip
-                        cursor={{ stroke: '#9ca3af' }}
-                        content={<CustomTooltip />}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="price"
-                        stroke='var(--blue)'
-                        strokeWidth={4}
-                        fill={`url(#grad-${event.id})`}
-                        dot={false}
-                        activeDot={{ r: 4, stroke: '#1c75bc' }}
-                    />
-                    </AreaChart>
-                </ResponsiveContainer>
+            <div className='flex flex-row'>
+                <div style={{ width: '100%', height: '250px'}}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                        data={chartData}
+                        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                        >
+                        <defs>
+                            <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
+                                <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
+                                <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
+                        <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
+                        <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                        <Tooltip
+                            cursor={{ stroke: '#9ca3af' }}
+                            content={<CustomTooltip />}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="price"
+                            stroke='var(--blue)'
+                            strokeWidth={4}
+                            fill={`url(#grad-${event.id})`}
+                            dot={false}
+                            activeDot={{ r: 4, stroke: '#1c75bc' }}
+                        />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+                <div className='p-3 w-64 space-y-4 bg-blue-950 rounded-xl border border-[var(--border)]'>
+                    <div>Portfolio</div>
+                    <div className='flex justify-between'>
+                        <span>Cash</span>
+                        <span>R {cash.toFixed(2)}</span>
+                    </div>
+                    <div className='flex justify-between'>
+                        <span>{event.ticker}</span>
+                        <span>{shares} sh</span>
+                    </div>
+                    <div className='flex justify-between'>
+                        <span>Total</span>
+                        <span>R {portfolioValue.toFixed(2)}</span>
+                    </div>
+                </div>
             </div>
         </div>
     );
