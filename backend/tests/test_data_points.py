@@ -2,29 +2,35 @@ from datetime import datetime, timedelta, UTC
 from sqlmodel import Session, text
 
 from tests.conftest import  client, get_token, test_engine
-from app.epics.datapoints.DatapointsService import DatapointsService
-from app.epics.datapoints.DatapointsDTO import QueryParameters, IntervalParameters, Interval
+from app.epics.Datapoints.DatapointsService import DatapointsService
+from app.epics.Datapoints.DatapointsDTO import QueryParameters, IntervalParameters, Interval
 
-def seed_ohlcv_views():
-    with Session(test_engine) as session:
+OHLCV_VIEWS = ["ohlcv_1d", "ohlcv_1w", "ohlcv_1m", "ohlcv_6m", "ohlcv_1y"]
 
-    now = datetime.now(UTC)
+def setup_sqlite_views(session:Session):
 
-    session.execute(
-        text("""
-            INSERT INTO ohlcv_1d (asset_id, bucket_time, open, high, low, close, volume)
-            VALUES (1, :time, 100.0, 105.0, 99.0, 102.5, 5000.0);
-        """),
-        {"time": now}
-    )
+    for view in OHLCV_VIEWS:
+        session.execute(text(f"""
+            CREATE TABLE IF NOT EXSISTS {view} (
+                asset_id INTEGER,
+                bucket_time TIMESTAMP,
+                open REAL,
+                high REAL,
+                low REAL,
+                close REAL,
+                volume REAL
+            );
+        """))
 
-    session.execute(
-        text("""
-            INSERT INTO ohlcv_1d (asset_id, timestamp, open, high, low, close, volume)
-            VALUES (1, :time, 50.0, 55.0, 48.0, 52.0, 1200.0);
-        """),
-        {"time": now}
-    )
-
+    session.execute(text("""
+        CREATE TABLE IF NOT EXISTS dailyohlcv (
+            asset_id INTEGER,
+            timestamp TIMESTAMP,
+            open REAL,
+            high REAL,
+            low REAL,
+            close REAL,
+            volume REAL
+        );
+    """))
     session.commit()
-
