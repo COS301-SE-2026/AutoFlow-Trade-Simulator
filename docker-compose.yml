@@ -66,6 +66,7 @@ services:
       - DB_NAME=${POSTGRES_DB:-autoflow}
       - DB_USER=${POSTGRES_USER:-autoflow}
       - DB_PASSWORD=${POSTGRES_PASSWORD:-autoflow_password}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
     depends_on:
       db:
         condition: service_healthy
