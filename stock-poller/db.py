@@ -3,9 +3,15 @@ import asyncio
 import logging
 import asyncpg
 from datetime import timezone
+import sys
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 # toggle between database and local flat file storage
 DB_MODE = os.getenv("DB_MODE", "false").lower() == "true"
 

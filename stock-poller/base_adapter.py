@@ -8,9 +8,15 @@ import logging
 import httpx
 from typing import List, Union, Optional
 import db
+import sys
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 class BaseMarketDataAdapter(ABC):
     def __init__(self, provider_name: str, config: dict, market_event: asyncio.Event, pools: dict, db_ctx: Optional[dict] = None):
         self.provider_name = provider_name

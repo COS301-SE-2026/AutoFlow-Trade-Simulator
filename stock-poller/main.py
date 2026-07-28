@@ -5,11 +5,19 @@ from adapters import MassiveAdapter, TwelveDataAdapter, FCSAdapter, CoinMarketCa
 from base_adapter import TickerRingBuffer
 import zoneinfo
 from datetime import datetime
+import sys
+import os
 
 import db
 from ingestion import build_lanes, IngestWorker
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 def load_yaml_sync():
     with open("config.yaml", "r") as f:
