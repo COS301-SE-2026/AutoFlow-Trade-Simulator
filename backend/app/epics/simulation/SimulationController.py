@@ -6,7 +6,7 @@ from ...core.security import get_current_user
 from ...models.user import User
 from .SimulationService import SimulationService
 from ...database import get_session
-from .SimulationDTOs import EpicStatusDTO, SimulationAppendRequest, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse,SimulationCreateRequest, StrategyDetail
+from .SimulationDTOs import EpicStatusDTO, SimulationAppendRequest, SimulationCreateResponse, SimulationFinishResponse, SimulationSessionResponse, StrategiesResponse,SimulationCreateRequest, StrategyDetail
 
 auth_error="User not authenticated"
 router = APIRouter(prefix="/simulation",tags=["Simulation"])
@@ -31,7 +31,7 @@ def get_strategy_detail(strategy_id:int,service:Annotated[SimulationService, Dep
         401: {"description":auth_error},
     }
 )
-def create_practice_simulation(req:SimulationCreateRequest,service:Annotated[SimulationService, Depends(get_simulation_service)],current_user:Annotated[User,Depends(get_current_user)])->SimulationSessionResponse:
+def create_practice_simulation(req:SimulationCreateRequest,service:Annotated[SimulationService, Depends(get_simulation_service)],current_user:Annotated[User,Depends(get_current_user)])->SimulationCreateResponse  :
     if current_user.id is None:
         raise HTTPException(status_code=401, detail="User not authenticated")
     return service.create_simulation_session(req,current_user.id)

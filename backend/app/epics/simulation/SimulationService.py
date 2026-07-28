@@ -9,7 +9,7 @@ from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.practice_simulation import PraticeSimulation
-from .SimulationDTOs import PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO, StrategyDetail, StrategySummary
+from .SimulationDTOs import OHLCVBar,SimulationCreateResponse,PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO, StrategyDetail, StrategySummary
 
 MAX_SYMBOLS = 20
 MAX_YEARS = 5
@@ -97,14 +97,16 @@ class SimulationService:
 
 
 
-    def create_simulation_session(self,req:SimulationCreateRequest,user_id:int)->SimulationSessionResponse:
+    def create_simulation_session(self,req:SimulationCreateRequest,user_id:int)->SimulationCreateResponse:
         self.validate_limits(req.symbols,req.start_date,req.end_date)
         allocations:Dict[str,Decimal]= self.build_allocations(req.symbols,req.allocations)
         positions:Dict[str,Decimal]={}
         actions_log:List[Dict]=[]
+        bars_by_symbol:Dict[str,List[OHLCVBar]]={}
         cash= req.initial_balance
         for s in req.symbols:
             bars:List[DailyOHLCV]= self.load_bars(s,req.start_date,req.end_date)
+            bars_by_symbol[s]=[OHLCVBar(timestamp=b.timestamp,open=b.open,high=b.high,low=b.low,close=b.close,volume=b.volume) for b in bars]
             if not bars:
                 positions[s]=Decimal('0')
                 continue
@@ -125,7 +127,7 @@ class SimulationService:
         self.session.refresh(sim)
         if sim.id is None:
             raise ValueError("No simulation id found")
-        return SimulationSessionResponse(simulation_id=sim.id,status=sim.status,positions=positions,nav=req.initial_balance)
+        return SimulationCreateResponse(simulation_id=sim.id,status=sim.status,positions=positions,nav=req.initial_balance,bars=bars_by_symbol)
 
 
     def append_simulation_actions(self,req:SimulationAppendRequest,user_id:int)->SimulationSessionResponse:

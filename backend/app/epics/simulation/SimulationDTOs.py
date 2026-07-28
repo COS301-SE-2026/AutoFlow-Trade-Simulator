@@ -61,6 +61,17 @@ class SimulationSessionResponse(SQLModel):
     positions:Dict[str,Decimal]
     nav:Decimal
 
+class OHLCVBar(SQLModel):
+    timestamp:datetime
+    open:Decimal
+    high:Decimal
+    low:Decimal
+    close:Decimal
+    volume:Decimal
+
+class SimulationCreateResponse(SimulationSessionResponse):
+    bars:Dict[str,List[OHLCVBar]]
+
 class SimulationFinishResponse(SQLModel):
     simulation_id:int
     status:str
