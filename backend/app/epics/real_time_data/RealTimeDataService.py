@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from sqlmodel import   Session,select
 
-from .RealTimeDataDTOs import DataResponseDTO, EpicStatusDTO
+from .RealTimeDataDTOs import DataPoint, DataResponseDTO, EpicStatusDTO
 from ...models.real_time_ticks import RealTimeTicks
 from ...models.asset import Asset
 
@@ -25,6 +25,9 @@ class RealTimeDataService:
         today:datetime= datetime.utcnow()
         yesterday:datetime = today+timedelta(days=-1)
 
-        points: list[RealTimeTicks] =list(self.session.exec(select(RealTimeTicks).where(RealTimeTicks.asset_id==asset_id).where(RealTimeTicks.timestamp>yesterday)).all())
+        ticks: list[RealTimeTicks] =list(self.session.exec(select(RealTimeTicks).where(RealTimeTicks.asset_id==asset_id).where(RealTimeTicks.timestamp>yesterday)).all())
+        points:list[DataPoint]=[]
+        for tick in ticks:
+            points.append(DataPoint(timestamp=tick.timestamp,price=tick.price,volume=tick.volume))
         return DataResponseDTO(points=points)
 
