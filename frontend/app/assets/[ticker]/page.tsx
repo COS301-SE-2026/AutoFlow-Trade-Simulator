@@ -11,11 +11,15 @@ import { useHoldings } from '@/hooks/useHoldings';
 import { useAccount } from '@/lib/hooks/accountContext';
 import { apiClient } from '@/lib/api';
 import { LiveDataGraph } from '@/components/liveDataGraph';
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function AssetPage() {
   const params = useParams();
   const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
   const ticker = iTicker?.replace('-', '/');
+
+  const [nextTicker, setNextTicker] = useState(ticker);
 
   const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
   const { data: summary, loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
@@ -86,17 +90,34 @@ export default function AssetPage() {
   return (
     <div>
       <Navbar />
-
-      <h1>{ticker}</h1>
-      <AssetSummaryBar ticker={ticker} />
-      <LiveDataGraph symbol={'AAPL'} />
-      <div className='m-4'>
-        <BuySellForm
-          price={currentPrice}
-          accountBalance={accountBalance}
-          currentHoldings={currentHoldings}
-          onBuy={handleBuy}
-          onSell={handleSell} />
+      <div>
+        <h1 className='flex justify-center'>{ticker}</h1>
+        <div>
+          <input
+            type="text"
+            placeholder='ticker...'
+            value={nextTicker}
+            onChange={(e) => {
+              if (e.target.value === '') {
+                setNextTicker(ticker);
+              }
+              else {
+                setNextTicker(e.target.value);
+              }
+            }}
+          />
+          <Link href={`/assets/${nextTicker}`}>Search</Link>
+        </div>
+        <AssetSummaryBar ticker={ticker} />
+        <LiveDataGraph symbol={'AAPL'} />
+        <div className='m-4'>
+          <BuySellForm
+            price={currentPrice}
+            accountBalance={accountBalance}
+            currentHoldings={currentHoldings}
+            onBuy={handleBuy}
+            onSell={handleSell} />
+        </div>
       </div>
     </div>
   );
