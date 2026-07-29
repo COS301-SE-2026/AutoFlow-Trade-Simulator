@@ -59,7 +59,7 @@ export function LiveDataGraph({ symbol }: { symbol: string | null }) {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
                     <XAxis dataKey="timestamp" stroke="#ffffff" tick={{ fontSize: 10 }} label={{ value: 'Time' }} />
-                    <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} label={{ value: 'Price' }} />
+                    <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} label={{ value: 'Price' }} domain={['auto', 'auto']} />
                     <Tooltip
                         cursor={{ stroke: '#9ca3af' }}
                         content={<CustomTooltip />}
