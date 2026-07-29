@@ -59,7 +59,7 @@ export default function SplashPage() {
                             href='/register'
                             className='group px-8 py-4 bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] text-white rounded-full font-medium flex items-center gap-2'
                         >
-                            Start Learning Free
+                            Start Learning For Free
                             <ArrowRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
                         </Link>
                         <button type='button' className='px-8 py-4 bg-gradient-to-r from-[var(--blue)] to-[var(--purple)] text-white rounded-full font-medium'>
@@ -130,19 +130,19 @@ export default function SplashPage() {
                 <div className='max-w-7xl mx-auto px-6 py-16'>
                     <div className='grid grid-cols-1 md:grid-cols-4 gap-8 text-center'>
                         <div>
-                            <p className='text-4xl font-bold text-white mb-2'>50K+</p>
+                            <p className='text-4xl font-bold text-white mb-2'>4+</p>
                             <p className='text-xl'>Active Learners</p>
                         </div>
                         <div>
-                            <p className='text-4xl font-bold text-white mb-2'>20+</p>
+                            <p className='text-4xl font-bold text-white mb-2'>10+</p>
                             <p className='text-xl'>Trading Strategies</p>
                         </div>
                         <div>
-                            <p className='text-4xl font-bold text-white mb-2'>10+</p>
+                            <p className='text-4xl font-bold text-white mb-2'>5+</p>
                             <p className='text-xl'>Historical Events</p>
                         </div>
                         <div>
-                            <p className='text-4xl font-bold text-white mb-2'>R0</p>
+                            <p className='text-4xl font-bold text-white mb-2'>No</p>
                             <p className='text-xl'>Cost to Start</p>
                         </div>
                     </div>
