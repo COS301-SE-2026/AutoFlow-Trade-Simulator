@@ -51,8 +51,12 @@ jobs:
 
       - name: Install Migration Dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install --only-binary=:all: alembic sqlmodel psycopg2-binary pydantic-settings
+            python -m pip install --upgrade pip==24.0
+            pip install --only-binary=:all: \
+              alembic==1.13.1 \
+              sqlmodel==0.0.16 \
+              psycopg2-binary==2.9.9 \
+              pydantic-settings==2.2.1
 
       - name: Execute Database Migrations
         env:
