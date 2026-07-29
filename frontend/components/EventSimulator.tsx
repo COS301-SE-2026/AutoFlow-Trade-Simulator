@@ -106,8 +106,10 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
 
     const [shares, setShares] = useState(0);
-    const [qty, setQty] = useState('0');
+    const [qty, setQty] = useState('1');
     const [cash, setCash] = useState(event.initialBalance);
+    const [trades, setTrades] = useState<any[]>([]);
+    const [tradeType, setTradeType] = useState<'buy' | 'sell'>();
 
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
     const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
@@ -202,6 +204,18 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
 
             setCash(nav - newShares * parseFloat(currentPrice));
 
+            setTrades(prev => [
+                ...prev,
+                {
+                    type: type,
+                    symbol: event.ticker,
+                    qty: qtyToTrade,
+                    price: currentPrice,
+                    date: allDates[dayIndex],
+                },
+            ]);
+
+            setTradeType(type);
         } catch (e) {
             console.error('Trade failed', e);
         }
@@ -273,7 +287,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     <button
                         type='button'
                         onClick={onBack} 
-                        className='text-sm text-grey-200 hover:text-white-100 p-4'
+                        className='text-sm text-gray-200 hover:text-white-100 p-4'
                     >
                         <div className='flex items-center gap-3'>
                             <MoveLeft /> 
@@ -361,7 +375,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
                         <div className='flex justify-between'>
                             <span>Cash</span>
-                            <span>R {cash.toFixed(2)}</span>
+                            <span className='text-lg font-bold text-[var(--green)]'>R {cash.toFixed(2)}</span>
                         </div>
                         <div className='flex justify-between'>
                             <span>{event.ticker}</span>
@@ -369,22 +383,32 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         </div>
                         <div className='flex justify-between'>
                             <span>Total</span>
-                            <span>R {portfolioValue.toFixed(2)}</span>
+                            <span className='text-lg font-bold text-[var(--green)]'>R {portfolioValue.toFixed(2)}</span>
                         </div>
                     </div>
-                    <div className='flex gap-2'>
-                        <button
-                            className='py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
-                            onClick={() => {setShares(shares + 1), setCash(cash - parseFloat(currentPrice))}}
-                        >
-                            Buy a share
-                        </button>
-                        <button
-                            className='py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
-                            onClick={() => {setShares(shares - 1), setCash(cash + parseFloat(currentPrice))}}
-                        >
-                            Sell a share
-                        </button>
+                    <div className={`rounded-xl border p-4 ${tradeType === 'buy' ? 'bg-[var(--green)]' : tradeType === 'sell' ? 'bg-[var(--red)]' : 'bg-[var(--background)]'}`}>
+                        <div className='text-xs font-bold mb-2'>TRADE AT {parseFloat(currentPrice).toFixed(2)}</div>
+                        <input 
+                            type='number' 
+                            value={qty} 
+                            onChange={e => setQty(e.target.value)}
+                            placeholder='Quantity'
+                            className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
+                        />
+                        <div className='flex gap-2'>
+                            <button
+                                className='py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
+                                onClick={() => execute('buy')}
+                            >
+                                Buy
+                            </button>
+                            <button
+                                className='py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
+                                onClick={() => execute('sell')}
+                            >
+                                Sell
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
