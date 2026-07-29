@@ -18,6 +18,7 @@ from .epics.accounts.AccountsController import router as accounts_router
 from .epics.portfolio.ReportController import router as report_router
 from .epics.simulation.SimulationController import router as simulation_router
 from .epics.Datapoints.DatapointsController import router as chart_router
+from .epics.real_time_data.RealTimeDataController import router as real_time 
 
 
 @asynccontextmanager
@@ -52,3 +53,4 @@ app.include_router(accounts_router)
 app.include_router(report_router)
 app.include_router(simulation_router)
 app.include_router(chart_router)
+app.include_router(real_time)

@@ -36,7 +36,7 @@ class SimulationService:
     @staticmethod
     def get_status() -> EpicStatusDTO:
         return EpicStatusDTO(
-            epic="greeks",
+            epic="Simulation",
             status="healthy",
         )
         

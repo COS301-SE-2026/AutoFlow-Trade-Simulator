@@ -1,0 +1,50 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy-backend.yml'
+
+concurrency:
+  group: deploy-backend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-backend:
+    name: Build and Restart Backend Containers
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Validate Environment Configuration
+        run: |
+          if [ ! -f /opt/autoflow/.env ]; then
+            echo "ERROR: /opt/autoflow/.env file not found on EC2 runner!"
+            exit 1
+          fi
+
+      - name: Build and Restart Docker Containers
+        run: |
+          docker compose --env-file /opt/autoflow/.env up -d --build
+
+      - name: Verify Container Health
+        run: |
+          # Assert that active containers are running
+          RUNNING_CONTAINERS=$(docker compose ps --status running --quiet)
+          if [ -z "$RUNNING_CONTAINERS" ]; then
+            echo "ERROR: No containers are actively running!"
+            docker compose logs --tail=50
+            exit 1
+          fi
+          echo "Containers verified up and running."
+
+      - name: Clean Up Unused Docker Images
+        if: always()
+        run: |
+          docker image prune -f
