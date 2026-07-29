@@ -16,6 +16,7 @@ import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check } from 'lucide-react';
 import { timeStamp } from 'console';
+import { parse } from 'path';
 
 interface EventDefinition {
     id: string;
@@ -183,15 +184,30 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     if (finalSummary) {
         const { summary } = finalSummary;
         return (
-            <div className='p-6'>
+            <div className='p-6 space-y-4'>
                 <div className='text-white font-bold text-xl'>
                     Simulation Finished
                 </div>
-                <div className='grid grid-cols-2 gap-4'>
-                    <span>Final Balance: {parseFloat(summary.final_balance).toFixed(2)}</span>
-                    <span>Return: {parseFloat(summary.returns_pct)}%</span>
-                    <span>Drawdown: {parseFloat(summary.max_drawdown).toFixed(2)}%</span>
-                    <span>Trades: {summary.trades_count}</span>
+                <div className='grid grid-cols-2 gap-4 text-sm'>
+                    <div>
+                        Final Balance:
+                        <span className='font-bold'> R {parseFloat(summary.final_balance).toFixed(2)}
+                        </span>
+                    </div>
+                    <div>
+                        Return:
+                        <span 
+                            className={parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green)]' : 'text-[var(--red)]'}
+                        > {parseFloat(summary.returns_pct)}%</span>
+                    </div>
+                    <div>
+                        Max Drawdown: 
+                        <span className='text-[var(--red)]'> {parseFloat(summary.max_drawdown).toFixed(2)}%</span>
+                    </div>
+                    <div>
+                        Trades:
+                        <span className='font-bold'> {summary.trades_count}</span>
+                    </div>
                 </div>
                 <button
                     type='button'
@@ -256,7 +272,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
             <div className='flex gap-4 flex-1 min-h-0'>
                 <div className='flex-1 rounded-xl border border-[var(--border)] p-4'>
                     <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
-                    <div className='text-xl font-bold'>{currentPrice.toFixed(2)}</div>
+                    <div className='text-xl font-bold'>{parseFloat(currentPrice).toFixed(2)}</div>
                     <div style={{ width: '100%', height: '250px'}}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
