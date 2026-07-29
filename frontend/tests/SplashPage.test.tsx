@@ -42,4 +42,32 @@ describe('SplashPage', () => {
         expect(signUpLink).toHaveAttribute('href', '/register');
         expect(signInLink).toHaveAttribute('href', '/login')
     });
+
+    it('renders the CTA "Start Learning For Free" with correct Link', () => {
+        render(<SplashPage />);
+        const cta = screen.getByRole('link', { name: /Start Learning For Free/i });
+        expect(cta).toBeInTheDocument();
+        expect(cta).toHaveAttribute('href', '/register');
+    });
+
+    it('renders the "View Features" button', () => {
+        render(<SplashPage />);
+        const viewFeaturesBtn = screen.getByRole('button', { name: /View Features/i });
+        expect(viewFeaturesBtn).toBeInTheDocument();
+    });
+
+    it('displays, all feature cards with headings and descriptions', () => {
+        render(<SplashPage />);
+        const features = [
+            'Historical Replay',
+            'Strategy Library',
+            'Risk-Free Practice',
+            'Options Greeks',
+            'Live Charts',
+            'AI Insights',
+        ];
+        features.forEach((title) => {
+            expect(screen.getByText(title)).toBeInTheDocument();
+        });
+    });
 })
