@@ -110,7 +110,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     const [cash, setCash] = useState(event.initialBalance);
 
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
-    const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays).toISOString().split('T')[0];
+    const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
 
     useEffect(() => {
         const initialize = async () => {
@@ -160,6 +160,52 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     const currentPrice = allPrices[dayIndex] ?? 0;
     const portfolioValue = cash + shares * parseFloat(currentPrice);
     const startPrice = allPrices[0];
+
+    const execute = async (type: 'buy' | 'sell') => {
+        if (!simData || parseFloat(currentPrice) <= 0) return;
+
+        const simId = simData.simulation_id;
+        let quantity = parseInt(qty);
+        if (!quantity || quantity < 1) quantity = 1;
+        let qtyToTrade = quantity;
+        
+        if (type === 'sell') {
+            if (shares <= 0) return;
+            if (qtyToTrade > shares) {
+                qtyToTrade = shares;
+            }
+        }
+
+        const tickerBars = simData.bars?.[event.ticker];
+        const bar = tickerBars?.[dayIndex];
+        const timestamp = bar ? bar.timestamp : new Date().toISOString();
+
+        const action = {
+            type: type,
+            symbol: event.ticker,
+            qty: qtyToTrade,
+            timestamp: timestamp
+        };
+
+        try {
+            const res = await apiClient('/simulation/practice/simulate/actions', {
+                method: 'POST',
+                body: {
+                    simulation_id: simId,
+                    actions: [action],
+                }
+            });
+
+            const newShares = res.positions?.[event.ticker];
+            const nav = res.nav;
+            setShares(newShares);
+
+            setCash(nav - newShares * parseFloat(currentPrice));
+
+        } catch (e) {
+            console.error('Trade failed', e);
+        }
+    }
 
     const finish = async () => {
         if (!simData) return;
@@ -304,9 +350,10 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
-                </div>
-                <div className='mt-2 h-1 bg-gray-800 rounded-full'>
-                    <div className='h-full bg-[var(--accent)] rounded-full' style={{ width: `${((dayIndex + 1) / allPrices.length) * 100}%` }}></div>
+                    <div className='mt-2 h-1 bg-gray-800 rounded-full'>
+                        <div className='h-full bg-[var(--blue)] rounded-full' style={{ width: `${((dayIndex + 1) / allPrices.length) * 100}%` }}></div>
+                    </div>
+                    <div className='text-xs mt-1'>Day {dayIndex + 1} of {allPrices.length + 1}</div>
                 </div>
 
                 <div className='w-64 space-y-4'>
