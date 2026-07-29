@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SplashPage from '@/app/splash/page';
 
@@ -34,13 +34,14 @@ describe('SplashPage', () => {
 
     it('contains navigational links to Sign Up and Sign In', () => {
         render(<SplashPage />);
-        const signUpLink = screen.getByRole('link', { name: /Sign Up/i });
-        const signInLink = screen.getByRole('link', { name: /Sign In/i });
-
-        expect(signUpLink).toBeInTheDocument();
-        expect(signInLink).toBeInTheDocument();
-        expect(signUpLink).toHaveAttribute('href', '/register');
-        expect(signInLink).toHaveAttribute('href', '/login')
+        const nav = screen.getByRole('navigation');
+        const navSignUp = within(nav).getByRole('link', { name: /Sign Up/i });
+        const navSignIn = within(nav).getByRole('link', { name: /Sign In/i });
+        
+        expect(navSignUp).toBeInTheDocument();
+        expect(navSignIn).toBeInTheDocument();
+        expect(navSignUp).toHaveAttribute('href', '/register');
+        expect(navSignIn).toHaveAttribute('href', '/login')
     });
 
     it('renders the CTA "Start Learning For Free" with correct Link', () => {
@@ -91,8 +92,16 @@ describe('SplashPage', () => {
 
     it('has a CTA section at the bottom with two links', () => {
         render(<SplashPage />);
-        const createAccountLink = screen.getByRole('link', { name: /Create Your Free Account/i });
-        const signInLink = screen.getByRole('link', { name: /Sign In/i });
+
+        const ctaHeading = screen.getByText(/Ready To Start Your Trading Journey\?/i);
+        const ctaContainer = ctaHeading.closest('div.bg-gradient-to-r') as HTMLElement;
+        expect(ctaContainer).toBeInTheDocument();
+
+        const withinCta = within(ctaContainer!);
+
+        const createAccountLink = withinCta.getByRole('link', { name: /Create Your Free Account/i });
+        const signInLink = withinCta.getByRole('link', { name: /Sign In/i });
+
         expect(createAccountLink).toBeInTheDocument();
         expect(createAccountLink).toHaveAttribute('href', '/register');
         expect(signInLink).toBeInTheDocument();
