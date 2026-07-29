@@ -8,7 +8,7 @@
   color-scheme: dark;
   --background-alt: #141420;
   --background-light: #17171a;
-  --background-glass: rgba(20, 20, 32, 0.8);
+  --background-glass: rgba(20, 20, 32, 0.5);
   --panel: rgba(38, 34, 98, 0.4);
   --text: #ffffff;
   --text-secondary: #e5e5e5;
@@ -228,7 +228,7 @@ h1 {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, var(--seafoam), var(--background-alt));
+  background: linear-gradient(to top, var(--accent), var(--background-alt));
   background-size: 200% 200%;
   filter: blur(8px);
   z-index: -1;

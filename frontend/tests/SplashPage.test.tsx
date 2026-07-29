@@ -89,5 +89,20 @@ describe('SplashPage', () => {
         expect(screen.getByRole('button', { name: /Support/i })).toBeInTheDocument();
     });
 
+    it('has a CTA section at the bottom with two links', () => {
+        render(<SplashPage />);
+        const createAccountLink = screen.getByRole('link', { name: /Create Your Free Account/i });
+        const signInLink = screen.getByRole('link', { name: /Sign In/i });
+        expect(createAccountLink).toBeInTheDocument();
+        expect(createAccountLink).toHaveAttribute('href', '/register');
+        expect(signInLink).toBeInTheDocument();
+        expect(signInLink).toHaveAttribute('href', '/login');
+    });
 
+    it('renders the logo image', () => {
+        render(<SplashPage />);
+        const logo = screen.getByAltText('Autoflow');
+        expect(logo).toBeInTheDocument();
+        expect(logo).toHaveAttribute('src', '/logo.svg');
+    })
 })

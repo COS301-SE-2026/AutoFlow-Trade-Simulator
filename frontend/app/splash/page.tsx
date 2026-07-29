@@ -43,13 +43,13 @@ export default function SplashPage() {
 
                 <div className='mx-auto px-6 py-24'>
                     <div className='text-center mx-auto'>
-                        <div className='inline-flex items-center gap-2 px-4 py-2 bg-[var(--blue)]/20 border border-[var(--seafoam)] rounded-full text-[var(--green)] text-sm font-medium mb-6'>
+                        <div className='inline-flex items-center gap-2 px-4 py-2 border border-[var(--blue)] rounded-full text-[var(--seafoam)] text-sm font-medium mb-6'>
                             <Zap className='w-4 h-4' />
                             AI-Powered Educational Trading Platform
                         </div>
                         <h2 className='text-5xl md:text-6xl font-bold text-white mb-6'>
                             Master the markets with
-                            <span className='bg-gradient-to-r from-[var(--seafoam)] to-[var(--green)] bg-clip-text text-transparent gap-1'> Confidence
+                            <span className='bg-gradient-to-r from-[var(--seafoam)] to-[var(--blue)] bg-clip-text text-transparent gap-1'> Confidence
                             </span>
                         </h2>
                         <p>
@@ -58,12 +58,12 @@ export default function SplashPage() {
                         <div className='flex items-center justify-center gap-4 mt-4'>
                             <Link
                                 href='/register'
-                                className='group px-8 py-4 bg-gradient-to-r from-[var(--seafoam)] to-[var(--green)] text-white rounded-full font-medium flex items-center gap-2'
+                                className='group px-8 py-4 bg-gradient-to-r from-[var(--seafoam)] to-[var(--blue)] text-white rounded-full font-medium flex items-center gap-2'
                             >
                                 Start Learning For Free
                                 <ArrowRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
                             </Link>
-                            <button type='button' className='px-8 py-4 bg-gradient-to-r from-[var(--seafoam)] to-[var(--green)] text-white rounded-full font-medium'>
+                            <button type='button' className='px-8 py-4 bg-gradient-to-r from-[var(--seafoam)] to-[var(--blue)] text-white rounded-full font-medium'>
                                 View Features
                             </button>
                         </div>
@@ -151,7 +151,7 @@ export default function SplashPage() {
                 </div>
 
                 <div className='max-w-7xl mx-auto px-6 py-24'>
-                    <div className='bg-gradient-to-r from-[var(--seafoam)] to-[var(--green)] rounded-xl p-12 text-center'>
+                    <div className='bg-gradient-to-r from-[var(--seafoam)] to-[var(--blue)] rounded-xl p-12 text-center'>
                         <h3 className='text-3xl font-bold text-white mb-4'>Ready To Start Your Trading Journey?</h3>
                         <p className='text-xl mb-8 max-w-2xl mx-auto'>
                             Join thousands of learners who are mastering the markets with AutoFlow&apos;s risk-free trading simulations.
@@ -159,13 +159,13 @@ export default function SplashPage() {
                         <div className='flex items-center justify-center gap-4'>
                             <Link
                                 href='/register'
-                                className='px-8 py-4 bg-white text-[var(--seafoam)] rounded-xl font-medium hover:bg-gray-300 transition-colors'
+                                className='px-8 py-4 text-white rounded-xl border border-white font-medium hover:bg-white hover:text-[var(--blue)] transition-colors'
                             >
                                 Create Your Free Account
                             </Link>
                             <Link
                                 href='/login'
-                                className='px-8 py-4 bg-white text-[var(--seafoam)] rounded-xl font-medium hover:bg-gray-200 transition-colors'
+                                className='px-8 py-4 text-white rounded-xl border border-white font-medium hover:bg-white hover:text-[var(--blue)] transition-colors'
                             >
                                 Sign In
                             </Link>
