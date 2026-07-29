@@ -1,0 +1,82 @@
+
+> test
+> npm run test:backend
+
+
+> test:backend
+> cd backend && python -m pytest
+
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0
+rootdir: /home/ck/Documents/AutoFlow/AutoFlow-Trade-Simulator/backend
+plugins: anyio-4.13.0
+collected 51 items
+
+tests/test_accounts.py .....                                             [  9%]
+tests/test_auth.py .......                                               [ 23%]
+tests/test_data_points.py .......F.                                      [ 41%]
+tests/test_main.py ..                                                    [ 45%]
+tests/test_market_api.py ....F..                                         [ 58%]
+tests/test_mock_data.py .                                                [ 60%]
+tests/test_mock_generator.py .......                                     [ 74%]
+tests/test_reports.py .....                                              [ 84%]
+tests/test_security.py .                                                 [ 86%]
+tests/test_trade_execution.py .......                                    [100%]
+
+=================================== FAILURES ===================================
+__________________________ test_sampled_ohlcv_success __________________________
+
+seed_datapoints = None
+
+    def test_sampled_ohlcv_success(seed_datapoints) -> None:
+        with Session (test_engine) as session:
+    
+            now = datetime.now(UTC)
+            service = DatapointsService(session)
+            params = QueryParameters(
+                start_date=now - timedelta(days=1),
+                end_date=now,
+                data_points=2
+            )
+    
+            result = service.sampled_ohlcv(asset_id=1, params=params)
+    
+            assert isinstance(result, list)
+>           assert len(result) == 2
+E           assert 1 == 2
+E            +  where 1 = len([DataPoint(time=datetime.datetime(2026, 7, 29, 1, 24, 40, 984265, tzinfo=TzInfo(0)), open=95.0, high=110.0, low=90.0, close=107.0, volume=35000.0)])
+
+tests/test_data_points.py:286: AssertionError
+______________________ test_prices_invalid_timeframe_422 _______________________
+
+    def test_prices_invalid_timeframe_422():
+        res = client.get("/market-data/assets/BTC-USDT/prices",
+                         params={"timeframe": "NONSENSE"})
+>       assert res.status_code == 422
+E       assert 200 == 422
+E        +  where 200 = <Response [200 OK]>.status_code
+
+tests/test_market_api.py:57: AssertionError
+=============================== warnings summary ===============================
+../.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/ck/Documents/AutoFlow/AutoFlow-Trade-Simulator/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+../.venv/lib/python3.12/site-packages/sqlmodel/main.py:583
+  /home/ck/Documents/AutoFlow/AutoFlow-Trade-Simulator/.venv/lib/python3.12/site-packages/sqlmodel/main.py:583: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.13/migration/
+    "SQLModel", super().__new__(cls, name, bases, dict_used, **config_kwargs)
+
+tests/test_data_points.py: 96 warnings
+  /home/ck/Documents/AutoFlow/AutoFlow-Trade-Simulator/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:949: DeprecationWarning: The default datetime adapter is deprecated as of Python 3.12; see the sqlite3 documentation for suggested replacement recipes
+    cursor.executemany(statement, parameters)
+
+tests/test_data_points.py::test_sampled_ohlcv_success
+tests/test_data_points.py::test_sampled_ohlcv_success
+  /home/ck/Documents/AutoFlow/AutoFlow-Trade-Simulator/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:952: DeprecationWarning: The default datetime adapter is deprecated as of Python 3.12; see the sqlite3 documentation for suggested replacement recipes
+    cursor.execute(statement, parameters)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_data_points.py::test_sampled_ohlcv_success - assert 1 == 2
+FAILED tests/test_market_api.py::test_prices_invalid_timeframe_422 - assert 2...
+============ 2 failed, 49 passed, 100 warnings in 83.94s (0:01:23) =============
