@@ -8,6 +8,8 @@ on:
       - 'backend/**'
       - 'docker-compose.yml'
       - '.github/workflows/deploy-backend.yml'
+      - 'appspec.yml'
+      - 'scripts/**'
 
 concurrency:
   group: deploy-backend-${{ github.ref }}
@@ -15,36 +17,71 @@ concurrency:
 
 jobs:
   deploy-backend:
-    name: Build and Restart Backend Containers
-    runs-on: self-hosted
+    name: Build, Migrate & Trigger Blue/Green Deployment
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@v4
 
-      - name: Validate Environment Configuration
-        run: |
-          if [ ! -f /opt/autoflow/.env ]; then
-            echo "ERROR: /opt/autoflow/.env file not found on EC2 runner!"
-            exit 1
-          fi
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Build and Restart Docker Containers
-        run: |
-          docker compose --env-file /opt/autoflow/.env up -d --build
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Verify Container Health
+      - name: Build and Push Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Assert that active containers are running
-          RUNNING_CONTAINERS=$(docker compose ps --status running --quiet)
-          if [ -z "$RUNNING_CONTAINERS" ]; then
-            echo "ERROR: No containers are actively running!"
-            docker compose logs --tail=50
-            exit 1
-          fi
-          echo "Containers verified up and running."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./backend
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Clean Up Unused Docker Images
-        if: always()
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Migration Dependencies
         run: |
-          docker image prune -f
+          python -m pip install --upgrade pip
+          pip install alembic sqlmodel psycopg2-binary pydantic-settings
+
+      - name: Execute Database Migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cd backend
+          alembic upgrade head
+
+      - name: Package CodeDeploy Bundle
+        run: |
+          mkdir -p build
+          zip -r build/deployment-${{ github.sha }}.zip appspec.yml scripts/
+
+      - name: Upload Bundle to Amazon S3
+        run: |
+          aws s3 cp build/deployment-${{ github.sha }}.zip \
+            s3://${{ secrets.S3_DEPLOYMENT_BUCKET }}/deployments/deployment-${{ github.sha }}.zip
+
+      - name: Create CodeDeploy Deployment
+        run: |
+          DEPLOYMENT_ID=$(aws deploy create-deployment \
+            --application-name ${{ secrets.CODEDEPLOY_APP_NAME }} \
+            --deployment-group-name ${{ secrets.CODEDEPLOY_GROUP_NAME }} \
+            --s3-location bucket=${{ secrets.S3_DEPLOYMENT_BUCKET }},key=deployments/deployment-${{ github.sha }}.zip,bundleType=zip \
+            --description "Automated deployment for commit ${{ github.sha }}" \
+            --query "deploymentId" \
+            --output text)
+          
+          echo "Triggered CodeDeploy Deployment ID: $DEPLOYMENT_ID"
+          
+          # Block and wait until CodeDeploy lifecycle hooks pass health checks on EC2
+          aws deploy wait deployment-successful --deployment-id $DEPLOYMENT_ID
