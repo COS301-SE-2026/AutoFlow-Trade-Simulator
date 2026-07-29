@@ -1,28 +1,24 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
 
-export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
-source /tmp/deployment_slot.env
+source /opt/codedeploy-agent/deployment-root/$DEPLOYMENT_GROUP_ID/$DEPLOYMENT_ID/deployment-archive/scripts/image.env
+ECR_URI="$ECR_REGISTRY/$ECR_REPOSITORY"
 
-echo "Starting container on target slot $TARGET_SLOT (Port $TARGET_PORT)..."
+ACTIVE_PORT=$(docker ps --filter "name=autoflow-backend" --format "{{.Ports}}" | grep -oP '0.0.0.0:\K(8001|8002)' || echo "none")
 
-# Remove existing container on target slot if present
-docker stop "autoflow-$TARGET_SLOT" || true
-docker rm "autoflow-$TARGET_SLOT" || true
+if [[ "$ACTIVE_PORT" == "8001" ]]; then
+    TARGET_PORT=8002
+    TARGET_NAME="autoflow-backend-green"
+else
+    TARGET_PORT=8001
+    TARGET_NAME="autoflow-backend-blue"
+fi
 
-# Spin up target container
 docker run -d \
-  --name "autoflow-$TARGET_SLOT" \
-  --restart unless-stopped \
-  -p "$TARGET_PORT:8000" \
-  --env-file /home/ec2-user/autoflow/.env \
-  "$IMAGE_URI"
+  --name "$TARGET_NAME" \
+  -p $TARGET_PORT:8000 \
+  --env-file /path/to/your/production/.env \
+  "$ECR_URI:$IMAGE_TAG"
 
-sleep 5
-
-# Update Nginx reverse proxy configuration
-echo "Updating Nginx upstream to port $TARGET_PORT..."
-sudo sed -i "s/proxy_pass http:\/\/127\.0\.0\.1:[0-9]*/proxy_pass http:\/\/127\.0\.0\.1:$TARGET_PORT/" /etc/nginx/conf.d/autoflow.conf
-
-# Reload Nginx without dropping active connections
-sudo nginx -s reload
+echo "TARGET_PORT=$TARGET_PORT" > /tmp/deployment_target.env
+echo "TARGET_NAME=$TARGET_NAME" >> /tmp/deployment_target.env
