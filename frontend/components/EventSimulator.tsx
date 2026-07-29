@@ -386,7 +386,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                             <span className='text-lg font-bold text-[var(--green)]'>R {portfolioValue.toFixed(2)}</span>
                         </div>
                     </div>
-                    <div className={`rounded-xl border p-4 ${tradeType === 'buy' ? 'bg-[var(--green)]' : tradeType === 'sell' ? 'bg-[var(--red)]' : 'bg-[var(--background)]'}`}>
+                    <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
                         <div className='text-xs font-bold mb-2'>TRADE AT {parseFloat(currentPrice).toFixed(2)}</div>
                         <input 
                             type='number' 
@@ -409,6 +409,17 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                                 Sell
                             </button>
                         </div>
+                    </div>
+                    <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
+                        History
+                        {trades.length === 0 ? <p>No trades</p> : [...trades].map((t, i) => (
+                            <div key={i} className='flex items-center gap-2 mb-1'>
+                                <span className={`font-bold ${t.type === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
+                                <span>{t.type.toUpperCase()} {t.qty}@{parseFloat(t.price).toFixed(2)}</span>
+                            </div>
+                        ))
+                            
+                        }
                     </div>
                 </div>
             </div>
