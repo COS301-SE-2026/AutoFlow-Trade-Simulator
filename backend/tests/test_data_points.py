@@ -11,7 +11,7 @@ def setup_sqlite_views(session:Session):
 
     for view in OHLCV_VIEWS:
         session.execute(text(f"""
-            CREATE TABLE IF NOT EXSISTS {view} (
+            CREATE TABLE IF NOT EXISTS {view} (
                 asset_id INTEGER,
                 bucket_time TIMESTAMP,
                 open REAL,
@@ -35,6 +35,7 @@ def setup_sqlite_views(session:Session):
     """))
     session.commit()
 
+@pytest.fixture
 def seed_datapoints():
 
     with Session(test_engine) as session:
@@ -50,25 +51,65 @@ def seed_datapoints():
             {"time": now}
         )
 
+        #1d
         session.execute(
             text("""
-                INSERT INTO dailyohlcv (asset_id, timestamp, open, high, low, close, volume)
-                VALUES (1, :time, 50.0, 55.0, 48.0, 52.0, 1200.0);
+                INSERT INTO ohlcv_1d (asset_id, bucket_time, open, high, low, close, volume)
+                VALUES (1, :time, 100.0, 105.0, 99.0, 102.5, 5000.0);
             """),
-            {"time": now}
+            {"time_1": now - timedelta(days=1), "time_2": now}
         )
+
+        #1w
+        session.execute(
+            text("""
+                INSERT INTO ohlcv_1w (asset_id, bucket_time, open, high, low, close, volume)
+                VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
+            """),
+            {"time": now - timedelta(weeks=1)}
+        )
+
+        #1m
+        session.execute(
+            text("""
+                INSERT INTO ohlcv_1m (asset_id, bucket_time, open, high, low, close, volume)
+                VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
+            """),
+            {"time": now - timedelta(months=1)}
+        )
+
+        #6m
+        session.execute(
+            text("""
+                INSERT INTO ohlcv_6m (asset_id, bucket_time, open, high, low, close, volume)
+                VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
+            """),
+            {"time": now - timedelta(months=6)}
+        )
+
+        #1y
+        session.execute(
+            text("""
+                INSERT INTO ohlcv_1y (asset_id, bucket_time, open, high, low, close, volume)
+                VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
+            """),
+            {"time": now - timedelta(years=1)}
+        )
+
+
         session.commit()
 
-def test_get_predef_chart_success(seed_datapoints) -> None:
+def test_get_predef_chart_success_1d(seed_datapoints) -> None:
+    
     token = get_token()
 
     response = client.get(
         "/assets/1/chart_predef?interval=1d",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 1
+    asset len(data) == 2
     assert data[0]["open"] == 100.0
     assert data[0]["volume"] == 5000.0
