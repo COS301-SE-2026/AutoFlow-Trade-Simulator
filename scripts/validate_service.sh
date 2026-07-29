@@ -1,36 +1,29 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
+source /tmp/deployment_target.env
 
-export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
-
-# Load target slot environment variables set by after_install.sh
-source /tmp/deployment_slot.env
-
-echo "Validating target deployment slot $TARGET_SLOT on port $TARGET_PORT..."
-
-# Retry loop for health check validation
-MAX_RETRIES=10
-SLEEP_INTERVAL=3
-
-for i in $(seq 1 $MAX_RETRIES); do
-  # Poll the health endpoint on the target port
-  HEALTH=$(curl -s "http://localhost:$TARGET_PORT/health" || echo "FAIL")
-
-  if [[ "$HEALTH" == *"status"* ]] && [[ "$HEALTH" == *"ok"* ]]; then
-    echo "Health check passed on port $TARGET_PORT!"
-
-    # Identify and stop the OLD slot container now that the new one is verified live
-    OLD_SLOT=$([[ "$TARGET_SLOT" == "blue" ]] && echo "green" || echo "blue")
-    echo "Stopping and removing legacy slot: autoflow-$OLD_SLOT..."
-    docker stop "autoflow-$OLD_SLOT" || true
-    docker rm "autoflow-$OLD_SLOT" || true
-
-    exit 0
-  fi
-
-  echo "Attempt $i/$MAX_RETRIES: App on port $TARGET_PORT not ready yet. Retrying in ${SLEEP_INTERVAL}s..."
-  sleep $SLEEP_INTERVAL
+HEALTHY=false
+for i in {1..10}; do
+    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$TARGET_PORT/health || echo "000")
+    if [[ "$RESPONSE" == "200" ]]; then
+        HEALTHY=true
+        break
+    fi
+    sleep 3
 done
 
-echo "Health check failed on target port $TARGET_PORT!"
-exit 1
+if [[ "$HEALTHY" != "true" ]]; then
+    echo "Health check failed on port $TARGET_PORT. Aborting deployment."
+    # Clean up the broken container so it doesn't leak resources
+    docker stop "$TARGET_NAME" && docker rm "$TARGET_NAME"
+    exit 1
+fi
+
+sed -i "s/proxy_pass http:\/\/127.0.0.1:[0-9]\{4\};/proxy_pass http:\/\/127.0.0.1:$TARGET_PORT;/" /etc/nginx/conf.d/autoflow.conf
+systemctl reload nginx
+
+OLD_CONTAINER=$(docker ps -q --filter "name=autoflow-backend" | grep -v "$TARGET_NAME" || true)
+if [[ -n "$OLD_CONTAINER" ]]; then
+    docker stop "$OLD_CONTAINER"
+    docker rm "$OLD_CONTAINER"
+fi
