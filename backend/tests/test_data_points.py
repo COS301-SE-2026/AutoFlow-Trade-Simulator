@@ -184,3 +184,26 @@ def test_get_predef_chart_success_1y(seed_datapoints) -> None:
     assert len(data) == 2
     assert data[0]["open"] == 95.0
     assert data[0]["volume"] == 35000.0
+
+def test_get_predef_chart_no_data(seed_datapoints) -> None:
+
+    token = get_token()
+
+    response = client.get(
+        "/assets/999/chart_predef?interval1d",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 0
+
+def test_get_predef_chart_invalid_interval(seed_datapoints) -> None:
+
+    token = get_token()
+
+    response = client.get(
+        "/assets/1/chart_predef?interval=invalid_interval",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 422
