@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, UTC
 from sqlmodel import Session, text
+import pytest
 
 from tests.conftest import  client, get_token, test_engine
 from app.epics.Datapoints.DatapointsService import DatapointsService
@@ -43,21 +44,16 @@ def seed_datapoints():
 
         now = datetime.now(UTC)
 
-        session.execute(
-            text("""
-                INSERT INTO ohlcv_1d (asset_id, bucket_time, open, high, low, close, volume)
-                VALUES (1, :time, 100.0, 105.0, 99.0, 102.5, 5000.0);
-            """),
-            {"time": now}
-        )
-
         #1d
         session.execute(
             text("""
-                INSERT INTO ohlcv_1d (asset_id, bucket_time, open, high, low, close, volume)
-                VALUES (1, :time, 100.0, 105.0, 99.0, 102.5, 5000.0);
+            INSERT INTO ohlcv_1d (asset_id, bucket_time, open, high, low, close, volume)
+            VALUES (1, :time, 100.0, 105.0, 99.0, 102.5, 5000.0);
             """),
-            {"time_1": now - timedelta(days=1), "time_2": now}
+            [
+            {"time": now - timedelta(days=1)},
+            {"time": now}
+            ]
         )
 
         #1w
@@ -75,7 +71,7 @@ def seed_datapoints():
                 INSERT INTO ohlcv_1m (asset_id, bucket_time, open, high, low, close, volume)
                 VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
             """),
-            {"time": now - timedelta(months=1)}
+            {"time": now - timedelta(days=30)}
         )
 
         #6m
@@ -84,7 +80,7 @@ def seed_datapoints():
                 INSERT INTO ohlcv_6m (asset_id, bucket_time, open, high, low, close, volume)
                 VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
             """),
-            {"time": now - timedelta(months=6)}
+            {"time": now - timedelta(days=180)}
         )
 
         #1y
@@ -93,7 +89,7 @@ def seed_datapoints():
                 INSERT INTO ohlcv_1y (asset_id, bucket_time, open, high, low, close, volume)
                 VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
             """),
-            {"time": now - timedelta(years=1)}
+            {"time": now - timedelta(days=365)}
         )
 
 
@@ -110,6 +106,6 @@ def test_get_predef_chart_success_1d(seed_datapoints) -> None:
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    asset len(data) == 2
+    assert len(data) == 2
     assert data[0]["open"] == 100.0
     assert data[0]["volume"] == 5000.0
