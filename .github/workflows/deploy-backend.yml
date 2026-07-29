@@ -74,10 +74,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           mkdir -p build
-          echo "IMAGE_TAG=${{ github.sha }}" > scripts/image.env
-          echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> scripts/image.env
-          echo "ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}" >> scripts/image.env
-          echo "AWS_REGION=$AWS_REGION" >> scripts/image.env
+          echo "IMAGE_TAG=${{ github.sha }}" > scripts/version.env
           zip -r "build/deployment-${{ github.sha }}.zip" appspec.yml scripts/
 
       - name: Upload Bundle to Amazon S3
@@ -93,12 +90,16 @@ jobs:
           CODEDEPLOY_GROUP_NAME: ${{ secrets.CODEDEPLOY_GROUP_NAME }}
           S3_DEPLOYMENT_BUCKET: ${{ secrets.S3_DEPLOYMENT_BUCKET }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           DEPLOYMENT_ID=$(aws deploy create-deployment \
             --application-name "$CODEDEPLOY_APP_NAME" \
             --deployment-group-name "$CODEDEPLOY_GROUP_NAME" \
             --s3-location bucket="$S3_DEPLOYMENT_BUCKET",key=deployments/deployment-${GITHUB_SHA}.zip,bundleType=zip \
             --description "Automated deployment for commit ${GITHUB_SHA}" \
+            --environment-variables "ECR_REGISTRY=${ECR_REGISTRY},ECR_REPOSITORY=${ECR_REPOSITORY},AWS_REGION=${AWS_REGION},IMAGE_TAG=${IMAGE_TAG}" \
             --query "deploymentId" \
             --output text)
           
