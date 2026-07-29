@@ -30,7 +30,7 @@ export function useRealTimeTicks(symbol: string | null) {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [symbol]);
     useEffect(() => { fetch(); }, [fetch]);
 
     return { realTimeTicks, loading, error, refetch: fetch }

@@ -39,7 +39,7 @@ export function LiveDataGraph({ symbol }: { symbol: string | null }) {
             setLastUpdated(new Date());
         }, (300000));
         return () => clearInterval(interval);
-    }, [refetch])
+    }, [])
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;

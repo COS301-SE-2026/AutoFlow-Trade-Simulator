@@ -5,11 +5,12 @@ import { usePrices } from '@/hooks/usePrices';
 import { useAssetSummary } from '@/hooks/useAssetSummary';
 import AssetSummaryBar from '@/components/AssetSummaryBar';
 import PriceChart from '@/components/charts/priceChart';
-import {Navbar} from '@/components/navbar';
+import { Navbar } from '@/components/navbar';
 import BuySellForm from '@/components/BuySellForm';
 import { useHoldings } from '@/hooks/useHoldings';
 import { useAccount } from '@/lib/hooks/accountContext';
 import { apiClient } from '@/lib/api';
+import { LiveDataGraph } from '@/components/liveDataGraph';
 
 export default function AssetPage() {
   const params = useParams();
@@ -26,8 +27,8 @@ export default function AssetPage() {
   if (pricesLoading || summaryLoading) return <div>Loading...</div>;
   if (pricesError || summaryError) return <div>Error: {pricesError || summaryError}</div>;
 
-  const currentPrice = prices.length > 0 
-    ? prices[prices.length -1].close
+  const currentPrice = prices.length > 0
+    ? prices[prices.length - 1].close
     : summary?.current_price || 0;
 
   const accountBalance = activeAccount ? Number.parseFloat(activeAccount.balance) : 0;
@@ -39,7 +40,7 @@ export default function AssetPage() {
       alert('No active account is selected');
       return;
     }
-    
+
     try {
       const response = await apiClient(`/portfolio/accounts/${activeAccount.id}`, {
         method: 'POST',
@@ -63,7 +64,7 @@ export default function AssetPage() {
       alert('No active account is selected');
       return;
     }
-    
+
     try {
       const response = await apiClient(`/portfolio/accounts/${activeAccount.id}`, {
         method: 'POST',
@@ -85,20 +86,18 @@ export default function AssetPage() {
   return (
     <div>
       <Navbar />
-        
-        <h1>{ticker}</h1>
-        <AssetSummaryBar ticker={ticker} />
-        <div>
-          <PriceChart ticker={ticker} />
-        </div>
-        <div className='m-4'>
-          <BuySellForm 
-            price={currentPrice}
-            accountBalance={accountBalance}
-            currentHoldings={currentHoldings}
-            onBuy={handleBuy}
-            onSell={handleSell} />
-        </div>
+
+      <h1>{ticker}</h1>
+      <AssetSummaryBar ticker={ticker} />
+      <LiveDataGraph symbol={'AAPL'} />
+      <div className='m-4'>
+        <BuySellForm
+          price={currentPrice}
+          accountBalance={accountBalance}
+          currentHoldings={currentHoldings}
+          onBuy={handleBuy}
+          onSell={handleSell} />
+      </div>
     </div>
   );
 }
