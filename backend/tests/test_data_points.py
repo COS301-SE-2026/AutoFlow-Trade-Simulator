@@ -11,6 +11,7 @@ OHLCV_VIEWS = ["ohlcv_1d", "ohlcv_1w", "ohlcv_1m", "ohlcv_6m", "ohlcv_1y"]
 def setup_sqlite_views(session:Session):
 
     for view in OHLCV_VIEWS:
+        session.execute(text(f"DROP TABLE IF EXISTS {view};"))
         session.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {view} (
                 asset_id INTEGER,
@@ -23,6 +24,7 @@ def setup_sqlite_views(session:Session):
             );
         """))
 
+    session.execute(text(f"DROP TABLE IF EXISTS dailyohlcv;"))
     session.execute(text("""
         CREATE TABLE IF NOT EXISTS dailyohlcv (
             asset_id INTEGER,
@@ -48,7 +50,7 @@ def seed_datapoints():
         session.execute(
             text("""
             INSERT INTO ohlcv_1d (asset_id, bucket_time, open, high, low, close, volume)
-            VALUES (1, :time, 100.0, 105.0, 99.0, 102.5, 5000.0);
+            VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
             """),
             [
             {"time": now - timedelta(days=1)},
@@ -62,7 +64,10 @@ def seed_datapoints():
                 INSERT INTO ohlcv_1w (asset_id, bucket_time, open, high, low, close, volume)
                 VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
             """),
-            {"time": now - timedelta(weeks=1)}
+            [
+            {"time": now - timedelta(weeks=1)},
+            {"time": now}
+            ]
         )
 
         #1m
@@ -71,7 +76,11 @@ def seed_datapoints():
                 INSERT INTO ohlcv_1m (asset_id, bucket_time, open, high, low, close, volume)
                 VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
             """),
-            {"time": now - timedelta(days=30)}
+            [
+            {"time": now - timedelta(days=30)},
+            {"time": now}
+            ]
+            
         )
 
         #6m
@@ -80,7 +89,10 @@ def seed_datapoints():
                 INSERT INTO ohlcv_6m (asset_id, bucket_time, open, high, low, close, volume)
                 VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
             """),
-            {"time": now - timedelta(days=180)}
+            [
+            {"time": now - timedelta(days=180)},
+            {"time": now}
+            ]
         )
 
         #1y
@@ -89,7 +101,10 @@ def seed_datapoints():
                 INSERT INTO ohlcv_1y (asset_id, bucket_time, open, high, low, close, volume)
                 VALUES (1, :time, 95.0, 110.0, 90.0, 107.0, 35000.0);
             """),
-            {"time": now - timedelta(days=365)}
+            [
+            {"time": now - timedelta(days=365)},
+            {"time": now}
+            ]
         )
 
 
@@ -107,5 +122,65 @@ def test_get_predef_chart_success_1d(seed_datapoints) -> None:
     data = response.json()
     assert isinstance(data, list)
     assert len(data) == 2
-    assert data[0]["open"] == 100.0
-    assert data[0]["volume"] == 5000.0
+    assert data[0]["open"] == 95.0
+    assert data[0]["volume"] == 35000.0
+
+def test_get_predef_chart_success_1w(seed_datapoints) -> None:
+    
+    token = get_token()
+
+    response = client.get(
+        "/assets/1/chart_predef?interval=1w",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 2
+    assert data[0]["open"] == 95.0
+    assert data[0]["volume"] == 35000.0
+
+def test_get_predef_chart_success_1m(seed_datapoints) -> None:
+    
+    token = get_token()
+
+    response = client.get(
+        "/assets/1/chart_predef?interval=1m",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 2
+    assert data[0]["open"] == 95.0
+    assert data[0]["volume"] == 35000.0
+
+def test_get_predef_chart_success_6m(seed_datapoints) -> None:
+    
+    token = get_token()
+
+    response = client.get(
+        "/assets/1/chart_predef?interval=6m",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 2
+    assert data[0]["open"] == 95.0
+    assert data[0]["volume"] == 35000.0
+
+def test_get_predef_chart_success_1y(seed_datapoints) -> None:
+    
+    token = get_token()
+
+    response = client.get(
+        "/assets/1/chart_predef?interval=1y",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 2
+    assert data[0]["open"] == 95.0
+    assert data[0]["volume"] == 35000.0
