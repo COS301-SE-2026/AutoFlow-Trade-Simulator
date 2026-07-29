@@ -14,6 +14,6 @@ def get_real_time_service(session: Annotated[Session, Depends(get_session)]) -> 
 def get_status(service: Annotated[RealTimeDataService, Depends(get_real_time_service)])->EpicStatusDTO:
     return service.get_status()
 
-@router.get("/real_data/{symbol}")
+@router.get("/points/{symbol}")
 def get_real_data(symbol:str,service: Annotated[RealTimeDataService, Depends(get_real_time_service)])->DataResponseDTO:
     return service.get_real_time_data(symbol)
