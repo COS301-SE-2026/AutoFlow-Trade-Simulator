@@ -106,15 +106,14 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     
     const allPrices: string[] = [];
     const allDates: string[] = [];
+    const tickerBars: OHLCVBar[] = [];
 
     if (simData?.bars) {
         const tickerBars = simData.bars[event.ticker];
-            if (tickerBars) {
-                tickerBars.forEach((bar: OHLCVBar) => {
-                allPrices.push((bar.close).toString());
-                allDates.push(new Date(bar.timestamp).toLocaleDateString());
-            });
-        }
+        tickerBars.forEach((bar: OHLCVBar) => {
+        allPrices.push((bar.close).toString());
+        allDates.push(new Date(bar.timestamp).toLocaleDateString());
+        });
     }
 
     const chartData = allPrices.slice(0, dayIndex + 1).map((p, i) => ({
@@ -132,17 +131,17 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     }, [isPlaying, dayIndex, allPrices.length]);
 
     const currentPrice = allPrices[dayIndex] ?? 0;
-    const portfolioValue = cash + shares * parseFloat(currentPrice);
+    const portfolioValue = cash + shares * Number.parseFloat(currentPrice);
     const totalProfit = portfolioValue - event.initialBalance;
     const startPrice = allPrices[0];
     const profitPct = ((totalProfit / event.initialBalance) * 100);
-    const priceChangePct = startPrice ? (((parseFloat(currentPrice) - parseFloat(startPrice)) / parseFloat(startPrice)) * 100) : 0;
+    const priceChangePct = startPrice ? (((Number.parseFloat(currentPrice) - Number.parseFloat(startPrice)) / Number.parseFloat(startPrice)) * 100) : 0;
 
     const execute = async (type: 'buy' | 'sell') => {
-        if (!simData || parseFloat(currentPrice) <= 0) return;
+        if (!simData || Number.parseFloat(currentPrice) <= 0) return;
 
         const simId = simData.simulation_id;
-        let quantity = parseInt(qty);
+        let quantity = Number.parseFloat(qty);
         if (!quantity || quantity < 1) quantity = 1;
         let qtyToTrade = quantity;
         
@@ -157,7 +156,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         }
 
         if (type === 'buy') {
-            const cost = qtyToTrade * parseFloat(currentPrice);
+            const cost = qtyToTrade * Number.parseFloat(currentPrice);
             if (cost > cash) {
                 setTradeError(`Not enough cash. You need R ${cost.toFixed(2)}.`);
                 return;
@@ -188,7 +187,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
             const nav = res.nav;
             setShares(newShares);
 
-            setCash(nav - newShares * parseFloat(currentPrice));
+            setCash(nav - newShares * Number.parseFloat(currentPrice));
 
             setTrades(prev => [
                 ...prev,
@@ -239,18 +238,18 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     <div className='grid grid-cols-2 gap-4 text-sm'>
                         <div className='text-center text-lg'>
                             Final Balance:
-                            <span className='font-bold'> R {parseFloat(summary.final_balance).toFixed(2)}
+                            <span className='font-bold'> R {Number.parseFloat(summary.final_balance).toFixed(2)}
                             </span>
                         </div>
                         <div className='text-center text-lg'>
                             Return:
                             <span 
-                                className={parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green)] font-bold' : 'text-[var(--red)] font-bold'}
-                            > {parseFloat(summary.returns_pct)}%</span>
+                                className={Number.parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green)] font-bold' : 'text-[var(--red)] font-bold'}
+                            > {Number.parseFloat(summary.returns_pct)}%</span>
                         </div>
                         <div className='text-center text-lg'>
                             Max Drawdown: 
-                            <span className='text-[var(--red)]'> {parseFloat(summary.max_drawdown).toFixed(2)}%</span>
+                            <span className='text-[var(--red)]'> {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
                         </div>
                         <div className='text-center text-lg'>
                             Trades:
@@ -271,7 +270,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         );
     }
 
-    const total = parseFloat(qty) > 0 ? parseFloat(qty) * parseFloat(currentPrice) : 0;
+    const total = Number.parseFloat(qty) > 0 ? Number.parseFloat(qty) * Number.parseFloat(currentPrice) : 0;
 
     return (
         <div className='flex flex-col p-4 h-full'>
@@ -326,7 +325,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                 <div className='flex-1 rounded-xl border border-[var(--border)] p-4'>
                     <div className='flex justify-between'>
                         <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
-                        <div className='text-xl font-bold'>COST: R{parseFloat(currentPrice).toFixed(2)}</div>
+                        <div className='text-xl font-bold'>COST: R{Number.parseFloat(currentPrice).toFixed(2)}</div>
                         <div className={`text-sm flex items-center gap-1 ${priceChangePct >= 0 ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`}>
                             {priceChangePct >= 0 ? <TrendingUp className='w-4 h-4' /> : <TrendingDown className='w-4 h-4' />}
                             {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
@@ -392,7 +391,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         </div>
                     </div>
                     <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
-                        <div className='text-xs font-bold mb-2'>TRADE AT {parseFloat(currentPrice).toFixed(2)} / sh</div>
+                        <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
                         <input 
                             type='number' 
                             value={qty} 
@@ -413,12 +412,14 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         )}
                         <div className='flex gap-2 justify-evenly'>
                             <button
+                                type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
                                 onClick={() => execute('buy')}
                             >
                                 Buy
                             </button>
                             <button
+                                type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
                                 onClick={() => execute('sell')}
                             >
@@ -431,7 +432,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         {trades.length === 0 ? <p>No trades</p> : [...trades].reverse().map((t, i) => (
                             <div key={i} className='flex items-center gap-2 mb-1'>
                                 <span className={`font-bold ${t.type === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
-                                <span className='text-xs'>{t.type.toUpperCase()} {t.qty} @ R{parseFloat(t.price).toFixed(2)} ON {t.date}</span>
+                                <span className='text-xs'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
                             </div>
                         ))
                             
