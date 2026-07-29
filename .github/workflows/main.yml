@@ -36,6 +36,22 @@ jobs:
       - name: Run backend tests
         run: npm run test:backend
 
+  stock-poller:
+    name: Stock poller tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run stock-poller tests
+        run: npm run test:stock-poller
+
   frontend:
     name: Frontend lint and build
     runs-on: ubuntu-latest
