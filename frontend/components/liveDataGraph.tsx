@@ -30,7 +30,16 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export function LiveDataGraph({ symbol }: { symbol: string | null }) {
-    const { realTimeTicks, loading, error } = useRealTimeTicks(symbol);
+    const { realTimeTicks, loading, error, refetch } = useRealTimeTicks(symbol);
+    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refetch();
+            setLastUpdated(new Date());
+        }, (300000));
+        return () => clearInterval(interval);
+    }, [refetch])
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
@@ -49,8 +58,8 @@ export function LiveDataGraph({ symbol }: { symbol: string | null }) {
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                    <XAxis dataKey="timestamp" stroke="#ffffff" tick={{ fontSize: 10 }} />
-                    <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                    <XAxis dataKey="timestamp" stroke="#ffffff" tick={{ fontSize: 10 }} label={{ value: 'Time' }} />
+                    <YAxis stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} label={{ value: 'Price' }} />
                     <Tooltip
                         cursor={{ stroke: '#9ca3af' }}
                         content={<CustomTooltip />}
@@ -60,7 +69,7 @@ export function LiveDataGraph({ symbol }: { symbol: string | null }) {
                         dataKey="price"
                         stroke={'var(--blue)'}
                         strokeWidth={4}
-                        fill={`url(#grad-${''})`}
+                        fill={`url(#grad-${'price'})`}
                         dot={false}
                         activeDot={{ r: 8, stroke: '#1c75bc' }}
                     />
