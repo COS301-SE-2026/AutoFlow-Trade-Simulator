@@ -205,19 +205,22 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     }
 
     return (
-        <div className='flex flex-col'>
+        <div className='flex flex-col p-4 h-full'>
             <div className='flex justify-between items-center gap-3'>
-                <button
-                    type='button'
-                    onClick={onBack} 
-                    className='text-sm text-grey-200 hover:text-white-100 p-4'
-                >
-                    <div className='flex items-center gap-3'>
-                        <MoveLeft /> 
-                        <span>Back</span>
-                    </div>
-                </button>
-
+                <div className='flex items-center gap-3'>
+                    <button
+                        type='button'
+                        onClick={onBack} 
+                        className='text-sm text-grey-200 hover:text-white-100 p-4'
+                    >
+                        <div className='flex items-center gap-3'>
+                            <MoveLeft /> 
+                            <span>Back</span>
+                        </div>
+                    </button>
+                    <span className='font-bold text-blue-400'>{event.ticker}</span>
+                    <span className='font-semibold'>{event.title}</span>
+                </div>
                 <button
                     type='button'
                     onClick={() => {setIsPlaying(b => !b)}}
@@ -250,38 +253,46 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     </div>
                 </button>
             </div>
-            <div className='flex flex-row'>
-                <div style={{ width: '100%', height: '250px'}}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                        data={chartData}
-                        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                        >
-                        <defs>
-                            <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
-                                <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
-                                <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                        <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
-                        <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
-                        <Tooltip
-                            cursor={{ stroke: '#9ca3af' }}
-                            content={<CustomTooltip />}
-                        />
-                        <Area
-                            type="monotone"
-                            dataKey="price"
-                            stroke='var(--blue)'
-                            strokeWidth={4}
-                            fill={`url(#grad-${event.id})`}
-                            dot={false}
-                            activeDot={{ r: 4, stroke: '#1c75bc' }}
-                        />
-                        </AreaChart>
-                    </ResponsiveContainer>
+            <div className='flex gap-4 flex-1 min-h-0'>
+                <div className='flex-1 rounded-xl border border-[var(--border)] p-4'>
+                    <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
+                    <div className='text-xl font-bold'>{currentPrice.toFixed(2)}</div>
+                    <div style={{ width: '100%', height: '250px'}}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart
+                            data={chartData}
+                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                            >
+                            <defs>
+                                <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
+                                    <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
+                                    <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
+                            <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
+                            <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                            <Tooltip
+                                cursor={{ stroke: '#9ca3af' }}
+                                content={<CustomTooltip />}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="price"
+                                stroke='var(--blue)'
+                                strokeWidth={4}
+                                fill={`url(#grad-${event.id})`}
+                                dot={false}
+                                activeDot={{ r: 4, stroke: '#1c75bc' }}
+                            />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
+                <div className='mt-2 h-1 bg-gray-800 rounded-full'>
+                    <div className='h-full bg-[var(--accent)] rounded-full' style={{ width: `${((dayIndex + 1) / allPrices.length) * 100}%` }}></div>
+                </div>
+
                 <div className='w-64 space-y-4'>
                     <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'>
                         <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
@@ -307,7 +318,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         </button>
                         <button
                             className='py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
-                            onClick={() => {setShares(shares - 1), setCash(cash - parseFloat(currentPrice))}}
+                            onClick={() => {setShares(shares - 1), setCash(cash + parseFloat(currentPrice))}}
                         >
                             Sell a share
                         </button>
