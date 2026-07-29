@@ -27,7 +27,7 @@ docker pull "${IMAGE_URI}"
 # Determine target slot
 ACTIVE_PORT=$(curl -s http://localhost/health | grep -oP '"port":\s*\K\d+' || echo "8002")
 
-if [ "$ACTIVE_PORT" -eq "8001" ]; then
+if [[ "$ACTIVE_PORT" -eq "8001" ]]; then
     TARGET_PORT=8002
     TARGET_SLOT="green"
 else

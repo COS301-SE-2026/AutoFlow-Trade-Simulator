@@ -20,7 +20,7 @@ for i in $(seq 1 $MAX_RETRIES); do
     echo "Health check passed on port $TARGET_PORT!"
 
     # Identify and stop the OLD slot container now that the new one is verified live
-    OLD_SLOT=$([ "$TARGET_SLOT" == "blue" ] && echo "green" || echo "blue")
+    OLD_SLOT=$([[ "$TARGET_SLOT" == "blue" ]] && echo "green" || echo "blue")
     echo "Stopping and removing legacy slot: autoflow-$OLD_SLOT..."
     docker stop "autoflow-$OLD_SLOT" || true
     docker rm "autoflow-$OLD_SLOT" || true
