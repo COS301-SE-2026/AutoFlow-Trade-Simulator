@@ -10,6 +10,10 @@ on:
       - '.github/workflows/deploy-backend.yml'
       - 'appspec.yml'
       - 'scripts/**'
+permissions:
+  id-token: write
+  contents: read
+
 
 concurrency:
   group: deploy-backend-${{ github.ref }}
@@ -66,9 +70,15 @@ jobs:
           alembic upgrade head
 
       - name: Package CodeDeploy Bundle
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           mkdir -p build
-          zip -r "build/deployment-${GITHUB_SHA}.zip" appspec.yml scripts/
+          echo "IMAGE_TAG=${{ github.sha }}" > scripts/image.env
+          echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> scripts/image.env
+          echo "ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}" >> scripts/image.env
+          echo "AWS_REGION=$AWS_REGION" >> scripts/image.env
+          zip -r "build/deployment-${{ github.sha }}.zip" appspec.yml scripts/
 
       - name: Upload Bundle to Amazon S3
         env:
