@@ -39,7 +39,7 @@ export function LiveDataGraph({ symbol }: { symbol: string | null }) {
             setLastUpdated(new Date());
         }, (300000));
         return () => clearInterval(interval);
-    }, [refetch])
+    }, [])
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
@@ -52,7 +52,7 @@ export function LiveDataGraph({ symbol }: { symbol: string | null }) {
                     margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
                     <defs>
-                        <linearGradient id={`grad-${''}`} x1='0' y1='0' x2='0' y2='1'>
+                        <linearGradient id={`grad-${'price'}`} x1='0' y1='0' x2='0' y2='1'>
                             <stop offset='5%' stopColor={'var(--blue)'} stopOpacity={0.8} />
                             <stop offset='95%' stopColor={'var(--blue)'} stopOpacity={0.02} />
                         </linearGradient>

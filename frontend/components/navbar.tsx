@@ -49,7 +49,7 @@ export function Navbar() {
                 {[
                     { label: 'Dashboard', href: '/dashboard' },
                     { label: 'Portfolio', href: '/portfolio' },
-                    { label: 'Markets', href: '/markets' },
+                    { label: 'Markets', href: '/assets/AAPL' },
                     { label: 'Leaderboard', href: '/#' },
                     { label: 'AI Assistant', href: '/#' },
                     { label: 'Learning', href: '/learning' },
