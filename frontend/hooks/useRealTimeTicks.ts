@@ -9,7 +9,7 @@ export interface RealTimeTicks {
     volume: number,
 }
 
-export function useRealTimeTicks(asset_id: number | null) {
+export function useRealTimeTicks(symbol: string | null) {
     const [realTimeTicks, setRealTimeTicks] = useState<RealTimeTicks[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -18,8 +18,8 @@ export function useRealTimeTicks(asset_id: number | null) {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient(`/simulation/realTimeTicks`);
-            setRealTimeTicks(response.realTimeTicks);
+            const response = await apiClient(`/real_time/points/${symbol}`);
+            setRealTimeTicks(response.points);
         } catch (error: any) {
             if (error instanceof ApiError && error.status === 401) {
                 setRealTimeTicks([]);

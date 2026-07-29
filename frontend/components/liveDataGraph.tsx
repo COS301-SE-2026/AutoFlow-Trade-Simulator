@@ -22,27 +22,18 @@ const CustomTooltip = ({ active, payload }: any) => {
                 padding: '8px',
                 borderRadius: '4px',
             }}>
-                <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>x: {data.timestamp}</p>
-                <p style={{ margin: '2px 0', fontSize: '12px' }}>y: {data.volume}</p>
+                <p style={{ margin: '2px 0', fontSize: '12px' }}>volume: {data.volume}</p>
             </div>
         );
     }
     return null;
 };
 
-export function LiveDataGraph({ asset_id }: { asset_id: number | null }) {
-    // const { realTimeTicks, loading, error } = useRealTimeTicks(asset_id);
+export function LiveDataGraph({ symbol }: { symbol: string | null }) {
+    const { realTimeTicks, loading, error } = useRealTimeTicks(symbol);
 
-    const realTimeTicks = [
-        {
-            timestamp: 1,
-            price: 2,
-            volume: 3,
-        }
-    ]
-
-    // if (loading) return <p>Loading...</p>;
-    // if (error) return <p>{error}</p>;
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>{error}</p>;
 
     return (
         <div style={{ width: '100%', height: '250px' }}>
@@ -52,9 +43,9 @@ export function LiveDataGraph({ asset_id }: { asset_id: number | null }) {
                     margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
                     <defs>
-                        <linearGradient id={`grad-${'price'}`} x1='0' y1='0' x2='0' y2='1'>
-                            <stop offset='5%' stopColor={'1c75bc'} stopOpacity={0.8} />
-                            <stop offset='95%' stopColor={'1c75bc'} stopOpacity={0.02} />
+                        <linearGradient id={`grad-${''}`} x1='0' y1='0' x2='0' y2='1'>
+                            <stop offset='5%' stopColor={'var(--blue)'} stopOpacity={0.8} />
+                            <stop offset='95%' stopColor={'var(--blue)'} stopOpacity={0.02} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
@@ -67,9 +58,9 @@ export function LiveDataGraph({ asset_id }: { asset_id: number | null }) {
                     <Area
                         type="monotone"
                         dataKey="price"
-                        stroke={'1c75bc'}
+                        stroke={'var(--blue)'}
                         strokeWidth={4}
-                        fill={`url(#grad-${'price'})`}
+                        fill={`url(#grad-${''})`}
                         dot={false}
                         activeDot={{ r: 8, stroke: '#1c75bc' }}
                     />
