@@ -70,4 +70,24 @@ describe('SplashPage', () => {
             expect(screen.getByText(title)).toBeInTheDocument();
         });
     });
+
+    it('renders the statistics section', () => {
+        render(<SplashPage />);
+        expect(screen.getByText('4+')).toBeInTheDocument();
+        expect(screen.getByText('Active Learners')).toBeInTheDocument();
+        expect(screen.getByText('10+')).toBeInTheDocument();
+        expect(screen.getByText('Trading Strategies')).toBeInTheDocument();
+        expect(screen.getByText('No')).toBeInTheDocument();
+        expect(screen.getByText('Cost to Start')).toBeInTheDocument();
+    });
+
+    it('renders the footer with copyright and links', () => {
+        render(<SplashPage />);
+        expect(screen.getByText(/© 2026 AutoFlow. All rights reserved./i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Terms/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Privacy/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Support/i })).toBeInTheDocument();
+    });
+
+
 })
