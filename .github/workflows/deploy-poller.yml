@@ -67,14 +67,14 @@ jobs:
 
       - name: Render Task Definition with New Image Tag
         id: render-task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@25287f3b89a803be815eb0092c6cc116b3d4f404
+        uses: aws-actions/amazon-ecs-render-task-definition@138c24f321fdbdf7edee4a685519d253cae2cdea # v1.9.0
         with:
           task-definition: ${{ env.TASK_DEF_PATH }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
       - name: Deploy Task Definition to AWS ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@8e4e6f477383a8b418e26bc141d81a95e7c6536b
+        uses: aws-actions/amazon-ecs-deploy-task-definition@c465972ecbd160473f22e683363b422a5412a3de # v2.6.3
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
