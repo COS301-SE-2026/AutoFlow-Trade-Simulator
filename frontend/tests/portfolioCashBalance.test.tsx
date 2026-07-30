@@ -17,7 +17,19 @@ const mockPortfolio = {
     totalValue: 100,
     numHoldings: 100,
     activeAccount: mockActiveAccount,
-    holdings: 100,
+    holdings: [
+        {
+            ticker: 'AAPL',
+            net_quantity: 1,
+            current_price: 1,
+            average_cost: 1,
+        }, {
+            ticker: 'GOOGL',
+            net_quantity: 1,
+            current_price: 1,
+            average_cost: 1,
+        },
+    ],
     profitLoss: 100,
     profitLossPercent: 0.1
 }
