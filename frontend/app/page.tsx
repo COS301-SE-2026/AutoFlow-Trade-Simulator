@@ -19,7 +19,7 @@ export default async function HomePage() {
             <Link className="button primary" href="/splash">
               Splash page
             </Link>
-            <a className="button secondary" href="http://localhost:8000/health">
+            <a className="button secondary" href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/health`}>
               Backend health
             </a>
           </div>
