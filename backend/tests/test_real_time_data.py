@@ -41,7 +41,7 @@ def test_get_real_data_asset_not_found()->None:
     assert res.status_code==404
 
 def test_get_real_data_no_ticks()->None:
-    asset_id=seed_asset("AAPL")
+    seed_asset("AAPL")
     res=client.get("/real_time/points/AAPL")
     assert res.status_code==200
     assert res.json()["points"]==[]

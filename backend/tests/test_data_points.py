@@ -6,7 +6,7 @@ from sqlalchemy import event
 
 from tests.conftest import  client, get_token, test_engine
 from app.epics.Datapoints.DatapointsService import DatapointsService
-from app.epics.Datapoints.DatapointsDTO import QueryParameters, IntervalParameters, Interval
+from app.epics.Datapoints.DatapointsDTO import QueryParameters
 
 OHLCV_VIEWS = ["ohlcv_1d", "ohlcv_1w", "ohlcv_1m", "ohlcv_6m", "ohlcv_1y"]
 
@@ -59,7 +59,7 @@ def setup_sqlite_views(session:Session):
             );
         """))
 
-    session.execute(text(f"DROP TABLE IF EXISTS dailyohlcv;"))
+    session.execute(text("DROP TABLE IF EXISTS dailyohlcv;"))
     session.execute(text("""
         CREATE TABLE IF NOT EXISTS dailyohlcv (
             asset_id INTEGER,

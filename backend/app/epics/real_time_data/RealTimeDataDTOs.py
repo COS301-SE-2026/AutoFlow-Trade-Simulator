@@ -1,6 +1,5 @@
 from decimal import Decimal
 from sqlmodel import SQLModel
-from ...models.real_time_ticks import RealTimeTicks
 from datetime import datetime
 
 class DataPoint(SQLModel):
