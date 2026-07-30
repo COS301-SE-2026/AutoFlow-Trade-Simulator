@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="210" viewBox="0 0 880 210" role="img" aria-label="AutoFlow Trade Simulator">
+  <defs>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#007BFF" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#007BFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="880" height="210" rx="18" fill="#0A101C"/>
+  <rect x="0.5" y="0.5" width="879" height="209" rx="17.5" fill="none" stroke="#1B2942"/>
+  <line x1="24" y1="60" x2="856" y2="60" stroke="#1B2942" stroke-width="1"/><line x1="24" y1="90" x2="856" y2="90" stroke="#1B2942" stroke-width="1"/><line x1="24" y1="120" x2="856" y2="120" stroke="#1B2942" stroke-width="1"/><line x1="24" y1="150" x2="856" y2="150" stroke="#1B2942" stroke-width="1"/>
+  <path d="M40,175 L40,150 L90,138 L140,146 L190,120 L240,128 L290,104 L340,112 L390,88 L440,96 L490,74 L540,80 L590,62 L640,68 L690,50 L740,56 L790,38 L840,44 L840,175 Z" fill="url(#fade)"/>
+  <polyline points="40,150 90,138 140,146 190,120 240,128 290,104 340,112 390,88 440,96 490,74 540,80 590,62 640,68 690,50 740,56 790,38 840,44" fill="none" stroke="#007BFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="840" cy="44" r="4.5" fill="#007BFF"/>
+  <g font-family="ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="44" y="74" font-size="42" font-weight="700" fill="#F3F6FB" letter-spacing="-0.5">AutoFlow</text>
+    <text x="44" y="104" font-size="20" font-weight="500" fill="#007BFF" letter-spacing="3.5">TRADE SIMULATOR</text>
+    <text x="44" y="134" font-size="15" fill="#93A4BF">Real market data. Virtual money. Nothing to lose but the lesson.</text>
+  </g>
+</svg>
