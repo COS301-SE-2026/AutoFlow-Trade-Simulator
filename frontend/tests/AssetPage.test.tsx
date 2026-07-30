@@ -36,5 +36,74 @@ jest.mock('@/components/BuySellForm', () => ({
 }))
 
 describe('AssetPage', () => {
-    
+    const mockRefetchHoldings = jest.fn();
+    const mockUseParams = useParams as jest.Mock;
+    const mockUsePrices = usePrices as jest.Mock;
+    const mockUseAssetSummary = useAssetSummary as jest.Mock;
+    const mockUseHoldings = useHoldings as jest.Mock;
+    const mockUseAccount = useAccount as jest.Mock;
+    const mockApiClient = apiClient as jest.Mock;
+
+    const defaultAccount = { id: 'acc_123', balance: '5000.50'}
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        jest.spyOn(window, 'alert').mockImplementation(() => {})
+
+        mockUseParams.mockReturnValue({ ticker: 'BTC-USD' })
+        mockUsePrices.mockReturnValue({
+            data: [{ close: 50000 }],
+            loading: false,
+            error: null
+        })
+        mockUseAssetSummary.mockReturnValue({
+            data: { current_price: 50000 },
+            loading: false,
+            error: null
+        })
+        mockUseAccount.mockReturnValue({ activeAccount: defaultAccount })
+        mockUseHoldings.mockReturnValue({
+            holdings: [{ ticker: 'BTC/USD', net_quantity: 2.5 }],
+            refetch: mockRefetchHoldings
+        })
+    })
+
+    describe('Page Rendering & States', () => {
+        it('renders loading state when data is loading', () => {
+            mockUsePrices.mockReturnValue({data: [], loading: true, error: null})
+            render(<AssetPage/>)
+            expect(screen.getByText('Loading...')).toBeInTheDocument()
+        })
+
+        it('renders error state when prices or summary fails', () => {
+            mockUsePrices.mockReturnValue({ data: [], loading: false, error: 'Failed to fetch prices'})
+            render(<AssetPage />)
+            expect(screen.getByText(/Error: Failed to fetch prices/i)).toBeInTheDocument();
+        })
+
+        it('renders invalid ticker message if no ticker is present in URL', () => {
+            mockUseParams.mockReturnValue({})
+            render(<AssetPage />)
+            expect(screen.getByText('Invalid ticker')).toBeInTheDocument()
+        })
+
+        it('replaces URL hyphens with slashes in ticker (e.g. BTC-USD -> BTC/USD)', () => {
+            render(<AssetPage/>)
+
+            expect(screen.getByTestId('form-price')).toHaveTextContent('50000')
+            expect(screen.getByTestId('from-balance')).toHaveTextContent('5000.5')
+            expect(screen.getByTestId('form-holdings')).toHaveTextContent('2.5')
+        })
+    })
+
+    describe('Buy Trade Execution', () => {
+        it('executes buy order and refetches holdings on success', async () => {
+            mockApiClient.mockResolvedValueOnce({ success: true })
+            render(<AssetPage/>)
+
+            fireEvent.click(screen.getByTestId('trigger-buy'))
+
+            
+        })
+    })
 })
