@@ -37,7 +37,13 @@ app = FastAPI(title="AutoFlow Trade Simulator", lifespan=lifespan)
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Frontend URLs
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://auto-flow-trade-simulator.vercel.app",
+    ],
+    # Vercel preview deployments get a generated subdomain per branch.
+    allow_origin_regex=r"https://auto-flow-trade-simulator-[a-z0-9-]+\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
