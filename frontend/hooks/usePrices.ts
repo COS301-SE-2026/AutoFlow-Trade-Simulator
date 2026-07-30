@@ -84,7 +84,7 @@ export function usePrices(ticker: string, timeframe: string, count?: number) {
   getPrices();
   
 
-  }, [ticker, timeframe]);
+  }, [ticker, timeframe, count]);
 
   return { data, loading, error };
 }
