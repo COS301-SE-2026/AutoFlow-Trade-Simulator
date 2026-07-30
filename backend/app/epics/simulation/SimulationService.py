@@ -9,7 +9,7 @@ from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.practice_simulation import PraticeSimulation
-from .SimulationDTOs import PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO, StrategyDetail, StrategySummary
+from .SimulationDTOs import OHLCVBar,SimulationCreateResponse,PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO, StrategyDetail, StrategySummary
 
 MAX_SYMBOLS = 20
 MAX_YEARS = 5
@@ -81,7 +81,8 @@ class SimulationService:
         asset_id= self.session.exec(select(Asset.asset_id).where(Asset.symbol== symbol)).first()
         if asset_id is None:
             raise ValueError("Symbols doesnt exist")
-        result:list= list(self.session.exec(select(DailyOHLCV).where(DailyOHLCV.asset_id==asset_id).where(DailyOHLCV.timestamp <= end).where(DailyOHLCV.timestamp>=start).order_by(col(DailyOHLCV.timestamp))).all())
+        day_end=datetime.combine(end,time.max)
+        result:list= list(self.session.exec(select(DailyOHLCV).where(DailyOHLCV.asset_id==asset_id).where(DailyOHLCV.timestamp <= day_end).where(DailyOHLCV.timestamp>=start).order_by(col(DailyOHLCV.timestamp))).all())
         return result
 
     def build_allocations(self,symbols:List[str],allocations:Optional[Dict[str,Decimal]])->Dict[str,Decimal]:
@@ -96,13 +97,16 @@ class SimulationService:
 
 
 
-    def create_simulation_session(self,req:SimulationCreateRequest,user_id:int)->SimulationSessionResponse:
+    def create_simulation_session(self,req:SimulationCreateRequest,user_id:int)->SimulationCreateResponse:
         self.validate_limits(req.symbols,req.start_date,req.end_date)
         allocations:Dict[str,Decimal]= self.build_allocations(req.symbols,req.allocations)
         positions:Dict[str,Decimal]={}
+        actions_log:List[Dict]=[]
+        bars_by_symbol:Dict[str,List[OHLCVBar]]={}
         cash= req.initial_balance
         for s in req.symbols:
             bars:List[DailyOHLCV]= self.load_bars(s,req.start_date,req.end_date)
+            bars_by_symbol[s]=[OHLCVBar(timestamp=b.timestamp,open=b.open,high=b.high,low=b.low,close=b.close,volume=b.volume) for b in bars]
             if not bars:
                 positions[s]=Decimal('0')
                 continue
@@ -111,17 +115,19 @@ class SimulationService:
             asset_quantity= (budget/price) if price>0 else Decimal('0')
             positions[s]=asset_quantity.quantize(Decimal("0.0001"))
             cash-= asset_quantity*price
+            if asset_quantity>0:
+                actions_log.append({"type":"buy","symbol":s,"qty":float(asset_quantity),"price":float(price),"timestamp":bars[0].timestamp.isoformat()})
 
 
         float_positions:Dict[str,float]={s:float(v) for [s,v] in positions.items()}
         float_allocations:Dict[str,float]={s:float(v) for [s,v] in allocations.items()}
-        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=float_allocations,current_balance=cash,positions=float_positions)
+        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=float_allocations,current_balance=cash,positions=float_positions,actions=actions_log)
         self.session.add(sim)
         self.session.commit()
         self.session.refresh(sim)
         if sim.id is None:
             raise ValueError("No simulation id found")
-        return SimulationSessionResponse(simulation_id=sim.id,status=sim.status,positions=positions,nav=req.initial_balance)
+        return SimulationCreateResponse(simulation_id=sim.id,status=sim.status,positions=positions,nav=req.initial_balance,bars=bars_by_symbol)
 
 
     def append_simulation_actions(self,req:SimulationAppendRequest,user_id:int)->SimulationSessionResponse:
@@ -213,7 +219,7 @@ class SimulationService:
                 if price is not None:
                     last_close[s] = price
 
-            while action_idx < len(sorted_actions):
+            while action_idx < len(sorted_actions) and datetime.fromisoformat(sorted_actions[action_idx]['timestamp']).date() <= current_date:
                 a=sorted_actions[action_idx]
                 qty=Decimal(str(a['qty']))
                 price=Decimal(str(a['price']))

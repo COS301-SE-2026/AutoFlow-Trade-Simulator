@@ -76,7 +76,7 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
             return [...temp, ...Array(padding).fill(null)]
         }
         return temp;
-    }, [filteredTransaction, currentPage])
+    }, [filteredTransaction, currentPage, pageSize])
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
