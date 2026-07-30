@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, pool, text
 from sqlmodel import SQLModel
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,13 +66,15 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        connection.execute(text("SET lock_timeout = '5000ms';"))
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
             compare_server_default=True,
             process_revision_directives=process_revision_directives,
-            include_object=include_object
+            include_object=include_object,
         )
 
         with context.begin_transaction():

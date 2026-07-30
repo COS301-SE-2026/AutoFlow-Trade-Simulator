@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     # Set to False in environments where migrations are required instead.
     auto_sync_db: bool = True
 
+    db_pool_pre_ping: bool = True
+    db_pool_recycle: int = 1800  # recycle connections every 30 minutes to refresh the AWS DNS cache
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+
 
 @lru_cache
 def get_settings() -> Settings:

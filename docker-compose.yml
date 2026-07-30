@@ -61,6 +61,11 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - AUTO_SYNC_DB=false
+      - DB_POOL_PRE_PING=true
+      - DB_POOL_RECYCLE=1800
+      - DB_POOL_SIZE=10
+      - DB_MAX_OVERFLOW=20
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}
