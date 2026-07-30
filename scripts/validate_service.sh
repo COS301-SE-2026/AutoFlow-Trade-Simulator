@@ -20,10 +20,16 @@ if [[ "$HEALTHY" != "true" ]]; then
 fi
 
 sed -i "s/proxy_pass http:\/\/127.0.0.1:[0-9]\{4\};/proxy_pass http:\/\/127.0.0.1:$TARGET_PORT;/" /etc/nginx/conf.d/autoflow.conf
+
+# Verify Nginx configuration before reloading
+nginx -t
+
 systemctl reload nginx
 
-OLD_CONTAINER=$(docker ps -q --filter "name=autoflow-backend" | grep -v "$TARGET_NAME" || true)
+# Filter by container name rather than container ID
+OLD_CONTAINER=$(docker ps --format "{{.Names}}" --filter "name=autoflow-backend" | grep -v "^${TARGET_NAME}$" || true)
+
 if [[ -n "$OLD_CONTAINER" ]]; then
-    docker stop "$OLD_CONTAINER"
-    docker rm "$OLD_CONTAINER"
+    echo "Removing old container: $OLD_CONTAINER"
+    docker rm -f $OLD_CONTAINER
 fi
