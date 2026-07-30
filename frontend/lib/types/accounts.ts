@@ -8,7 +8,7 @@ export const InternationalAccountSchema = z.object({
     portfolio_id: z.number().int().nonnegative(),
     currency_id: z.number().int().nonnegative(),
     currency_code: z.enum(currencies),
-    balance: z.string().regex(/^\d+$/),
+    balance: z.union([z.string(), z.number()]).transform(String),
     created_at: z.coerce.date(),
 });
 

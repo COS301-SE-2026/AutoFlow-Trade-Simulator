@@ -68,10 +68,15 @@ class LCGPseudoRandomGenerator:
         #mathematically isloated
         local_x = self.x_prev
 
+        trend = 0.0
+
         for _ in range(count):
             #Excplicitly advance the sequence.
             local_x = (self.a * local_x + self.c) % self.m
             close_rand = (local_x / self.m) * 2.0 - 1.0
+
+            local_x = (self.a * local_x + self.c) % self.m
+            vol_mult = 0.5 + (local_x / self.m) * 2.0
 
             local_x = (self.a * local_x + self.c) % self.m
             high_rand = local_x / self.m
@@ -82,17 +87,21 @@ class LCGPseudoRandomGenerator:
             local_x = (self.a * local_x + self.c) % self.m
             vol_rand = local_x / self.m
 
-            #Simulate market volatility
-            volatility = internal_price * 0.03
+            trend = (trend * 0.6) + (close_rand * 0.4)
 
-            #calculate the close based on the open
-            raw_close = internal_price + (close_rand * volatility)
+            #Simulate market volatility
+            base_vol = 0.05 * vol_mult
+            volatility = internal_price * base_vol
+
+            price_change = (trend + close_rand) * volatility
+            raw_close = max(1.0, internal_price + price_change)
     
-            raw_high = max(internal_price, raw_close) + (high_rand * (volatility * 0.5)) # must be higher than low
-            raw_low = min(internal_price, raw_close) - (low_rand * (volatility * 0.5)) # must be in the dirt or lower than high
+            bar_spread = abs(raw_close - internal_price)
+            raw_high = max(internal_price, raw_close) + (high_rand * (volatility + bar_spread * 0.5)) # must be higher than low
+            raw_low = max(0.5, min(internal_price, raw_close) - (low_rand * (volatility + bar_spread * 0.5))) # must be in the dirt or lower than high
 
             #generate random trading volume
-            raw_volume = 100.0 + (vol_rand * 4900.0)
+            raw_volume = 500.0 + (vol_rand * 15000.0) * (1.0 + (bar_spread / internal_price) * 10.0)
 
             dto = MockOHLCV(
                 timestamp = current_time.isoformat(),

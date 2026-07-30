@@ -10,20 +10,31 @@
     "migrate:dev": "node scripts/migrate-dev.js",
     "setup": "node scripts/setup.js",
     "backend": "npm --prefix backend run dev",
+    "backend:start": "docker compose up -d --build backend",
     "frontend": "npm run dev --prefix frontend",
+    "poller:start": "docker compose up -d --build data-harvester",
+    "poller:stop": "docker compose stop data-harvester",
+    "poller:logs": "docker compose logs -f data-harvester",
     "lint:backend": "python -m ruff check backend/app backend/tests",
     "lint:frontend": "npm --prefix frontend run lint",
     "lint": "npm run lint:backend && npm run lint:frontend",
     "test:backend": "cd backend && python -m pytest",
-    "test": "npm run test:backend",
+    "test:stock-poller": "pip install -r stock-poller/requirements-test.txt && pytest stock-poller/tests -v",
+    "test:frontend": "npm --prefix frontend run test",
+    "test": "npm run test:backend; npm run test:stock-poller; npm run test:frontend",
     "dev": "npm run backend & npm run frontend",
-    "start": "npm run start --prefix backend & npm run start --prefix frontend"
+    "start": "npm run start --prefix backend & npm run start --prefix frontend",
+    "lhci": "lhci autorun",
+    "k6": "docker run --rm --network=host --env-file .env -v \"$PWD/backend/tests/performance:/tests\" grafana/k6 run /tests/performance-baseline.js",
+    "perf": "npm run lhci && npm run k6"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "autoprefixer": "^10.5.0",
+    "dotenv-cli": "^11.0.0",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.3.0"
   }

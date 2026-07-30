@@ -1,0 +1,108 @@
+{
+  "family": "autoflow-stock-poller",
+  "taskRoleArn": "arn:aws:iam::066196453073:role/ecsTaskExecutionRole",
+  "executionRoleArn": "arn:aws:iam::066196453073:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "2048",
+  "runtimePlatform": {
+    "cpuArchitecture": "ARM64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "containerDefinitions": [
+    {
+      "name": "stock-poller",
+      "image": "066196453073.dkr.ecr.eu-west-1.amazonaws.com/autoflow-stock-poller:latest",
+      "cpu": 0,
+      "essential": true,
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "python -c 'import sys, os; sys.exit(0)' || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 15
+      },
+      "portMappings": [],
+      "environment": [],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "secrets": [
+        {
+          "name": "DB_MODE",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_MODE"
+        },
+        {
+          "name": "DB_HOST",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_HOST"
+        },
+        {
+          "name": "DB_PORT",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_PORT"
+        },
+        {
+          "name": "DB_NAME",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_NAME"
+        },
+        {
+          "name": "DB_USER",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod//autoflow/prod/DB_USER"
+        },
+        {
+          "name": "DB_PASSWORD",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_PASSWORD"
+        },
+        {
+          "name": "FINFEED_API_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/FINFEED_API_KEY"
+        },
+        {
+          "name": "FCS_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/FCS_KEY"
+        },
+        {
+          "name": "MASSIVE_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/MASSIVE_KEY"
+        },
+        {
+          "name": "FINNHUB_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/FINNHUB_KEY"
+        },
+        {
+          "name": "TWELVEDATA_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/TWELVEDATA_KEY"
+        },
+        {
+          "name": "VECTRADE_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/VECTRADE_KEY"
+        },
+        {
+          "name": "EOD_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/EOD_KEY"
+        },
+        {
+          "name": "COINMARKETCAP_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/COINMARKETCAP_KEY"
+        },
+        {
+          "name": "COINGECKO_KEY",
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/externalApiKeys/COINGECKO_KEY"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/autoflow-stock-poller",
+          "awslogs-create-group": "true",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

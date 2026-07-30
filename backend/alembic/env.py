@@ -5,14 +5,13 @@ from pathlib import Path
 import sys
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, pool, text
 from sqlmodel import SQLModel
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app import models  # noqa: F401,E402
 from app.settings import settings  # noqa: E402
 
 config = context.config
@@ -22,6 +21,12 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = SQLModel.metadata
+
+def include_object(object, name, type_, reflected, compare_to) -> bool:
+    if type_ == "table":
+        if name.startswith("_hyper_") or getattr(object, "schema", None) == "_timescaledb_internal":
+            return False
+    return True
 
 
 def process_revision_directives(context, revision, directives) -> None:
@@ -46,6 +51,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         compare_type=True,
         compare_server_default=True,
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -60,12 +66,15 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        connection.execute(text("SET lock_timeout = '5000ms';"))
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
             compare_server_default=True,
             process_revision_directives=process_revision_directives,
+            include_object=include_object,
         )
 
         with context.begin_transaction():

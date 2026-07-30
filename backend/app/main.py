@@ -11,10 +11,14 @@ from .settings import settings
 from .epics.core.CoreController import router as core_router
 from .epics.market_data.MarketDataController import router as market_data_router
 from .epics.portfolio.PortfolioController import router as portfolio_router
+from .epics.greeks.GreeksController import router as greeks_router
 from .epics.ui.UiController import router as ui_router
 from .epics.auth.AuthController import router as auth_router
 from .epics.accounts.AccountsController import router as accounts_router
 from .epics.portfolio.ReportController import router as report_router
+from .epics.simulation.SimulationController import router as simulation_router
+from .epics.Datapoints.DatapointsController import router as chart_router
+from .epics.real_time_data.RealTimeDataController import router as real_time 
 
 
 @asynccontextmanager
@@ -43,6 +47,10 @@ app.include_router(core_router)
 app.include_router(market_data_router)
 app.include_router(ui_router)
 app.include_router(portfolio_router)
+app.include_router(greeks_router)
 app.include_router(auth_router)
 app.include_router(accounts_router)
 app.include_router(report_router)
+app.include_router(simulation_router)
+app.include_router(chart_router)
+app.include_router(real_time)

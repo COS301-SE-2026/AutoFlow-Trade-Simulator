@@ -27,14 +27,30 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r backend/requirements.txt
+          python -m pip install --upgrade pip==26.2
+          python -m pip install --only-binary :all: --require-hashes -r backend/requirements.txt
 
       - name: Lint backend
         run: npm run lint:backend
 
       - name: Run backend tests
         run: npm run test:backend
+
+  stock-poller:
+    name: Stock poller tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run stock-poller tests
+        run: npm run test:stock-poller
 
   frontend:
     name: Frontend lint and build
@@ -53,10 +69,13 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Lint frontend
         run: npm run lint:frontend
+
+      - name: Run frontend tests
+        run: npm run test:frontend
 
       - name: Build frontend
         working-directory: frontend

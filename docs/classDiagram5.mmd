@@ -1,0 +1,149 @@
+classDiagram
+    class User {
+        int id (PK)
+        string email (UNIQUE)
+        string password_hash
+        string full_name
+    }
+
+    class Portfolio {
+        int id (PK)
+        int user_id (FK)
+        decimal cash_balance
+        string name
+    }
+
+    class InternationalAccount {
+        int id (PK)
+        int portfolio_id (FK)
+        int currency_id (FK)
+        decimal balance
+        datetime created_at
+    }
+
+    class Currency {
+        int id (PK)
+        string code (max 3)
+        string name
+    }
+
+    class Asset {
+        int asset_id (PK)
+        string symbol (UNIQUE)
+        string asset_class
+        string exchange
+        string currency
+    }
+
+    class StockAsset {
+        int id (PK)
+        int asset_id (FK)
+    }
+
+    class Transaction {
+        int id (PK)
+        int account_id (FK)
+        int asset_id (FK)
+        Direction direction
+        float quantity
+        decimal price_at_execution
+        datetime executed_at
+    }
+
+    class Direction {
+        <<enumeration>>
+        BUY
+        SELL
+    }
+
+    class RealtimeTicks {
+        datetime timestamp (PK)
+        int asset_id (FK)
+        decimal price
+        decimal volume
+    }
+
+    class DailyOHLCV {
+        datetime timestamp (PK)
+        int asset_id (FK)
+        decimal open
+        decimal high
+        decimal low
+        decimal close
+        decimal volume
+    }
+
+    class Greeks{
+        int user_id (FK) (PK)
+        string symbol
+        decimal delta
+        decimal gamma
+        decimal theta
+        decimal vega
+        decimal rho
+        datetime timestamp
+    }
+
+    class MarketCondition {
+        int id (PK)
+        datetime date
+        enumeration condition
+    }
+
+    class strategies {
+        int strat_id (PK)
+        string name
+    }
+
+    class BackTestResults {
+        int backtest_id (PK)
+        int simu_id (FK)
+        int user_id (FK)
+        string asset_symbol
+        string timeframe
+        int total_trades
+        decimal win_rate_percentage
+    }
+
+    class PracticeSimulation {
+        int simu_id (PK)
+        int strat_id (FK)
+        string status
+    }
+
+    class Option {
+        int asset_id FK
+        datetime timestamp PK
+        string contract_symbol PK
+        OptionType option_type
+        decimal strike_price
+        datetime expr_date
+        decimal bid
+        decimal last_price
+        decimal volume
+        decimal open_intrest
+        decimal imp_vol
+        bool in_the_money
+    }
+
+    class OptionType{
+        <<enumeration>>
+        CALL
+        PUT
+    }
+
+    User "1" --> "*" Portfolio : owns
+    Portfolio "1" --> "*" InternationalAccount : contains
+    InternationalAccount "1" --> "*" Transaction : records
+    Currency "1" --> "*" InternationalAccount : denominated_in
+    Asset "1" --> "*" Transaction : executes
+    Asset "1" --> "*" StockAsset : specializes
+    Transaction "1" --> "1" Direction : uses
+    User "1" --> "*" Greeks : has
+    Asset "1" --> "*" RealtimeTicks : streams
+    Asset "1" --> "*" DailyOHLCV : tracks
+    User "1" --> "*" BackTestResults : Has
+    strategies "1" --> "*" PracticeSimulation : has
+    PracticeSimulation "1" --> "*" BackTestResults : yield
+    Asset "1" --> "0..*" Option : can have
+    Option "1" --> "1" OptionType : categorised as

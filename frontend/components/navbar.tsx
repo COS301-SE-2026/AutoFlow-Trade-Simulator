@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { AccountProvider } from "@/lib/hooks/accountContext";
 import { AccountSelector } from "@/components/ui/intAccSwitcher";
 import { useRouter } from 'next/navigation';
-import {CreateNewInternationalAccount} from "@/components/ui/createNewInternationalAccount";
-import {useAuth} from "@/lib/hooks/useAuth";
+import { CreateNewInternationalAccount } from "@/components/ui/createNewInternationalAccount";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 const actionBtn = {
     display: 'inline-flex',
@@ -48,10 +48,12 @@ export function Navbar() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {[
                     { label: 'Dashboard', href: '/dashboard' },
-                    { label: 'Portfolio',  href: '/#' },
-                    { label: 'Markets',    href: '/#' },
+                    { label: 'Portfolio', href: '/portfolio' },
+                    { label: 'Markets', href: '/assets/AAPL' },
                     { label: 'Leaderboard', href: '/#' },
                     { label: 'AI Assistant', href: '/#' },
+                    { label: 'Learning', href: '/learning' },
+                    { label: 'Help', href: '/help' },
                 ].map(({ label, href }) => (
                     <Link
                         key={label}
@@ -89,7 +91,7 @@ export function Navbar() {
                     className="hover:bg-red-500/20 hover:border-red-500/60"
                 >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
                     Log out
                 </button>
