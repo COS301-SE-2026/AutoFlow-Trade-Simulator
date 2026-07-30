@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import SplashPage from '@/app/splash/page';
+import SplashPage from '@/app/page';
 
 describe('SplashPage', () => {
 
