@@ -19,7 +19,7 @@ export function PortfolioTotalValue({ accountId }: { accountId: number | null })
                 <div>{currencyCode} {totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             </div>
             <div className={`flex items-center gap-1 mt-2 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                {isPositive ? <TrendingUp className='w-4 h-4' /> : <TrendingDown className='w-4 h-4' />}
+                {isPositive ? <TrendingUp data-testid='TrendingUp' className='w-4 h-4' /> : <TrendingDown data-testid='TrendingDown' className='w-4 h-4' />}
                 <span>{isPositive ? '+' : ''}{profitLossPercent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</span>
             </div>
         </div>
