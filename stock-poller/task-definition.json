@@ -51,7 +51,7 @@
         },
         {
           "name": "DB_USER",
-          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod//autoflow/prod/DB_USER"
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_USER"
         },
         {
           "name": "DB_PASSWORD",
