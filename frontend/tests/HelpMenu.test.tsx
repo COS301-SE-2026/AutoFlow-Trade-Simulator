@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen,  } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import HelpMenu from '@/app/help/page';

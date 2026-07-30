@@ -1,6 +1,6 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook,  } from '@testing-library/react';
 import { usePortfolio } from '@/hooks/usePortfolio';
-import { apiClient, ApiError } from '@/lib/api';
+import { apiClient,  } from '@/lib/api';
 
 import { useAccount } from '@/lib/hooks/accountContext';
 import { useHoldings } from '@/hooks/useHoldings';

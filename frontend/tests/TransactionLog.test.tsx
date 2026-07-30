@@ -1,6 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent,  } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import userEvent from '@testing-library/user-event';
 import { TransactionLog } from '@/components/TransactionLog';
 
 import { useAccount } from '@/lib/hooks/accountContext';

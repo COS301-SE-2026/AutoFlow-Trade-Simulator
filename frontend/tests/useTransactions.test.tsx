@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { useTransactions, Transactions } from '@/hooks/useTransactions';
-import { apiClient, ApiError } from '@/lib/api';
+import { useTransactions,  } from '@/hooks/useTransactions';
+import { apiClient,  } from '@/lib/api';
 
 jest.mock('@/lib/api', () => ({
     apiClient: jest.fn(),

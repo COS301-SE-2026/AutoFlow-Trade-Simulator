@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { useStrategies, StrategySummary } from '@/hooks/useStrategies';
-import { apiClient, ApiError } from '@/lib/api';
+import { useStrategies,  } from '@/hooks/useStrategies';
+import { apiClient,  } from '@/lib/api';
 
 jest.mock('@/lib/api', () => ({
     apiClient: jest.fn(),
