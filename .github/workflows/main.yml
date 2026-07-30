@@ -29,12 +29,23 @@ jobs:
         run: |
           python -m pip install --upgrade pip==26.2
           python -m pip install --only-binary :all: --require-hashes -r backend/requirements.txt
+          python -m pip install --only-binary :all: --require-hashes -r backend/requirements-cov.lock.txt
 
       - name: Lint backend
         run: npm run lint:backend
 
       - name: Run backend tests
-        run: npm run test:backend
+        working-directory: backend
+        run: python -m pytest --cov=app --cov-report=xml --cov-report=term-missing
+
+      - name: Upload backend coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: backend/coverage.xml
+          flags: backend
+          name: backend
+          fail_ci_if_error: false
 
   stock-poller:
     name: Stock poller tests
@@ -49,8 +60,22 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install stock-poller dependencies
+        run: |
+          python -m pip install --upgrade pip==26.2
+          python -m pip install --only-binary :all: --require-hashes -r stock-poller/requirements-test.lock.txt
+
       - name: Run stock-poller tests
-        run: npm run test:stock-poller
+        run: python -m pytest stock-poller/tests -v --cov=stock-poller --cov-report=xml:coverage-stock-poller.xml
+
+      - name: Upload stock-poller coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage-stock-poller.xml
+          flags: stock-poller
+          name: stock-poller
+          fail_ci_if_error: false
 
   frontend:
     name: Frontend lint and build
@@ -75,7 +100,17 @@ jobs:
         run: npm run lint:frontend
 
       - name: Run frontend tests
-        run: npm run test:frontend
+        working-directory: frontend
+        run: npm run test -- --coverage
+
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend
+          fail_ci_if_error: false
 
       - name: Build frontend
         working-directory: frontend
