@@ -14,14 +14,16 @@
   <a href="https://codecov.io/gh/COS301-SE-2026/AutoFlow-Trade-Simulator"><img src="https://img.shields.io/codecov/c/github/COS301-SE-2026/AutoFlow-Trade-Simulator?style=flat-square&label=coverage&color=007BFF" alt="Coverage" /></a>
   <a href="https://github.com/COS301-SE-2026/AutoFlow-Trade-Simulator/wiki/Functional-Requirements"><img src="https://img.shields.io/badge/requirements-SRS%20v2-007BFF?style=flat-square" alt="Requirements" /></a>
   <a href="https://github.com/COS301-SE-2026/AutoFlow-Trade-Simulator/issues"><img src="https://img.shields.io/github/issues/COS301-SE-2026/AutoFlow-Trade-Simulator?style=flat-square&color=007BFF" alt="Issues" /></a>
-  <a href="https://stats.uptimerobot.com/"><img src="https://img.shields.io/uptimerobot/status/mMONITOR_ID?style=flat-square&label=uptime&color=007BFF" alt="Monitoring" /></a>
+  <a href="https://stats.uptimerobot.com/nQDREp6YF4"><img src="https://img.shields.io/uptimerobot/status/m803628380-fb4b472d572cf9256046bf66?style=flat-square&label=status&color=007BFF" alt="Service status" /></a>
+  <a href="https://stats.uptimerobot.com/nQDREp6YF4"><img src="https://img.shields.io/uptimerobot/ratio/7/m803628380-fb4b472d572cf9256046bf66?style=flat-square&label=uptime%20%287d%29&color=007BFF" alt="Uptime over 7 days" /></a>
   <a href="https://github.com/COS301-SE-2026/AutoFlow-Trade-Simulator/pulls"><img src="https://img.shields.io/github/issues-pr/COS301-SE-2026/AutoFlow-Trade-Simulator?style=flat-square&color=007BFF" alt="Pull Requests" /></a>
 </p>
 
 <p align="center">
-  <strong><a href="https://TODO-LIVE-URL">Live System</a></strong> &nbsp;·&nbsp;
+  <strong><a href="https://auto-flow-trade-simulator.vercel.app/">Live System</a></strong> &nbsp;·&nbsp;
   <a href="https://github.com/COS301-SE-2026/AutoFlow-Trade-Simulator/wiki">Documentation Wiki</a> &nbsp;·&nbsp;
-  <a href="https://github.com/orgs/COS301-SE-2026/projects">Project Board</a>
+  <a href="https://github.com/orgs/COS301-SE-2026/projects/78">Project Board</a> &nbsp;·&nbsp;
+  <a href="https://stats.uptimerobot.com/nQDREp6YF4">Status</a>
 </p>
 
 <p align="center"><img src="docs/images/divider.svg" width="800" alt="" /></p>
