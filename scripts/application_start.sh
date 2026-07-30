@@ -14,6 +14,9 @@ else
     TARGET_NAME="autoflow-backend-blue"
 fi
 
+# Remove target container if it already exists (stopped or failed state)
+docker rm -f "$TARGET_NAME" 2>/dev/null || true
+
 docker run -d \
   --name "$TARGET_NAME" \
   -p $TARGET_PORT:8000 \
