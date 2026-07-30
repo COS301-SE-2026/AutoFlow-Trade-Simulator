@@ -22,7 +22,7 @@ concurrency:
 jobs:
   deploy-backend:
     name: Build, Migrate & Trigger Blue/Green Deployment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Checkout Code
