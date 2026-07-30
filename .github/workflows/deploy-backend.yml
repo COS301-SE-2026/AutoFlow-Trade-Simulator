@@ -48,33 +48,19 @@ jobs:
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
-      - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: "3.11"
-
-      - name: Install Migration Dependencies
-        run: |
-            python -m pip install --upgrade pip==24.0
-            pip install --only-binary=:all: \
-              alembic==1.13.1 \
-              sqlmodel==0.0.16 \
-              psycopg2-binary==2.9.9 \
-              pydantic-settings==2.2.1
-
-      - name: Execute Database Migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          cd backend
-          alembic upgrade head
-
       - name: Package CodeDeploy Bundle
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
           mkdir -p build
-          echo "IMAGE_TAG=${{ github.sha }}" > scripts/version.env
+          cat > scripts/image.env <<EOF
+          ECR_REGISTRY=${ECR_REGISTRY}
+          ECR_REPOSITORY=${ECR_REPOSITORY}
+          AWS_REGION=${AWS_REGION}
+          IMAGE_TAG=${GITHUB_SHA}
+          EOF
           zip -r "build/deployment-${{ github.sha }}.zip" appspec.yml scripts/
 
       - name: Upload Bundle to Amazon S3
@@ -90,16 +76,12 @@ jobs:
           CODEDEPLOY_GROUP_NAME: ${{ secrets.CODEDEPLOY_GROUP_NAME }}
           S3_DEPLOYMENT_BUCKET: ${{ secrets.S3_DEPLOYMENT_BUCKET }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.sha }}
         run: |
           DEPLOYMENT_ID=$(aws deploy create-deployment \
             --application-name "$CODEDEPLOY_APP_NAME" \
             --deployment-group-name "$CODEDEPLOY_GROUP_NAME" \
             --s3-location bucket="$S3_DEPLOYMENT_BUCKET",key=deployments/deployment-${GITHUB_SHA}.zip,bundleType=zip \
             --description "Automated deployment for commit ${GITHUB_SHA}" \
-            --environment-variables "ECR_REGISTRY=${ECR_REGISTRY},ECR_REPOSITORY=${ECR_REPOSITORY},AWS_REGION=${AWS_REGION},IMAGE_TAG=${IMAGE_TAG}" \
             --query "deploymentId" \
             --output text)
           

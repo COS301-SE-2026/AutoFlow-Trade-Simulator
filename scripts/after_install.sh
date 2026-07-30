@@ -13,6 +13,6 @@ docker pull "$ECR_URI:$IMAGE_TAG"
 
 # 3. Execute DB Migrations using the new image BEFORE it starts serving traffic
 docker run --rm \
-  --env-file /path/to/your/production/.env \
+  --env-file /opt/autoflow/.env \
   "$ECR_URI:$IMAGE_TAG" \
   alembic upgrade head

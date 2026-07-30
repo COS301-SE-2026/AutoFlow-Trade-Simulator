@@ -17,7 +17,7 @@ fi
 docker run -d \
   --name "$TARGET_NAME" \
   -p $TARGET_PORT:8000 \
-  --env-file /path/to/your/production/.env \
+  --env-file /opt/autoflow/.env \
   "$ECR_URI:$IMAGE_TAG"
 
 echo "TARGET_PORT=$TARGET_PORT" > /tmp/deployment_target.env
