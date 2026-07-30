@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/ec2-user/autoflow
+    destination: /opt/autoflow
 hooks:
   AfterInstall:
     - location: scripts/after_install.sh
@@ -11,8 +11,8 @@ hooks:
   ApplicationStart:
     - location: scripts/application_start.sh
       timeout: 300
-      runas: ec2-user
+      runas: root
   ValidateService:
     - location: scripts/validate_service.sh
       timeout: 120
-      runas: ec2-user
+      runas: ubuntu
