@@ -29,7 +29,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip==26.2
           python -m pip install --only-binary :all: --require-hashes -r backend/requirements.txt
-          python -m pip install pytest-cov==6.0.0
+          python -m pip install --only-binary :all: --require-hashes -r backend/requirements-cov.lock.txt
 
       - name: Lint backend
         run: npm run lint:backend
@@ -62,9 +62,8 @@ jobs:
 
       - name: Install stock-poller dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r stock-poller/requirements-test.txt
-          python -m pip install pytest-cov==6.0.0
+          python -m pip install --upgrade pip==26.2
+          python -m pip install --only-binary :all: --require-hashes -r stock-poller/requirements-test.lock.txt
 
       - name: Run stock-poller tests
         run: python -m pytest stock-poller/tests -v --cov=stock-poller --cov-report=xml:coverage-stock-poller.xml
