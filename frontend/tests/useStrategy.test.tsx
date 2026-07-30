@@ -35,7 +35,7 @@ describe('useStrategy', () => {
 
         const { result } = renderHook(() => useStrategy(mockStrategy.id));
 
-        expect(result.current.error).toBe(null);
+        expect(result.current.error).toBeNull();
         expect(result.current.loading).toBe(true);
         expect(result.current.strategy).toEqual(null);
     });
@@ -49,7 +49,7 @@ describe('useStrategy', () => {
             expect(result.current.loading).toBe(false);
         })
 
-        expect(result.current.error).toBe(null);
+        expect(result.current.error).toBeNull();
         expect(result.current.strategy).toEqual({ strategy: mockStrategy });
         expect(mockApiClient).toHaveBeenCalledWith(`/simulation/strategies/${mockStrategy.id}`);
     });

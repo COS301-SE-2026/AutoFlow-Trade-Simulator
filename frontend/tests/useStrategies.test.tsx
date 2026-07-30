@@ -40,7 +40,7 @@ describe('useStrategies', () => {
 
         const { result } = renderHook(() => useStrategies());
 
-        expect(result.current.error).toBe(null);
+        expect(result.current.error).toBeNull();
         expect(result.current.loading).toBe(true);
         expect(result.current.strategies).toEqual([]);
     });
@@ -54,7 +54,7 @@ describe('useStrategies', () => {
             expect(result.current.loading).toBe(false);
         });
 
-        expect(result.current.error).toBe(null);
+        expect(result.current.error).toBeNull();
         expect(result.current.strategies).toEqual(mockStrategies);
         expect(mockApiClient).toHaveBeenCalledWith('/simulation/strategies');
     });

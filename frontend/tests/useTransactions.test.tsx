@@ -34,7 +34,7 @@ describe('useTransactions', () => {
 
         const { result } = renderHook(() => useTransactions(mocktransactions[0].account_id));
 
-        expect(result.current.error).toBe(null);
+        expect(result.current.error).toBeNull();
         expect(result.current.loading).toBe(true);
         expect(result.current.transactions).toEqual([]);
     });
@@ -48,7 +48,7 @@ describe('useTransactions', () => {
             expect(result.current.loading).toBe(false);
         })
 
-        expect(result.current.error).toBe(null);
+        expect(result.current.error).toBeNull();
         expect(result.current.transactions).toEqual(mocktransactions);
         expect(mockApiClient).toHaveBeenCalledWith(`/portfolio/accounts/${mocktransactions[0].account_id}/transactions`);
     });
