@@ -15,4 +15,4 @@ hooks:
   ValidateService:
     - location: scripts/validate_service.sh
       timeout: 120
-      runas: ubuntu
+      runas: root
