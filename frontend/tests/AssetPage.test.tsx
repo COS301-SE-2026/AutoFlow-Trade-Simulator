@@ -19,7 +19,7 @@ jest.mock('@/lib/hooks/accountContext', () => ({ useAccount: jest.fn() }))
 jest.mock('@/lib/api', () => ({ apiClient: jest.fn() }))
 
 jest.mock('@/components/navbar', () => ({ Navbar: () => <nav data-testid="navbar-mock">Navbar</nav> }));
-jest.mock('@/components/AssetSummaryBar', () => ({ __esModule: true, default: ({ default: ({ ticker }: { ticker: string }) => <div data-testid="summary-bar-mock">{ticker}</div>})}))
+jest.mock('@/components/AssetSummaryBar', () => ({__esModule: true,default: ({ ticker }: { ticker: string }) => <div data-testid="summary-bar-mock">{ticker}</div>}))
 jest.mock('@/components/liveDataGraph', () => ({ LiveDataGraph: ({ symbol }: { symbol: string }) => <div data-testid="graph-mock">{symbol}</div> }))
 
 jest.mock('@/components/BuySellForm', () => ({
@@ -91,7 +91,7 @@ describe('AssetPage', () => {
             render(<AssetPage/>)
 
             expect(screen.getByTestId('form-price')).toHaveTextContent('50000')
-            expect(screen.getByTestId('from-balance')).toHaveTextContent('5000.5')
+            expect(screen.getByTestId('form-balance')).toHaveTextContent('5000.5')
             expect(screen.getByTestId('form-holdings')).toHaveTextContent('2.5')
         })
     })
