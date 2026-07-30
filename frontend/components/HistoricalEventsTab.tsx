@@ -32,29 +32,27 @@ const eventDefs: EventDefinition[] = [
         narrative: `Apple launches its first 5G iPhone lineup. Despite pandemic uncertainty, demand explodes, fuelling the biggest iPhone upgrade cycle in years. The market is about to reprice the world's most valuable company.`,
         context: `It's October 13, 2020. AAPL trades near R2104 after the iPhone 12 reveal. Early pre-order numbers are breaking records, but analysts are still cautious about consumer spending during COVID. You have R200,000 to manage over the next six months.`,
         timeframe: '6m',
-        startYear: 2020,
-        startMonth: 10,
-        startDay: 13,
-        tradingDays: 130,
+        startYear: 2026,
+        startMonth: 1,
+        startDay: 1,
+        tradingDays: 5,
         initialBalance: 200000,
     },
     {
-        id: 'sanlam-ninetyone',
-        title: 'Sanlam Partnership Boost',
-        ticker: 'N91',                     // Ninety One JSE ticker – verify with your /market-data/assets list
-        company: 'Ninety One',
-        sector: 'Financial Services',
-        period: 'Jan - May 2026',
-        narrative:
-            'A landmark 15-year strategic deal with Sanlam adds £18.3 bn (R412.5 bn) in AUM. The market is about to reprice Ninety One as its total AUM surges 31% to a record R3.9 trillion.',
-        context:
-            "It's January 2, 2026. Ninety One (N91) is trading near the middle of its recent range. Sanlam and Ninety One are in the final stages of a partnership that will bring £18.3 bn in assets under management. The market is yet to fully price in the transformation.",
-        timeframe: '3m',                   // shorter timeframe to capture the immediate reaction
-        startYear: 2026,
-        startMonth: 1,                     // 1‑based: January
-        startDay: 2,
-        tradingDays: 65,                   // roughly 3 calendar months of trading days
-        initialBalance: 200000,            // matches your other ZAR‑based events
+        id: 'abg-hy2023-rally',
+        title: 'ABSA Rate Hike Windfall',
+        ticker: 'ABG',
+        company: 'ABSA Group Ltd',
+        sector: 'Financials',
+        period: 'Aug 2023 - Feb 2024',
+        narrative: `South Africa's aggressive monetary tightening cycle delivers a massive tailwind to banks. ABSA reports blockbuster half-year earnings, driven by a 4.6% net interest margin and double-digit loan book growth. The stock breaks out as the market prices in sustained profitability, despite lingering fears over rising consumer defaults.`,
+        context: `It's August 10, 2023. ABG trades near R160 after smashing consensus estimates. Headline earnings per share are up 7%, and the bank announces a higher-than-expected interim dividend. You have R200,000 to manage over the next six months as the rate debate intensifies.`,
+        timeframe: '6m',
+        startYear: 2023,
+        startMonth: 8,
+        startDay: 10,
+        tradingDays: 130,
+        initialBalance: 200000,
     }
 ];
 
