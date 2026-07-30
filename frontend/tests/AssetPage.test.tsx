@@ -103,7 +103,53 @@ describe('AssetPage', () => {
 
             fireEvent.click(screen.getByTestId('trigger-buy'))
 
-            
+            await waitFor(() => {
+                expect(mockApiClient).toHaveBeenCalledWith('/portfolio/accounts/acc_123', {
+                    method: 'POST',
+                    body: { ticker: 'BTC/USD', direction: 'buy', quantity: 10}
+                })
+                expect(mockRefetchHoldings).toHaveBeenCalled()
+                expect(window.alert).toHaveBeenCalledWith('Successfully bought 10 units of BTC/USD')
+            })
+        })
+
+        it('shows error alert if buy order API call fails', async() => {
+            mockApiClient.mockRejectedValueOnce(new Error('Network Error'));
+            render(<AssetPage/>)
+
+            fireEvent.click(screen.getByTestId('trigger-buy'))
+
+            await waitFor(() => {
+                expect(window.alert).toHaveBeenCalledWith('Failed to execute order: Network Error');
+            })
+        })
+
+        it('alerts user if no active account is selected when buying', async () => {
+            mockUseAccount.mockReturnValue({ activeAccount: null })
+            render(<AssetPage/>)
+
+            fireEvent.click(screen.getByTestId('trigger-buy'))
+
+            expect(window.alert).toHaveBeenCalledWith('No active account is selected');
+            expect(mockApiClient).not.toHaveBeenCalled();
+        })
+    })
+
+    describe('Sell Trade Execution', () => {
+        it('executes sell order and refecthes holdings on success', async () => {
+            mockApiClient.mockResolvedValueOnce({ success: true })
+            render(<AssetPage />)
+
+            fireEvent.click(screen.getByTestId('trigger-sell'))
+
+            await waitFor(() => {
+                expect(mockApiClient).toHaveBeenCalledWith('/portfolio/accounts/acc_123', {
+                    method: 'POST',
+                    body: { ticker: 'BTC/USD', direction: 'sell', quantity: 5 },
+                });
+                expect(mockRefetchHoldings).toHaveBeenCalled();
+                expect(window.alert).toHaveBeenCalledWith('Successfully sold 5 units of BTC/USD');
+            })
         })
     })
 })
