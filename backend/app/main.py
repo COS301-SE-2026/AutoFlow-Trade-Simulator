@@ -23,14 +23,14 @@ from .epics.real_time_data.RealTimeDataController import router as real_time
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-	"""Run app startup and shutdown tasks via FastAPI lifespan hooks."""
-	if settings.auto_sync_db:
-		logging.getLogger("uvicorn").info("Creating database tables from SQLModel metadata...")
-		SQLModel.metadata.create_all(engine)
-	else:
-		logging.getLogger("uvicorn").info("Database auto-sync disabled (auto_sync_db=False)")
+    """Run app startup and shutdown tasks via FastAPI lifespan hooks."""
+    if settings.auto_sync_db:
+       logging.getLogger("uvicorn").info("Creating database tables from SQLModel metadata...")
+       SQLModel.metadata.create_all(engine)
+    else:
+       logging.getLogger("uvicorn").info("Database auto-sync disabled (auto_sync_db=False)")
 
-	yield
+    yield
 
 app = FastAPI(title="AutoFlow Trade Simulator", lifespan=lifespan)
 
@@ -40,10 +40,12 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:3001",
+        "https://autoflowtradingsimulator.co.za",
+        "https://www.autoflowtradingsimulator.co.za",
         "https://auto-flow-trade-simulator.vercel.app",
     ],
-    # Vercel preview deployments get a generated subdomain per branch.
-    allow_origin_regex=r"https://auto-flow-trade-simulator-[a-z0-9-]+\.vercel\.app",
+    # Matches all Vercel preview/branch subdomains (e.g. auto-flow-trade-simulator-git-main-*.vercel.app)
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
