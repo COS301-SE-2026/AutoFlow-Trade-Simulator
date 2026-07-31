@@ -39,7 +39,7 @@ describe('ReportView', () => {
     })
 
     describe('ReportView content present', () => {
-        it('renders strategy content', async () => {
+        it('renders report content', async () => {
             jest.spyOn(require('@/hooks/useReports'), 'useReports').mockReturnValue({
                 reports: mockreports,
                 loading: false,
@@ -52,20 +52,6 @@ describe('ReportView', () => {
 
             expect(screen.getByText('AAPL')).toBeInTheDocument();
             expect(screen.getByText('GOOGL')).toBeInTheDocument();
-        });
-
-        it('shows loading state', async () => {
-            jest.spyOn(require('@/hooks/useReports'), 'useReports').mockReturnValue({
-                reports: [],
-                loading: true,
-                error: null,
-            });
-
-            render(
-                <ReportView />
-            );
-
-            expect(screen.getByText('Loading...')).toBeInTheDocument();
         });
 
         it('shows loading state', async () => {
