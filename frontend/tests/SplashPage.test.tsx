@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import SplashPage from '@/app/splash/page';
+import SplashPage from '@/app/page';
 
 jest.mock('next/link', () => ({
     __esModule: true,
