@@ -98,17 +98,15 @@ export default function AssetPage() {
             placeholder='ticker...'
             value={nextTicker}
             onChange={(e) => {
-              if (e.target.value === '') {
-                setNextTicker(ticker);
-              }
-              else {
-                setNextTicker(e.target.value);
-              }
+              setNextTicker(e.target.value);
             }}
           />
-          <Link href={`/assets/${nextTicker}`}>Search</Link>
+          {nextTicker === '' ? (
+            <span>Search</span>
+          ) : (
+            <Link href={`/assets/${nextTicker}`}>Search</Link>
+          )}
         </div>
-        <AssetSummaryBar ticker={ticker} />
         <LiveDataGraph symbol={ticker} />
         <div className='m-4'>
           <BuySellForm
