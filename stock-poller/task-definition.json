@@ -18,6 +18,16 @@
       "image": "066196453073.dkr.ecr.eu-west-1.amazonaws.com/autoflow-stock-poller:latest",
       "cpu": 0,
       "essential": true,
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "python -c 'import sys, os; sys.exit(0)' || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 15
+      },
       "portMappings": [],
       "environment": [],
       "mountPoints": [],
@@ -41,7 +51,7 @@
         },
         {
           "name": "DB_USER",
-          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod//autoflow/prod/DB_USER"
+          "valueFrom": "arn:aws:ssm:eu-west-1:066196453073:parameter/autoflow/prod/DB_USER"
         },
         {
           "name": "DB_PASSWORD",

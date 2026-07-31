@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { usePrices } from '@/hooks/usePrices'
 import {
   ResponsiveContainer,
   AreaChart,
@@ -13,7 +12,9 @@ import {
   Legend,
 } from 'recharts';
 import { apiClient } from '@/lib/api';
-import { MoveLeft, Play, ChevronsRight, Pause, Check } from 'lucide-react';
+import { startSimulation } from '@/lib/api/assets';
+import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
+import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface EventDefinition {
     id: string;
@@ -30,32 +31,6 @@ interface EventDefinition {
     startDay: number;
     tradingDays: number;
     initialBalance: number;
-}
-
-interface SimulationCreateRequest {
-    symbols: string[];
-    allocations: Record<string, number>;
-    start_date: string;
-    end_date: string;
-    initial_balance: string;
-}
-
-interface SimulationAppendRequest {
-    simulation_id: number;
-    actions: {
-        type: string;
-        symbol: string;
-        qty: number;
-        timestamp: string;
-        meta?: string[];
-    }[];
-}
-
-interface SimulationResponse {
-    simulation_id: number;
-    status: string;
-    positions: string[];
-    nav: string;
 }
 
 interface SimulationFinishResponse {
@@ -97,59 +72,145 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function EventSimulator({ event, onBack }: { event: EventDefinition; onBack: () => void }) {
 
-    const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(event.ticker, '1d');
-
-    const [simId, setSimId] = useState<number | null>(null);
+    const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
 
-    const allPrices = prices.map(p => p.close)
-    const allDates = prices.map(d => new Date(d.timestamp).toLocaleDateString())
+    const [shares, setShares] = useState(0);
+    const [qty, setQty] = useState('1');
+    const [cash, setCash] = useState(event.initialBalance);
+    const [trades, setTrades] = useState<any[]>([]);
+    const [tradeError, setTradeError] = useState<string | null>(null);
+
+    const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
+    const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
+
+    useEffect(() => {
+        const initialize = async () => {
+            try {
+                const res = await startSimulation(
+                    [event.ticker],
+                    { [event.ticker]: 0 },
+                    startDate,
+                    endDate,
+                    String(event.initialBalance),
+                );
+                setSimData(res);
+            } catch (e) {
+                console.error('Failed to create simulation', e);
+            }
+        };
+        initialize();
+    }, [event, startDate, endDate]);
+    
+    const allPrices: string[] = [];
+    const allDates: string[] = [];
+    const tickerBars: OHLCVBar[] = [];
+
+    if (simData?.bars) {
+        const tickerBars = simData.bars[event.ticker];
+        tickerBars.forEach((bar: OHLCVBar) => {
+        allPrices.push((bar.close).toString());
+        allDates.push(new Date(bar.timestamp).toLocaleDateString());
+        });
+    }
 
     const chartData = allPrices.slice(0, dayIndex + 1).map((p, i) => ({
         date: allDates[i],
         price: p,
     }))
-
-    const startDate = `${event.startYear}-${String(event.startMonth)}-${String(event.startDay)}`;
-    const endDate = new Date(event.startYear, event.startMonth, event.startDay + event.tradingDays).toISOString().split('T')[0];
-
+    
     useEffect(() => {
-        const initialize = async () => {
-            try {
-                const body: SimulationCreateRequest = {
-                    symbols: [event.ticker],
-                    allocations: { [event.ticker]: 1 },
-                    start_date: startDate,
-                    end_date: endDate,
-                    initial_balance: String(event.initialBalance ?? 10000),
-                };
-                const res = await apiClient('/simulation/practice/simulate', {
-                    method: 'POST',
-                    body,
-                }) as SimulationResponse;
-                setSimId(res.simulation_id);
-            } catch (e) {
-                console.error('Failed to create simulation', e);
-            }
-        };
-        if (prices.length > 0) initialize();
-    }, [prices, event, startDate, endDate]);
-
-    useEffect(() => {
-        if (!isPlaying || dayIndex >= allPrices.length) {
+        if (!isPlaying || dayIndex >= allPrices.length - 1) {
             setIsPlaying(false);
             return;
         } 
-        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length)), 2000);
+        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length - 1)), 2000);
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length]);
 
-    const finish = async () => {
-        if (!simId) return;
+    const currentPrice = allPrices[dayIndex] ?? 0;
+    const portfolioValue = cash + shares * Number.parseFloat(currentPrice);
+    const totalProfit = portfolioValue - event.initialBalance;
+    const startPrice = allPrices[0];
+    const profitPct = ((totalProfit / event.initialBalance) * 100);
+    const priceChangePct = startPrice ? (((Number.parseFloat(currentPrice) - Number.parseFloat(startPrice)) / Number.parseFloat(startPrice)) * 100) : 0;
+
+    const execute = async (type: 'buy' | 'sell') => {
+        if (!simData || Number.parseFloat(currentPrice) <= 0) return;
+
+        const simId = simData.simulation_id;
+        let quantity = Number.parseFloat(qty);
+        if (!quantity || quantity < 1) quantity = 1;
+        let qtyToTrade = quantity;
+        
+        if (type === 'sell') {
+            if (shares <= 0) {
+                setTradeError('You have no shares to sell.');
+                return;
+            }
+            if (qtyToTrade > shares) {
+                qtyToTrade = shares;
+            }
+        }
+
+        if (type === 'buy') {
+            const cost = qtyToTrade * Number.parseFloat(currentPrice);
+            if (cost > cash) {
+                setTradeError(`Not enough cash. You need R ${cost.toFixed(2)}.`);
+                return;
+            }
+        }
+
+        const tickerBars = simData.bars?.[event.ticker];
+        const bar = tickerBars?.[dayIndex];
+        const timestamp = bar ? bar.timestamp : new Date().toISOString();
+
+        const action = {
+            type: type,
+            symbol: event.ticker,
+            qty: qtyToTrade,
+            timestamp: timestamp
+        };
+
         try {
-            const res = await apiClient(`/simulation/practice/simulate/${simId}/finish`, {
+            const res = await apiClient('/simulation/practice/simulate/actions', {
+                method: 'POST',
+                body: {
+                    simulation_id: simId,
+                    actions: [action],
+                }
+            });
+
+            const newShares = res.positions?.[event.ticker];
+            const nav = res.nav;
+            setShares(newShares);
+
+            setCash(nav - newShares * Number.parseFloat(currentPrice));
+
+            setTrades(prev => [
+                ...prev,
+                {
+                    type: type,
+                    symbol: event.ticker,
+                    qty: qtyToTrade,
+                    price: currentPrice,
+                    date: allDates[dayIndex],
+                },
+            ]);
+            setTimeout(() => setTradeError(null), 3000);
+        } catch (e) {
+            console.error('Trade failed', e);
+            setTradeError(`Trade failed. Please try again.`);
+            setTimeout(() => setTradeError(null), 3000);
+        }
+    }
+
+    const finish = async () => {
+        if (!simData) return;
+        try {
+            const res = await apiClient(`/simulation/practice/simulate/${simData.simulation_id}/finish`, {
                 method: 'POST',
             }) as SimulationFinishResponse;
             setFinalSummary(res);
@@ -158,47 +219,76 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         }
     }
 
-    if (pricesLoading) return <div className='bg-green-950 p-6 white'>Loading market data...</div>
-    if (pricesError) return <div className='bg-red-950 p-6 white'>Error loading historical event data: {pricesError}</div>
+    if (!simData) {
+        return (
+        <div className='bg-green-950 p-6 white rounded-xl border border-[var(--border)]'>
+            Loading simulation...
+        </div>
+        ) 
+    }
 
     if (finalSummary) {
         const { summary } = finalSummary;
         return (
-            <div className='p-6'>
-                <div className='text-white font-bold text-xl'>
-                    Simulation Finished
+            <div className='flex justify-center'>
+                <div className='p-8 py-12 bg-[var(--background)] border border-[var(--border)] rounded-xl space-y-4 h-full'>
+                    <div className='text-white font-bold text-xl text-center'>
+                        Simulation Finished
+                    </div>
+                    <div className='grid grid-cols-2 gap-4 text-sm'>
+                        <div className='text-center text-lg'>
+                            Final Balance:
+                            <span className='font-bold'> R {Number.parseFloat(summary.final_balance).toFixed(2)}
+                            </span>
+                        </div>
+                        <div className='text-center text-lg'>
+                            Return:
+                            <span 
+                                className={Number.parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green)] font-bold' : 'text-[var(--red)] font-bold'}
+                            > {Number.parseFloat(summary.returns_pct)}%</span>
+                        </div>
+                        <div className='text-center text-lg'>
+                            Max Drawdown: 
+                            <span className='text-[var(--red)]'> {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
+                        </div>
+                        <div className='text-center text-lg'>
+                            Trades:
+                            <span className='font-bold'> {summary.trades_count}</span>
+                        </div>
+                    </div>
+                    <div className='flex items-center justify-center'>
+                        <button
+                            type='button'
+                            onClick={onBack} 
+                            className='flex self-center px-4 py-2 bg-blue-900 text-white rounded-xl'
+                            >
+                            Back to Events
+                        </button>
+                    </div>
                 </div>
-                <div className='grid grid-cols-2 gap-4'>
-                    <span>Final Balance: {parseFloat(summary.final_balance).toFixed(2)}</span>
-                    <span>Return: {parseFloat(summary.returns_pct)}%</span>
-                    <span>Drawdown: {parseFloat(summary.max_drawdown).toFixed(2)}%</span>
-                    <span>Trades: {summary.trades_count}</span>
-                </div>
-                <button
-                    type='button'
-                    onClick={onBack} 
-                    className='px-4 py-2 bg-blue-900 text-white rounded-xl'
-                >
-                    Back to Events
-                </button>
             </div>
         );
     }
 
-    return (
-        <div className='flex flex-col'>
-            <div className='flex justify-between items-center gap-3'>
-                <button
-                    type='button'
-                    onClick={onBack} 
-                    className='text-sm text-grey-200 hover:text-white-100 p-4'
-                >
-                    <div className='flex items-center gap-3'>
-                        <MoveLeft /> 
-                        <span>Back</span>
-                    </div>
-                </button>
+    const total = Number.parseFloat(qty) > 0 ? Number.parseFloat(qty) * Number.parseFloat(currentPrice) : 0;
 
+    return (
+        <div className='flex flex-col p-4 h-full'>
+            <div className='flex justify-between items-center gap-3'>
+                <div className='flex items-center gap-3'>
+                    <button
+                        type='button'
+                        onClick={onBack} 
+                        className='text-sm text-gray-200 hover:text-white-100 p-4'
+                    >
+                        <div className='flex items-center gap-3'>
+                            <MoveLeft /> 
+                            <span>Back</span>
+                        </div>
+                    </button>
+                    <span className='font-bold text-blue-400'>{event.ticker}</span>
+                    <span className='font-semibold'>{event.title}</span>
+                </div>
                 <button
                     type='button'
                     onClick={() => {setIsPlaying(b => !b)}}
@@ -231,36 +321,124 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     </div>
                 </button>
             </div>
-            <div style={{ width: '100%', height: '250px'}}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                    data={chartData}
-                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                    >
-                    <defs>
-                        <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
-                            <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
-                            <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                    <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
-                    <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
-                    <Tooltip
-                        cursor={{ stroke: '#9ca3af' }}
-                        content={<CustomTooltip />}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="price"
-                        stroke='var(--blue)'
-                        strokeWidth={4}
-                        fill={`url(#grad-${event.id})`}
-                        dot={false}
-                        activeDot={{ r: 4, stroke: '#1c75bc' }}
-                    />
-                    </AreaChart>
-                </ResponsiveContainer>
+            <div className='flex gap-4 flex-1 min-h-0'>
+                <div className='flex-1 rounded-xl border border-[var(--border)] p-4'>
+                    <div className='flex justify-between'>
+                        <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
+                        <div className='text-xl font-bold'>COST: R{Number.parseFloat(currentPrice).toFixed(2)}</div>
+                        <div className={`text-sm flex items-center gap-1 ${priceChangePct >= 0 ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`}>
+                            {priceChangePct >= 0 ? <TrendingUp className='w-4 h-4' /> : <TrendingDown className='w-4 h-4' />}
+                            {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
+                        </div>
+                    </div>
+                    <div style={{ width: '100%', height: '85%'}}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart
+                            data={chartData}
+                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                            >
+                            <defs>
+                                <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
+                                    <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
+                                    <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
+                            <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
+                            <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                            <Tooltip
+                                cursor={{ stroke: '#9ca3af' }}
+                                content={<CustomTooltip />}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="price"
+                                stroke='var(--blue)'
+                                strokeWidth={4}
+                                fill={`url(#grad-${event.id})`}
+                                dot={false}
+                                activeDot={{ r: 4, stroke: '#1c75bc' }}
+                            />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className='mt-2 mb-3 h-1 bg-gray-800 rounded-full'>
+                        <div className='h-full bg-[var(--blue)] rounded-full' style={{ width: `${((dayIndex + 1) / allPrices.length) * 100}%` }}></div>
+                    </div>
+                    <div className='text-xs mt-1'>Day {dayIndex + 1} of {allPrices.length}</div>
+                </div>
+
+                <div className='w-64 space-y-4'>
+                    <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'>
+                        <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
+                        <div className='flex justify-between'>
+                            <span>Cash</span>
+                            <span className='text-lg font-bold text-[var(--green)]'>R {cash.toFixed(2)}</span>
+                        </div>
+                        <div className='flex justify-between'>
+                            <span>{event.ticker}</span>
+                            <span>{shares} sh</span>
+                        </div>
+                        <div className='flex justify-between'>
+                            <span>Total</span>
+                            <span className='text-lg font-bold text-[var(--green)]'>R {portfolioValue.toFixed(2)}</span>
+                        </div>
+                        <div className='flex justify-between'>
+                            <span>Profit & Loss</span>
+                            <span className={`${totalProfit >= 0 ? 'text-[var(--green)]' : 'text-[var(--red)]'}`}>
+                                R{totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)} ({profitPct >= 0 ? '+' : ''}{profitPct.toFixed(1)}%)
+                            </span>
+                        </div>
+                    </div>
+                    <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
+                        <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
+                        <input 
+                            type='number' 
+                            value={qty} 
+                            onChange={e => setQty(e.target.value)}
+                            placeholder='Quantity'
+                            className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
+                        />
+                        {total > 0 && (
+                            <div className='text-xs mb-2 mt-2 text-center'>
+                                Cost:
+                                <span className='font-bold text-lg'> R{total.toFixed(2)}</span>
+                            </div>
+                        )}
+                        {tradeError && (
+                            <div className='text-xs mb-2 mt-2 text-[var(--red)]'>
+                                {tradeError}
+                            </div>
+                        )}
+                        <div className='flex gap-2 justify-evenly'>
+                            <button
+                                type='button'
+                                className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
+                                onClick={() => execute('buy')}
+                            >
+                                Buy
+                            </button>
+                            <button
+                                type='button'
+                                className='w-full py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
+                                onClick={() => execute('sell')}
+                            >
+                                Sell
+                            </button>
+                        </div>
+                    </div>
+                    <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
+                        History
+                        {trades.length === 0 ? <p>No trades</p> : [...trades].reverse().map((t, i) => (
+                            <div key={i} className='flex items-center gap-2 mb-1'>
+                                <span className={`font-bold ${t.type === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
+                                <span className='text-xs'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
+                            </div>
+                        ))
+                            
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     );

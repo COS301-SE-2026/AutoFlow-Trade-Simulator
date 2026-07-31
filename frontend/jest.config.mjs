@@ -12,6 +12,15 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/$1',
     '^.+\\.(css|scss|sass|less)$': 'identity-obj-proxy',
   },
+  coverageReporters: ['lcov', 'text-summary'],
+  collectCoverageFrom: [
+    'app/**/*.{ts,tsx}',
+    'components/**/*.{ts,tsx}',
+    'hooks/**/*.{ts,tsx}',
+    'lib/**/*.{ts,tsx}',
+    '!**/*.d.ts',
+    '!**/node_modules/**',
+  ],
 };
 
 export default createJestConfig(customJestConfig);

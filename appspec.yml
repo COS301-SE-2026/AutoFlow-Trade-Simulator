@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/autoflow
+hooks:
+  AfterInstall:
+    - location: scripts/after_install.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/application_start.sh
+      timeout: 300
+      runas: root
+  ValidateService:
+    - location: scripts/validate_service.sh
+      timeout: 120
+      runas: root

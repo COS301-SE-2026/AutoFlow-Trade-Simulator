@@ -5,6 +5,7 @@ import GreeksDisplay from '@/components/GreeksDisplay';
 import { HistoricalEventsTab } from '@/components/HistoricalEventsTab';
 import { useState } from 'react';
 import { BookOpen, Activity, History } from 'lucide-react';
+import { StrategyList } from '@/components/StrategyList';
 
 type TabId = 'strategies' | 'greeks' | 'events';
 
@@ -56,12 +57,7 @@ export default function LearningPage() {
         </div>
 
         <div className='flex-1 p-6'>
-            {activeTab === 'strategies' && (
-                <div className='flex items-center justify-center h-full'>
-                    <p>Strategies go here</p>
-                </div>
-            )}
-
+            {activeTab === 'strategies' && <StrategyList />}
             {activeTab === 'greeks' && <GreeksDisplay />}
             {activeTab === 'events' && <HistoricalEventsTab />}
         </div>

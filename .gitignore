@@ -11,7 +11,9 @@ backend/.pytest_cache/
 backend/.mypy_cache/
 backend/.ruff_cache/
 backend/.coverage
+backend/coverage.xml
 backend/htmlcov/
+coverage-stock-poller.xml
 frontend/node_modules/
 frontend/.next/
 frontend/.turbo/

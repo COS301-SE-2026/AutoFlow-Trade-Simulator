@@ -6,8 +6,8 @@ RUN groupadd -r appgroup && useradd -r -g appgroup -s /sbin/nologin appuser
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.lock.txt .
+RUN pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.lock.txt
 
 COPY main.py config.yaml base_adapter.py adapters.py db.py ingestion.py ./
 
