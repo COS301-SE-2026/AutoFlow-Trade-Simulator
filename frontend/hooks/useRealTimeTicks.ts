@@ -19,7 +19,13 @@ export function useRealTimeTicks(symbol: string | null) {
         setError(null);
         try {
             const response = await apiClient(`/real_time/points/${symbol}`);
-            setRealTimeTicks(response.points);
+            // price and volume are Decimal on the backend, so they arrive as JSON
+            // strings — Recharts needs real numbers to build a domain.
+            setRealTimeTicks(response.points.map((p: { timestamp: string, price: string, volume: string }) => ({
+                timestamp: p.timestamp,
+                price: Number(p.price),
+                volume: Number(p.volume),
+            })));
         } catch (error: any) {
             if (error instanceof ApiError && error.status === 401) {
                 setRealTimeTicks([]);
