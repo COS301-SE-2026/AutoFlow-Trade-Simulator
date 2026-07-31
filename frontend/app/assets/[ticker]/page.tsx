@@ -107,7 +107,6 @@ export default function AssetPage() {
             <Link href={`/assets/${nextTicker}`}>Search</Link>
           )}
         </div>
-        <AssetSummaryBar ticker={ticker} />
         <LiveDataGraph symbol={ticker} />
         <div className='m-4'>
           <BuySellForm
