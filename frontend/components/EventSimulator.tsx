@@ -2,19 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
 } from 'recharts';
 import { apiClient } from '@/lib/api';
 import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown } from 'lucide-react';
+import TradeConfirmModal from './TradeConfirmModal';
 
 interface EventDefinition {
     id: string;
@@ -52,22 +53,21 @@ interface SimulationFinishResponse {
 }
 
 const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) 
-  {
-    const data = payload[0].payload;
-    return (
-      <div style={{
-        backgroundColor: '#414042',
-        border: '1px solid #ffffff4b',
-        padding: '8px',
-        borderRadius: '4px',
-      }}>
-        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Data: {data.date}</p>
-        <p style={{ margin: '2px 0', fontSize: '12px'}}>Price {data.price}</p>
-      </div>
-    );
-  }
-  return null;
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+            <div style={{
+                backgroundColor: '#414042',
+                border: '1px solid #ffffff4b',
+                padding: '8px',
+                borderRadius: '4px',
+            }}>
+                <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Data: {data.date}</p>
+                <p style={{ margin: '2px 0', fontSize: '12px' }}>Price {data.price}</p>
+            </div>
+        );
+    }
+    return null;
 };
 
 export function EventSimulator({ event, onBack }: { event: EventDefinition; onBack: () => void }) {
@@ -76,6 +76,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
+    const [pendingTrade, setPendingTrade] = useState<{ type: 'buy' | 'sell' } | null>(null);
 
     const [shares, setShares] = useState(0);
     const [qty, setQty] = useState('1');
@@ -103,7 +104,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         };
         initialize();
     }, [event, startDate, endDate]);
-    
+
     const allPrices: string[] = [];
     const allDates: string[] = [];
     const tickerBars: OHLCVBar[] = [];
@@ -111,8 +112,8 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
     if (simData?.bars) {
         const tickerBars = simData.bars[event.ticker];
         tickerBars.forEach((bar: OHLCVBar) => {
-        allPrices.push((bar.close).toString());
-        allDates.push(new Date(bar.timestamp).toLocaleDateString());
+            allPrices.push((bar.close).toString());
+            allDates.push(new Date(bar.timestamp).toLocaleDateString());
         });
     }
 
@@ -120,12 +121,12 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         date: allDates[i],
         price: p,
     }))
-    
+
     useEffect(() => {
         if (!isPlaying || dayIndex >= allPrices.length - 1) {
             setIsPlaying(false);
             return;
-        } 
+        }
         const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length - 1)), 2000);
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length]);
@@ -144,7 +145,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         let quantity = Number.parseFloat(qty);
         if (!quantity || quantity < 1) quantity = 1;
         let qtyToTrade = quantity;
-        
+
         if (type === 'sell') {
             if (shares <= 0) {
                 setTradeError('You have no shares to sell.');
@@ -221,10 +222,10 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
 
     if (!simData) {
         return (
-        <div className='bg-green-950 p-6 white rounded-xl border border-[var(--border)]'>
-            Loading simulation...
-        </div>
-        ) 
+            <div className='bg-green-950 p-6 white rounded-xl border border-[var(--border)]'>
+                Loading simulation...
+            </div>
+        )
     }
 
     if (finalSummary) {
@@ -243,12 +244,12 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         </div>
                         <div className='text-center text-lg'>
                             Return:
-                            <span 
+                            <span
                                 className={Number.parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green)] font-bold' : 'text-[var(--red)] font-bold'}
                             > {Number.parseFloat(summary.returns_pct)}%</span>
                         </div>
                         <div className='text-center text-lg'>
-                            Max Drawdown: 
+                            Max Drawdown:
                             <span className='text-[var(--red)]'> {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
                         </div>
                         <div className='text-center text-lg'>
@@ -259,9 +260,9 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     <div className='flex items-center justify-center'>
                         <button
                             type='button'
-                            onClick={onBack} 
+                            onClick={onBack}
                             className='flex self-center px-4 py-2 bg-blue-900 text-white rounded-xl'
-                            >
+                        >
                             Back to Events
                         </button>
                     </div>
@@ -278,11 +279,11 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                 <div className='flex items-center gap-3'>
                     <button
                         type='button'
-                        onClick={onBack} 
+                        onClick={onBack}
                         className='text-sm text-gray-200 hover:text-white-100 p-4'
                     >
                         <div className='flex items-center gap-3'>
-                            <MoveLeft /> 
+                            <MoveLeft />
                             <span>Back</span>
                         </div>
                     </button>
@@ -291,7 +292,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                 </div>
                 <button
                     type='button'
-                    onClick={() => {setIsPlaying(b => !b)}}
+                    onClick={() => { setIsPlaying(b => !b) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
@@ -301,7 +302,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
 
                 <button
                     type='button'
-                    onClick={() => {setDayIndex(d => Math.min(d + 1, allPrices.length))}}
+                    onClick={() => { setDayIndex(d => Math.min(d + 1, allPrices.length)) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
@@ -331,34 +332,34 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                             {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
                         </div>
                     </div>
-                    <div style={{ width: '100%', height: '85%'}}>
+                    <div style={{ width: '100%', height: '85%' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                            data={chartData}
-                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                                data={chartData}
+                                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                             >
-                            <defs>
-                                <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
-                                    <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
-                                    <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                            <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
-                            <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
-                            <Tooltip
-                                cursor={{ stroke: '#9ca3af' }}
-                                content={<CustomTooltip />}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="price"
-                                stroke='var(--blue)'
-                                strokeWidth={4}
-                                fill={`url(#grad-${event.id})`}
-                                dot={false}
-                                activeDot={{ r: 4, stroke: '#1c75bc' }}
-                            />
+                                <defs>
+                                    <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
+                                        <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
+                                        <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
+                                <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }} />
+                                <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                                <Tooltip
+                                    cursor={{ stroke: '#9ca3af' }}
+                                    content={<CustomTooltip />}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="price"
+                                    stroke='var(--blue)'
+                                    strokeWidth={4}
+                                    fill={`url(#grad-${event.id})`}
+                                    dot={false}
+                                    activeDot={{ r: 4, stroke: '#1c75bc' }}
+                                />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -392,9 +393,9 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                     </div>
                     <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
                         <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
-                        <input 
-                            type='number' 
-                            value={qty} 
+                        <input
+                            type='number'
+                            value={qty}
                             onChange={e => setQty(e.target.value)}
                             placeholder='Quantity'
                             className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
@@ -414,17 +415,18 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                             <button
                                 type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
-                                onClick={() => execute('buy')}
+                                onClick={() => setPendingTrade({ type: 'buy' })}
                             >
                                 Buy
                             </button>
                             <button
                                 type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
-                                onClick={() => execute('sell')}
+                                onClick={() => setPendingTrade({ type: 'sell' })}
                             >
                                 Sell
                             </button>
+                            {pendingTrade && (<TradeConfirmModal side={pendingTrade.type} quantity={number(qty)} }
                         </div>
                     </div>
                     <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
@@ -435,7 +437,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                                 <span className='text-xs'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
                             </div>
                         ))
-                            
+
                         }
                     </div>
                 </div>
