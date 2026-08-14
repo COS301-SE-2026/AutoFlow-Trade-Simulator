@@ -4,7 +4,13 @@ import Image from 'next/image';
 import { Zap, ArrowRight, History, BookOpen, Shield, Triangle, ChartLine, BrainCircuit } from 'lucide-react';
 import Link from 'next/link';
 
+import Toast from '@/components/Toast';
+import { useState } from 'react';
+
 export default function SplashPage() {
+
+    const [toast, setToast] = useState<{ message: string } | null>(null);
+
     return (
         <div className='blurred-animated-bg relative'>
             <div className='size-full bg-[var(--background-glass)] backdrop-blur-md overflow-auto'>
@@ -40,6 +46,17 @@ export default function SplashPage() {
                         </div>
                     </div>
                 </nav>
+
+                <button
+                    onClick={() => {setToast({ message: 'This is a toast!' })}}
+                >
+                    show the toast
+                    {toast && (
+                        <Toast
+                            message={toast.message}
+                        />
+                    )}
+                </button>
 
                 <div className='mx-auto px-6 py-24'>
                     <div className='text-center mx-auto'>
