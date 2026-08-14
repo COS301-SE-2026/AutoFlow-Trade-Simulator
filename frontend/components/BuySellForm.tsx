@@ -19,7 +19,7 @@ export default function BuySellForm({
     currentHoldings,
     onBuy,
     onSell}: BuySellFormProps) {
-        const [mode, setMode] = useState<'buy' | 'sell'>('buy');
+        const [mode, setMode] = useState<'buy' | 'sell'>();
         const [quantity, setQuantity] = useState('');
         const [showConfirm, setShowConfirm] = useState(false);
         const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,7 +88,7 @@ export default function BuySellForm({
                     <div className="m-3 border border-solid border-[var(--border)] bg-[rgba(20,20,32,0.6)] flex flex-row items-center justify-evenly rounded-xl">
                     <button 
                         type='button'
-                        onClick={() => setMode('buy')} 
+                        onClick={() => {setShowConfirm(true); setMode('buy'); }} 
                         className={`rounded-xl px-10 py-3 m-2 bg-green-500 text-white shadow-sm
                         ${mode === 'buy' ? '' 
                                          : 'text-gray-600 hover:text-gray-900'}`}
@@ -97,7 +97,7 @@ export default function BuySellForm({
                     </button>
                     <button 
                         type='button'
-                        onClick={() => setMode('sell')} 
+                        onClick={() => {setShowConfirm(true); setMode('sell'); }} 
                         className={`rounded-xl px-10 py-3 m-2 bg-red-500 text-white shadow-sm
                         ${mode === 'sell' ? '' 
                                           : 'text-gray-600 hover:text-gray-900'}`}
@@ -149,9 +149,18 @@ export default function BuySellForm({
                             )}
                         </div>
                     </div>
-
+         
+                </div>
+                </form>
+            </div>
+            {/* This will be the buy and sell pop up model toast thingy */}
+            { showConfirm == true ?
+                <div>
+                    <form onSubmit={handleSubmit}>
+                        <h1> Confirmation of { mode === 'buy' ? 'Purchase'  : 'Sale' } </h1>
+                    </form>
                     <button
-                        type='submit'
+                    type='submit'
                         className={`w-full p-2 self-center border border-[var(--border)] rounded-xl mt-3
                             ${mode === 'buy' ? 'bg-green-600' : 'bg-red-600'}
                             ${!isValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -159,10 +168,23 @@ export default function BuySellForm({
                     >
                         {mode === 'buy' ? 'Buy' : 'Sell'} {quantity || '0'} units
                     </button>
+
+                    <button 
+                        type='button'
+                        onClick={() => setShowConfirm(false)} 
+                        className={`rounded-xl px-10 py-3 m-2 bg-green-500 text-white shadow-sm
+                        ${mode === 'buy' ? '' 
+                                         : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                        Cancel
+                    </button>
                 </div>
-                </form>
-            </div>
-            {showConfirm && (
+                    
+                :
+
+                <div> </div>
+            }
+            {/* {showConfirm && (
                 <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
                     <div className='card p-6 max-w-md w-full'>
                         <h3 className='text-xl font-bold mb-4'>
@@ -215,7 +237,7 @@ export default function BuySellForm({
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
             </>
         )
     }
