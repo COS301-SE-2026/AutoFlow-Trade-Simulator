@@ -35,7 +35,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-        const refetchAccounts = useCallback(async () => {
+    const refetchAccounts = useCallback(async () => {
         const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
 
         if(!token) {
