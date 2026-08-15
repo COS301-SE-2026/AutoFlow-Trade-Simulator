@@ -127,7 +127,7 @@ export default function BuySellForm({
                         <div className='flex flex-col gap-3'>
                             <div className='flex justify-between items-center'>
                                 <span className='text-lg'>Available Balance</span>
-                                <span className='text-xl font-bold text-green-400'>{accountBalance.toFixed(2)}</span>
+                                <span className='text-xl font-bold text-green-400'>{accountBalance.toFixed(4)}</span>
                             </div>
                             <div className='flex justify-between items-center'>
                                 <span className='text-lg'>Current Holdings</span>
@@ -157,14 +157,14 @@ export default function BuySellForm({
 
             {/* This will be the buy and sell pop up model toast thingy */}
             { showConfirm == true ?
-                <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
-                    <form onSubmit={handleSubmit} className="border-4 border-slate-600 rounded-2xl p-8 bg-slate-800/60">
+                <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-40 p-6 backdrop-blur-sm'>
+                    <form onSubmit={handleSubmit} className="border-4 border-slate-600 rounded-2xl p-8 card">
 
                         {/* Card Header */}
-                        <h1> Confirmation of { mode === 'buy' ? 'Purchase'  : 'Sale' } </h1>
+                        <p className="font-semibold text-5xl"> Confirmation of { mode === 'buy' ? 'Purchase'  : 'Sale' } </p>
 
                         {/* Card Body */}
-                        <ul className="flex justify-center flex-col gap-2 bg-slate-800/60 rounded-xl border border-slate-700/50 p-4">
+                        <ul className="flex justify-center flex-col gap-2 rounded-xl outline-transparent p-4">
                             <li className="flex justify-between"> 
                                 <span className="text-slate-400"> Stock Price: </span>
                                 <span className="font-semibold text-white"> { price } </span>
@@ -205,7 +205,7 @@ export default function BuySellForm({
                                 {mode === 'buy' ? 'Insufficient Balance' : 'Insufficient holdings'}
                             </div>
                         )}
-                        
+
                         <button 
                             type='button'
                             onClick={() => setShowConfirm(false)} 
