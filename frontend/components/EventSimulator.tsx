@@ -8,8 +8,7 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip,
-    Legend,
+    Tooltip
 } from 'recharts';
 import { apiClient } from '@/lib/api';
 import { startSimulation } from '@/lib/api/assets';
@@ -53,7 +52,7 @@ interface SimulationFinishResponse {
 }
 
 const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload?.length) {
         const data = payload[0].payload;
         return (
             <div style={{
@@ -70,7 +69,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
-export function EventSimulator({ event, onBack }: { event: EventDefinition; onBack: () => void }) {
+export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinition; onBack: () => void }>) {
 
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
@@ -232,7 +231,8 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
         const { summary } = finalSummary;
         return (
             <div className='flex justify-center'>
-                <div className='p-8 py-12 bg-[var(--background)] border border-[var(--border)] rounded-xl space-y-4 h-full'>
+                <div
+                    className='p-8 py-12 bg-[var(--background)] border border-[var(--border)] rounded-xl space-y-4 h-full'>
                     <div className='text-white font-bold text-xl text-center'>
                         Simulation Finished
                     </div>
@@ -246,11 +246,13 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                             Return:
                             <span
                                 className={Number.parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green)] font-bold' : 'text-[var(--red)] font-bold'}
-                            > {Number.parseFloat(summary.returns_pct)}%</span>
+                            > {Number.parseFloat(summary.returns_pct)}%
+                            </span>
                         </div>
                         <div className='text-center text-lg'>
                             Max Drawdown:
-                            <span className='text-[var(--red)]'> {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
+                            <span
+                                className='text-[var(--red)]'> {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
                         </div>
                         <div className='text-center text-lg'>
                             Trades:
@@ -395,6 +397,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                         <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
                         <input
                             type='number'
+                            min="1"
                             value={qty}
                             onChange={e => setQty(e.target.value)}
                             placeholder='Quantity'
