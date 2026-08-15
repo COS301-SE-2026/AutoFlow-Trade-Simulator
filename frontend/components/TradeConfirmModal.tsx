@@ -7,7 +7,7 @@ interface TradeConfirmModalProps {
 	onConfirm: () => void;
 	onCancel: () => void;
 }
-export default function TradeConfirmModal({ side, quantity, price, orderType, limitPrice, onConfirm, onCancel }: TradeConfirmModalProps) {
+export default function TradeConfirmModal({ side, quantity, price, orderType, limitPrice, onConfirm, onCancel }: Readonly<TradeConfirmModalProps>) {
 	const effectivePrice = orderType === 'market' ? price : (limitPrice ?? price);
 	const total = quantity * effectivePrice;
 	return (
@@ -40,6 +40,7 @@ export default function TradeConfirmModal({ side, quantity, price, orderType, li
 					<button
 						onClick={onCancel}
 						className="flex-1 border rounded py-2"
+						type="button"
 					>
 						Cancel
 					</button>
@@ -47,6 +48,7 @@ export default function TradeConfirmModal({ side, quantity, price, orderType, li
 						onClick={onConfirm}
 						className={`flex-1 rounded py-2 text-white ${side === 'buy' ? 'bg-green-600' : 'bg-red-600'
 							}`}
+						type="button"
 					>
 						Confirm {side === 'buy' ? 'Buy' : 'Sell'}
 					</button>
