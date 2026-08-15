@@ -25,3 +25,4 @@ build/
 coverage/
 test.db
 node_modules/
+frontend/tsconfig.tsbuildinfo
