@@ -86,6 +86,16 @@ export default function BuySellForm({
             <div className="flex flex-col rounded-xl shadow-sm border border-white p-4 w-full">
                 <form onSubmit={handleSubmit}>
                     <div className="m-3 border border-solid border-[var(--border)] bg-[rgba(20,20,32,0.6)] flex flex-row items-center justify-evenly rounded-xl">
+                    <div className='m-4 flex flex-col items-center'>
+                        <span className='mb-3'>Quantity</span>
+                        <input
+                            type="text"
+                            placeholder='Enter Quantity'
+                            value={quantity}
+                            onChange={(e) => handleQuantityChange(e.target.value)}
+                            className="border-white rounded-xl p-1 m-1"
+                        ></input>
+                    </div>
                     <button 
                         type='button'
                         disabled={!quantity || Number.parseFloat(quantity) <= 0}
@@ -110,16 +120,6 @@ export default function BuySellForm({
                     >
                         Sell
                     </button>
-                    <div className='m-4 flex flex-col items-center'>
-                        <span className='mb-3'>Quantity</span>
-                        <input
-                            type="text"
-                            placeholder='Enter Quantity'
-                            value={quantity}
-                            onChange={(e) => handleQuantityChange(e.target.value)}
-                            className="border-white rounded-xl p-1 m-1"
-                        ></input>
-                    </div>
                 </div>
                 <div className='flex flex-col'>
 
