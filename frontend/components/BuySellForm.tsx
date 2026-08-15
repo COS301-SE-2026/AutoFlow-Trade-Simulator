@@ -125,7 +125,7 @@ export default function BuySellForm({
                             </div>
                             <div className='flex justify-between items-center'>
                                 <span className='text-lg'>Current Holdings</span>
-                                <span className='text-xl font-bold text-blue-400'>{currentHoldings.toFixed(4)} units</span>
+                                <span className='text-xl font-bold text-blue-400'>{currentHoldings.toFixed(0)} units</span>
                             </div>
                             <div className='border-b border-[var(--border)] my-1'></div>
                             <div className='flex justify-between items-center'>
@@ -153,10 +153,11 @@ export default function BuySellForm({
                 </div>
                 </form>
             </div>
+
             {/* This will be the buy and sell pop up model toast thingy */}
             { showConfirm == true ?
                 <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
-                    <form onSubmit={handleSubmit} className="border-4 rounded-lg p-8 bg-slate-800/60">
+                    <form onSubmit={handleSubmit} className="border-4 border-slate-600 rounded-2xl p-8 bg-slate-800/60">
 
                         {/* Card Header */}
                         <h1> Confirmation of { mode === 'buy' ? 'Purchase'  : 'Sale' } </h1>
@@ -178,14 +179,18 @@ export default function BuySellForm({
                             <li className="border-b border-slate-700/50 my-1"> </li>
                             <li className="flex justify-between"> 
                                 <span className="text-slate-400"> Balance after transaction: </span>
-                                <span className="font-semibold text-white"> {(accountBalance - ( (price || 0) * Number(quantity || 0))).toFixed(2)} </span>
+                                { mode === 'buy' ?
+                                    <span className="font-semibold text-white"> {(accountBalance - ( (price || 0) * Number(quantity || 0))).toFixed(2)} </span>
+                                    :
+                                    <span className="font-semibold text-white"> {(accountBalance + ( (price || 0) * Number(quantity || 0))).toFixed(2)} </span>
+                                }
                             </li>
                         </ul>
 
 
-                        {/* Card Header */}
+                        {/* Card Footer */}
                         <button
-                        type='submit'
+                        onClick={handleConfirm}
                             className={`w-full p-2 self-center border border-[var(--border)] rounded-xl mt-3
                                 ${mode === 'buy' ? 'bg-green-600' : 'bg-red-600'}
                                 ${!isValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -197,9 +202,7 @@ export default function BuySellForm({
                         <button 
                             type='button'
                             onClick={() => setShowConfirm(false)} 
-                            className={`rounded-xl px-10 py-3 m-2 bg-green-500 text-white shadow-sm
-                            ${mode === 'buy' ? '' 
-                                            : 'text-gray-600 hover:text-gray-900'}`}
+                            className="w-full p-2 self-center border border-[var(--border)] rounded-xl mt-3"
                         >
                             Cancel
                         </button>
