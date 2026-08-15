@@ -51,12 +51,13 @@ export default function SplashPage() {
                     onClick={() => {setToast({ message: 'This is a toast!' })}}
                 >
                     show the toast
-                    {toast && (
-                        <Toast
-                            message={toast.message}
-                        />
-                    )}
                 </button>
+                {toast && (
+                    <Toast
+                        message={toast.message}
+                        onClose={() => setToast(null)}
+                    />
+                )}
 
                 <div className='mx-auto px-6 py-24'>
                     <div className='text-center mx-auto'>
