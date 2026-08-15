@@ -88,19 +88,25 @@ export default function BuySellForm({
                     <div className="m-3 border border-solid border-[var(--border)] bg-[rgba(20,20,32,0.6)] flex flex-row items-center justify-evenly rounded-xl">
                     <button 
                         type='button'
+                        disabled={!quantity || Number.parseFloat(quantity) <= 0}
                         onClick={() => {setShowConfirm(true); setMode('buy'); }} 
-                        className={`rounded-xl px-10 py-3 m-2 bg-green-500 text-white shadow-sm
-                        ${mode === 'buy' ? '' 
-                                         : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`rounded-xl px-10 py-3 m-2 bg-green-500 text-white shadow-sm hover:text-gray-900
+                        ${quantity && Number.parseFloat(quantity) > 0 
+                            ? 'bg-green-500 active:scale-95' 
+                            : 'bg-slate-700 opacity-50 cursor-not-allowed'
+                        }`}
                     >
                         Buy
                     </button>
                     <button 
                         type='button'
+                        disabled={!quantity || Number.parseFloat(quantity) <= 0}
                         onClick={() => {setShowConfirm(true); setMode('sell'); }} 
-                        className={`rounded-xl px-10 py-3 m-2 bg-red-500 text-white shadow-sm
-                        ${mode === 'sell' ? '' 
-                                          : 'text-gray-600 hover:text-gray-900'}`}
+                        className={`rounded-xl px-10 py-3 m-2 bg-red-500 text-white shadow-sm hover:text-gray-900
+                        ${quantity && Number.parseFloat(quantity) > 0 
+                            ? 'bg-green-500 active:scale-95' 
+                            : 'bg-slate-700 opacity-50 cursor-not-allowed'
+                        }`}
                     >
                         Sell
                     </button>
@@ -140,11 +146,6 @@ export default function BuySellForm({
                                 <div className='flex justify-between items-center'>
                                     <span className='text-lg'>Quantity</span>
                                     <span className='text-xl font-bold text-green-400'>{quantity} units</span>
-                                </div>
-                            )}
-                            {!isValid() && quantity && Number.parseFloat(quantity) > 0 && (
-                                <div className='text-red-500 text-center mt-2'>
-                                    {mode === 'buy' ? 'Insufficient Balance' : 'Insufficient holdings'}
                                 </div>
                             )}
                         </div>
@@ -199,6 +200,12 @@ export default function BuySellForm({
                             {mode === 'buy' ? 'Buy' : 'Sell'} {quantity || '0'} units
                         </button>
 
+                        {!isValid() && quantity && Number.parseFloat(quantity) > 0 && (
+                            <div className='text-red-500 text-center mt-2'>
+                                {mode === 'buy' ? 'Insufficient Balance' : 'Insufficient holdings'}
+                            </div>
+                        )}
+                        
                         <button 
                             type='button'
                             onClick={() => setShowConfirm(false)} 
