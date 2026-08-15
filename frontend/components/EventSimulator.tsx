@@ -426,7 +426,7 @@ export function EventSimulator({ event, onBack }: { event: EventDefinition; onBa
                             >
                                 Sell
                             </button>
-                            {pendingTrade && (<TradeConfirmModal side={pendingTrade.type} quantity={number(qty)} }
+                            {pendingTrade && (<TradeConfirmModal side={pendingTrade.type} quantity={Number.parseFloat(qty)} price={Number.parseFloat(currentPrice)} onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }} onCancel={() => { setPendingTrade(null) }} orderType="market" />)}
                         </div>
                     </div>
                     <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
