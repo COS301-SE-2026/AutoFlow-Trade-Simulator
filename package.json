@@ -21,12 +21,13 @@
     "test:backend": "cd backend && python -m pytest",
     "test:stock-poller": "pip install -r stock-poller/requirements-test.txt && pytest stock-poller/tests -v",
     "test:frontend": "npm --prefix frontend run test",
-    "test": "npm run test:backend; npm run test:stock-poller; npm run test:frontend",
+    "test": "npm run test:backend; npm run test:stock-poller; npm run test:frontend; npm run test:playwright",
     "dev": "npm run backend & npm run frontend",
     "start": "npm run start --prefix backend & npm run start --prefix frontend",
-    "lhci": "lhci autorun",
-    "k6": "docker run --rm --network=host --env-file .env -v \"$PWD/backend/tests/performance:/tests\" grafana/k6 run /tests/performance-baseline.js",
-    "perf": "npm run lhci && npm run k6"
+    "test:lhci": "lhci autorun",
+    "test:k6": "docker run --rm --network=host --env-file .env -v \"$PWD/backend/tests/performance:/tests\" grafana/k6 run /tests/performance-baseline.js",
+    "test:perf": "npm run test:lhci && npm run test:k6",
+    "test:playwright": "npx playwright test"
   },
   "dependencies": {
     "zod": "^4.4.3"
