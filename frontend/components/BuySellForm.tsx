@@ -36,14 +36,6 @@ export default function BuySellForm({
             }
         }
 
-        const handleMax = () => {
-            if (mode === 'buy') {
-                setQuantity(maxBuyable.toString());
-            } else {
-                setQuantity(maxSellable.toString());
-            }
-        };
-
         const handleSubmit = (e: React.SubmitEvent) => {
             e.preventDefault();
             const qty = Number.parseFloat(quantity);
@@ -84,6 +76,7 @@ export default function BuySellForm({
 
         const handleConfirmTrade = () => {
             setShowConfirm(false);
+            handleConfirm();
         }
 
         const handleCancelTrade = () => {
@@ -136,7 +129,7 @@ export default function BuySellForm({
                         <div className='flex flex-col gap-3'>
                             <div className='flex justify-between items-center'>
                                 <span className='text-lg'>Available Balance</span>
-                                <span className='text-xl font-bold text-green-400'>{accountBalance.toFixed(4)}</span>
+                                <span className='text-xl font-bold text-green-400'>{accountBalance?.toFixed(4)}</span>
                             </div>
                             <div className='flex justify-between items-center'>
                                 <span className='text-lg'>Current Holdings</span>
@@ -171,7 +164,7 @@ export default function BuySellForm({
                     price={price}
                     orderType={'market'}
                     limitPrice={10}
-                    onConfirm={handleCancelTrade}
+                    onConfirm={handleConfirmTrade}
                     onCancel={handleCancelTrade}
                 />
             )}
