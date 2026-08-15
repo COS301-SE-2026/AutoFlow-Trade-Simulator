@@ -220,60 +220,6 @@ export default function BuySellForm({
 
                 <div> </div>
             }
-            {/* {showConfirm && (
-                <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
-                    <div className='card p-6 max-w-md w-full'>
-                        <h3 className='text-xl font-bold mb-4'>
-                            Confirm {mode === 'buy' ? 'Buy' : 'Sell'}
-                        </h3>
-                        <div className=' flex flex-col gap-3 mb-6'>
-                            <div className='flex justify-between'>
-                                <span>Quantity:</span>
-                                <span className='font-semibold'>{quantity} units</span>
-                            </div>
-                            <div className='flex justify-between'>
-                                <span>Price per unit:</span>
-                                <span className='font-semibold'>{currentPrice.toFixed(2)}</span>
-                            </div>
-                            <div className='flex justify-between'>
-                                <span>Total Cost:</span>
-                                <span className='font-semibold'>{totalCost.toFixed(2)}</span>
-                            </div>
-                            <div className='border-b border-[var(--border)] p-2'></div>
-                            <div className='flex justify-between text-gray-400'>
-                                <span>Balance <b>after</b> trade:</span>
-                                <span className='font-bold text-white'>{mode === 'buy' ? (accountBalance - totalCost).toFixed(2)
-                                                       : (accountBalance + totalCost).toFixed(2)}
-                                </span>
-                            </div>
-                            <div className='flex justify-between text-gray-400'>
-                                <span>Holdings <b>after</b> trade:</span>
-                                <span className='font-bold text-white'>{(mode === 'buy' ? currentHoldings + Number.parseFloat(quantity)
-                                                       : currentHoldings - Number.parseFloat(quantity)).toFixed(4)} units
-                                </span>
-                            </div>
-                        </div>
-                        <div className='flex gap-3 justify-between'>
-                            <button
-                                onClick={() => setShowConfirm(false)}
-                                disabled={isSubmitting}
-                                className='px-4 py-2 flex rounded-xl font-bold border border-[var(--border)] disabled:opacity-50'
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleConfirm}
-                                disabled={isSubmitting}
-                                className={`px-4 py-2 flex rounded-xl font-bold border 
-                                    border-[var(--border)] disabled:opacity-50 
-                                    ${mode === 'buy' ? 'bg-green-600' : 'bg-red-600'}`}
-                            >
-                                {isSubmitting ? 'Processing...' : `Confirm`}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )} */}
             </>
         )
     }
