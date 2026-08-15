@@ -11,50 +11,55 @@ export default function TradeConfirmModal({ side, quantity, price, orderType, li
 	const effectivePrice = orderType === 'market' ? price : (limitPrice ?? price);
 	const total = quantity * effectivePrice;
 	return (
-		<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-			<div className="bg-white rounded-lg p-6 w-96 shadow-lg">
-				<h3 className="text-lg font-semibold mb-4">
-					Confirm {side === 'buy' ? 'Purchase' : 'Sale'}
+		<div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
+			<div className='card p-6 max-w-md w-full'>
+				<h3 className='text-xl font-bold mb-4'>
+					Confirm {side === 'buy' ? 'Buy' : 'Sell'}
 				</h3>
-
-				<div className="space-y-2 mb-6 text-sm">
-					<div className="flex justify-between">
-						<span className="text-gray-500">Quantity</span>
-						<span>{quantity}</span>
+				<div className='flex flex-col gap-3 mb-6'>
+					<div className='flex justify-between'>
+						<span>Order Type:</span>
+						<span className='font-semibold capitalize'>{orderType}</span>
 					</div>
-					<div className="flex justify-between">
-						<span className="text-gray-500">Order type</span>
-						<span className="capitalize">{orderType}</span>
+					<div className='flex justify-between'>
+						<span>Quantity:</span>
+						<span className='font-semibold'>{quantity} units</span>
 					</div>
-					<div className="flex justify-between">
-						<span className="text-gray-500">Price</span>
-						<span>${effectivePrice.toFixed(2)}</span>
+					<div className='flex justify-between'>
+						<span>Price per unit:</span>
+						<span className='font-semibold'>{effectivePrice.toFixed(2)}</span>
 					</div>
-					<div className="flex justify-between font-medium">
-						<span>Total</span>
-						<span>${total.toFixed(2)}</span>
+					<div className='flex justify-between'>
+						<span>Total Cost:</span>
+						<span className='font-semibold'>{total.toFixed(2)}</span>
 					</div>
+					<div className='border-b border-[var(--border)] p-2'></div>
+					{orderType === 'limit' && limitPrice !== undefined && (
+						<div className='flex justify-between text-yellow'>
+							<span>Limit Price:</span>
+							<span className='font-semibold'>{limitPrice.toFixed(2)}</span>
+						</div>
+					)}
 				</div>
-
-				<div className="flex gap-3">
+				<div className='flex gap-3 justify-between'>
 					<button
 						onClick={onCancel}
-						className="flex-1 border rounded py-2"
+						className='px-4 py-2 flex rounded-xl font-bold border border-[var(--border)] disabled:opacity-50'
 						type="button"
 					>
 						Cancel
 					</button>
 					<button
 						onClick={onConfirm}
-						className={`flex-1 rounded py-2 text-white ${side === 'buy' ? 'bg-green-600' : 'bg-red-600'
-							}`}
+						className={`px-4 py-2 flex rounded-xl font-bold border
+							border-[var(--border)] disabled:opacity-50
+							${side === 'buy' ? 'bg-green-600' : 'bg-red-600'}`}
 						type="button"
 					>
-						Confirm {side === 'buy' ? 'Buy' : 'Sell'}
+						Confirm
 					</button>
 				</div>
 			</div>
 		</div>
 	);
-
 }
