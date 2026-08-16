@@ -45,7 +45,8 @@ export function AccountSelector({ placeholder = "Select account", label, onChang
                     {label}
                 </label>
             )}
-            <Select value={activeAccount?.id.toString()} 
+            <Select value={activeAccount?.id.toString()}
+            key={activeAccount?.balance} 
             onValueChange={handleChange} 
             onOpenChange={(open) => {
                 if (open) refetchAccounts();

@@ -53,11 +53,13 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             setAccounts(fetchedAccounts);
 
             if(fetchedAccounts.length > 0){
-                const savedId = sessionStorage.getItem(activeAccountKey);
+                const savedId = typeof window !== 'undefined' ? sessionStorage.getItem(activeAccountKey) : null;
+
                 const savedAccount = savedId
                     ? fetchedAccounts.find((a) => a.id === Number(savedId))
                     : null;
-                setActiveAccount(savedAccount ?? fetchedAccounts[0]);
+
+                    setActiveAccount(savedAccount ?? fetchedAccounts[0]);
             }
         } catch (err: any) {
             if (err instanceof ApiError && err.status === 401) {
