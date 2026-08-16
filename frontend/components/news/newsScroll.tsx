@@ -192,7 +192,7 @@ export function NewsTicker({
     const overlayActive = stage !== 'none';
 
     return (
-        <>
+        <div className="pb-4">
             <div
                 className="flex flex-col border border-[var(--border)] bg-[var(--background)] rounded-xl overflow-hidden shadow-sm">
                 <div
@@ -285,6 +285,6 @@ export function NewsTicker({
             {selectedItem && (
                 <NewsModal item={selectedItem} onClose={handleCloseModal}/>
             )}
-        </>
+        </div>
     );
 }
