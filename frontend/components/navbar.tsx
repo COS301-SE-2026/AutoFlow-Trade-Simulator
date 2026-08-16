@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { AccountProvider } from "@/lib/hooks/accountContext";
-import { AccountSelector } from "@/components/ui/intAccSwitcher";
+import { AccountSelector } from "@/components/intAccSwitcher";
 import { useRouter } from 'next/navigation';
 import { CreateNewInternationalAccount } from "@/components/ui/createNewInternationalAccount";
 import { useAuth } from "@/lib/hooks/useAuth";
