@@ -9,7 +9,7 @@ import { useState } from 'react';
 
 export default function SplashPage() {
 
-    const [toast, setToast] = useState<{ message: string } | null>(null);
+    const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
 
     return (
         <div className='blurred-animated-bg relative'>
@@ -47,17 +47,39 @@ export default function SplashPage() {
                     </div>
                 </nav>
 
-                <button
-                    onClick={() => {setToast({ message: 'This is a toast!' })}}
-                >
-                    show the toast
-                </button>
-                {toast && (
-                    <Toast
-                        message={toast.message}
-                        onClose={() => setToast(null)}
-                    />
-                )}
+                <div className='flex justify-evenly'>
+                    <button
+                        onClick={() => {setToast({ message: 'This is a success toast!', type: 'success' })}}
+                    >
+                        show the success toast
+                    </button>
+
+                    <button
+                        onClick={() => {setToast({ message: 'This is an error toast!', type: 'error' })}}
+                    >
+                        show the error toast
+                    </button>
+
+                    <button
+                        onClick={() => {setToast({ message: 'This is an info toast!', type: 'info' })}}
+                    >
+                        show the info toast
+                    </button>
+
+                    <button
+                        onClick={() => {setToast({ message: 'This is a warning toast!', type: 'warning' })}}
+                    >
+                        show the warning toast
+                    </button>
+                    
+                    {toast && (
+                        <Toast
+                            message={toast.message}
+                            type={toast.type}
+                            onClose={() => setToast(null)}
+                        />
+                    )}
+                </div>
 
                 <div className='mx-auto px-6 py-24'>
                     <div className='text-center mx-auto'>

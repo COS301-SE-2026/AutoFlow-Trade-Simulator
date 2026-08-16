@@ -1,9 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 
-export default function Toast({ message, onClose }: {
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+const typeStyles = {
+    success: 'border-[var(--green)] text-[var(--green)]',
+    error: 'border-[var(--red)] text-[var(--red)]',
+    info: 'border-[var(--blue)] text-[var(--blue)]',
+    warning: 'border-[var(--orange)] text-[var(--orange)]'
+};
+
+export default function Toast({ message, type = 'info', onClose }: {
     message: string;
+    type?: ToastType;
     onClose: () => void;
 }) {
     const [visible, setVisible] = useState(false);
@@ -24,8 +35,8 @@ export default function Toast({ message, onClose }: {
     return (
         <div
             className={`
-                fixed top-6 right-6 z-50 flex bg-[var(--accent)] 
-                border rounded-xl px-4 py-3 gap-3
+                fixed top-6 right-6 z-50 flex bg-[var(--accent-strong)] backdrop-blur-md 
+                border ${typeStyles[type]} rounded-xl px-4 py-3 gap-3
                 transition-all duration-300 ease-out shadow-lg
                 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
             `}
@@ -39,7 +50,7 @@ export default function Toast({ message, onClose }: {
                 }}
                 className='text-white/70 hover:text-white transition-colors'
             >
-                CLOSE
+                <X />
             </button>
         </div>
     );
