@@ -49,24 +49,28 @@ export default function SplashPage() {
 
                 <div className='flex justify-evenly'>
                     <button
+                        type='button'
                         onClick={() => {setToast({ message: 'This is a success toast!', type: 'success' })}}
                     >
                         show the success toast
                     </button>
 
                     <button
+                        type='button'
                         onClick={() => {setToast({ message: 'This is an error toast!', type: 'error' })}}
                     >
                         show the error toast
                     </button>
 
                     <button
+                        type='button'
                         onClick={() => {setToast({ message: 'This is an info toast!', type: 'info' })}}
                     >
                         show the info toast
                     </button>
 
                     <button
+                        type='button'
                         onClick={() => {setToast({ message: 'This is a warning toast!', type: 'warning' })}}
                     >
                         show the warning toast

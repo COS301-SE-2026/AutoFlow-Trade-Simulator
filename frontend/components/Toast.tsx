@@ -44,6 +44,7 @@ export default function Toast({ message, type = 'info', onClose }: {
         >
             <p>{message}</p>
             <button
+                type='button'
                 onClick={() => {
                     setVisible(false);
                     setTimeout(onClose, 300);

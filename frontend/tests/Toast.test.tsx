@@ -1,5 +1,4 @@
-import { render, screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import Toast from '@/components/Toast';
 
 describe('Toast component', () => {
@@ -8,7 +7,7 @@ describe('Toast component', () => {
     });
 
     afterEach(() => {
-        jest.runOnlyPendingTimers();
+        jest.clearAllTimers();
         jest.useRealTimers();
     });
 
@@ -27,4 +26,31 @@ describe('Toast component', () => {
         });
         expect(toast).toHaveClass('opacity-100');
     });
-})
+
+    it('calls onClose after 4 seconds', () => {
+        const onClose = jest.fn();
+        render(<Toast message='whatever' onClose={onClose} />);
+
+        act(() => {
+            jest.advanceTimersByTime(4000);
+        });
+        act(() => {
+            jest.advanceTimersByTime(300);
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onClose when close button is clicked', () => {
+        const onClose = jest.fn();
+        render(<Toast message='whatever' onClose={onClose} />);
+
+        const closeButton = screen.getByRole('button');
+        fireEvent.click(closeButton);
+
+        act(() => {
+            jest.advanceTimersByTime(300);
+        });
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+});
