@@ -4,9 +4,11 @@ import { useStrategy } from '@/hooks/useStrategy';
 import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
 import { Button } from "./ui/button";
 import { X } from 'lucide-react';
+import { useLearning } from '@/context/LearningContext';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
     const { strategy, loading, error } = useStrategy(id);
+    const { switchToEvents } = useLearning();
 
     if (loading) {
         return (
@@ -29,7 +31,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
         <div
             className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'
         >
-            <div className='card p-32 max-w-md w-full'>
+            <div className='card !p-8 max-w-md w-full'>
                 {(strategy === null) || error ? (
                     <div>
                         <div className='flex justify-between items-center mb-4'>
@@ -88,7 +90,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                         <div className='border-b border-[var(--border)] mb-4'></div>
 
                         {/* Pros & Cons Grid */}
-                        <div className='grid grid-cols-2 gap-4'>
+                        <div className='grid grid-cols-2 gap-4 mb-4'>
                             <div>
                                 <div className='font-bold text-sm mb-2 text-green-400'>Pros</div>
                                 <div className='space-y-1'>
@@ -110,6 +112,19 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                                 </div>
                             </div>
                         </div>
+
+                        {/* Divider */}
+                        <div className='border-b border-[var(--border)] mb-4'></div>
+
+                        {/* try it now button */}
+                        <Button
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
+                            onClick={()=>{
+                                console.log("try it now button trigger");
+                                switchToEvents();
+                            }}>
+                            Try it now!
+                        </Button>
                     </div>
                 )}
             </div>
