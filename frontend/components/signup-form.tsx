@@ -1,9 +1,9 @@
 'use client';
-import { cn } from "@/lib/utils"
-import { useState } from 'react';
+import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { ApiError } from '@/lib/api';
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -14,32 +14,50 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 
-export function LoginForm({
+export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [cpassword, setCPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+
+  const { register } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    setError(null);
+    setError('');
+
+    if (password !== cpassword) {
+      setError('Passwords do not match.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      await login(email, password);
+      await register(fullName, email, password);
 
       router.push('/dashboard');
     }
     catch (err: any) {
       if (err instanceof ApiError && err.status === 401) {
-        setError('Incorrect email or password. Please try again.');
+        setError('Email already exists. Please use a different email.');
       }
       else {
-        setError(err?.message || 'Failed to sign in. Please try again.');
+        setError(err?.message || 'Failed to create account. Please try again.');
       }
     }
     finally {
@@ -50,11 +68,23 @@ export function LoginForm({
     <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <h1 className="text-2xl font-bold">Create your account</h1>
           <p className="text-sm text-balance text-muted-foreground">
-            Enter your email below to login to your account
+            Fill in the form below to create your account
           </p>
         </div>
+        <Field>
+          <FieldLabel htmlFor="name">Full Name</FieldLabel>
+          <Input
+            id="name"
+            type="text"
+            placeholder="John Doe"
+            required
+            value={fullName}
+            className="bg-background"
+            onChange={(e) => setFullName(e.target.value)}
+          />
+        </Field>
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
@@ -62,34 +92,43 @@ export function LoginForm({
             type="email"
             placeholder="m@example.com"
             required
-            className="bg-background"
             value={email}
+            className="bg-background"
             onChange={(e) => setEmail(e.target.value)}
           />
+          <FieldDescription>
+            We&apos;ll use this to contact you. We will not share your email
+            with anyone else.
+          </FieldDescription>
         </Field>
         <Field>
-          <div className="flex items-center">
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Forgot your password?
-            </a>
-          </div>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input
             id="password"
             type="password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
             className="bg-background"
+            onChange={(e) => setPassword(e.target.value)}
           />
+          <FieldDescription>
+            Must be at least 8 characters long.
+          </FieldDescription>
         </Field>
-        {error && (<Field> <p className="text-sm text-red-500">{error} </p></Field>)}
         <Field>
-          <Button type="submit" disabled={isLoading}>{isLoading ? 'Logging in...' : 'Login'}</Button>
-
+          <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
+          <Input
+            id="confirm-password"
+            type="password"
+            required
+            value={cpassword}
+            className="bg-background"
+            onChange={(e) => setCPassword(e.target.value)}
+          />
+          <FieldDescription>Please confirm your password.</FieldDescription>
+        </Field>
+        <Field>
+          <Button type="submit" disabled={isLoading}>{isLoading ? 'Signing up...' : 'Create Account'}</Button>
         </Field>
         <FieldSeparator>Or continue with</FieldSeparator>
         <Field>
@@ -100,13 +139,10 @@ export function LoginForm({
                 fill="currentColor"
               />
             </svg>
-            Login with GitHub
+            Sign up with GitHub
           </Button>
-          <FieldDescription className="text-center">
-            Don&apos;t have an account?{" "}
-            <a href="/register" className="underline underline-offset-4">
-              Sign up
-            </a>
+          <FieldDescription className="px-6 text-center">
+            Already have an account? <a href="/login">Sign in</a>
           </FieldDescription>
         </Field>
       </FieldGroup>

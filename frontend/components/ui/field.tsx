@@ -38,13 +38,16 @@ function FieldLegend({
   )
 }
 
-function FieldGroup({ className, ...props }: React.ComponentProps<"fieldset">) {
+function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
-      <fieldset
-          data-slot="field-group"
-          className={cn(fieldVariants(), className)}
-          {...props}
-      />
+    <div
+      data-slot="field-group"
+      className={cn(
+        "group/field-group @container/field-group flex w-full flex-col gap-5 data-[slot=checkbox-group]:gap-3 *:data-[slot=field-group]:gap-4",
+        className
+      )}
+      {...props}
+    />
   )
 }
 
@@ -67,17 +70,18 @@ const fieldVariants = cva(
 )
 
 function Field({
-                 className,
-                 orientation = "vertical",
-                 ...props
-               }: React.ComponentProps<"fieldset"> & VariantProps<typeof fieldVariants>) {
+  className,
+  orientation = "vertical",
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
   return (
-      <fieldset
-          data-slot="field"
-          data-orientation={orientation}
-          className={cn(fieldVariants({ orientation }), className)}
-          {...props}
-      />
+    <div
+      role="group"
+      data-slot="field"
+      data-orientation={orientation}
+      className={cn(fieldVariants({ orientation }), className)}
+      {...props}
+    />
   )
 }
 
@@ -195,12 +199,12 @@ function FieldError({
     }
 
     return (
-        <ul className="ml-4 flex list-disc flex-col gap-1">
-          {uniqueErrors.map(
-              (error) =>
-                  error?.message && <li key={error.message}>{error.message}</li>
-          )}
-        </ul>
+      <ul className="ml-4 flex list-disc flex-col gap-1">
+        {uniqueErrors.map(
+          (error, index) =>
+            error?.message && <li key={index}>{error.message}</li>
+        )}
+      </ul>
     )
   }, [children, errors])
 
