@@ -31,7 +31,7 @@ export default function BuySellForm({
         const maxSellable = currentHoldings;
 
         const handleQuantityChange = (value: string) => {
-            if (value === '' || /^\d*\.?\d*$/.test(value)) {
+            if (value === '' || /^\d+(?:\.\d{1,2})?$/.test(value)) {
                 setQuantity(value);
             }
         }
@@ -50,9 +50,9 @@ export default function BuySellForm({
 
             try {
                 if (mode === 'buy' && onBuy) {
-                    await onBuy(qty);
+                    onBuy(qty);
                 } else if (mode === 'sell' && onSell) {
-                    await onSell(qty);
+                    onSell(qty);
                 }
                 setQuantity('');
             } catch (e: any) {
