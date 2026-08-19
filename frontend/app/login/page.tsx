@@ -2,17 +2,18 @@
 
 import { LoginForm } from "@/components/login-form"
 import { GalleryVerticalEndIcon } from "lucide-react"
+import Image from "next/image"
 
 export default function LoginPage() {
   return (
     <div className="grid min-h-svh">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
-          <a href="#" className="flex items-center gap-2 font-medium">
+          <a href="/" className="flex items-center gap-2 font-medium">
             <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GalleryVerticalEndIcon className="size-4" />
+              <Image src='/logo.svg' alt='Autoflow' width={24} height={24} className='w-6 w-6' />
             </div>
-            Acme Inc.
+            Autoflow
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">

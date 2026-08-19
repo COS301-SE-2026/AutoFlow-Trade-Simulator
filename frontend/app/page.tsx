@@ -31,7 +31,7 @@ export default function SplashPage() {
                                     Sign In
                                 </Link>
                                 <Link
-                                    href='/register'
+                                    href='/signup'
                                     className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
                                 >
                                     Sign Up
@@ -57,7 +57,7 @@ export default function SplashPage() {
                         </p>
                         <div className='flex items-center justify-center gap-4 mt-4'>
                             <Link
-                                href='/register'
+                                href='/signup'
                                 className='group px-8 py-4 bg-gradient-to-r from-[var(--seafoam)] to-[var(--blue)] text-white rounded-full font-medium flex items-center gap-2'
                             >
                                 Start Learning For Free
@@ -158,7 +158,7 @@ export default function SplashPage() {
                         </p>
                         <div className='flex items-center justify-center gap-4'>
                             <Link
-                                href='/register'
+                                href='/signup'
                                 className='px-8 py-4 text-white rounded-xl border border-white font-medium hover:bg-white hover:text-[var(--blue)] transition-colors'
                             >
                                 Create Your Free Account
@@ -177,12 +177,12 @@ export default function SplashPage() {
                     <div className='max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-3'>
                         <div className='flex items-center gap-3'>
                             <div className='w-8 h-8 bg-gradient-br from-[var(--blue)] to-[var(--green)] flex items-center justify-center overflow-hidden'>
-                                <Image 
-                                src='/logo.svg'
-                                alt='AutoFlow'
-                                width={20}
-                                height={20}
-                                className='w-5 h-5 flex self-center'
+                                <Image
+                                    src='/logo.svg'
+                                    alt='AutoFlow'
+                                    width={20}
+                                    height={20}
+                                    className='w-5 h-5 flex self-center'
                                 />
                             </div>
                             <span className='gap-1'>© 2026 AutoFlow. All rights reserved.</span>
