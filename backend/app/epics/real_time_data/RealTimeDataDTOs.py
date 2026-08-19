@@ -14,3 +14,6 @@ class EpicStatusDTO(SQLModel):
     epic: str
     status: str
     
+class SymbolResponseDTO(SQLModel):
+    symbols:list[str]
+    count:int
