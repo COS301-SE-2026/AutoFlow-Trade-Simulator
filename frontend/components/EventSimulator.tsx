@@ -14,6 +14,7 @@ import { apiClient } from '@/lib/api';
 import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown } from 'lucide-react';
+import TradeConfirmModal from './TradeConfirmModal';
 
 import {NewsItem, NewsTicker} from '@/components/news/newsScroll';
 
@@ -53,22 +54,21 @@ interface SimulationFinishResponse {
 }
 
 const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload?.length)
-  {
-    const data = payload[0].payload;
-    return (
-      <div style={{
-        backgroundColor: '#414042',
-        border: '1px solid #ffffff4b',
-        padding: '8px',
-        borderRadius: '4px',
-      }}>
-        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Data: {data.date}</p>
-        <p style={{ margin: '2px 0', fontSize: '12px'}}>Price {data.price}</p>
-      </div>
-    );
-  }
-  return null;
+    if (active && payload?.length) {
+        const data = payload[0].payload;
+        return (
+            <div style={{
+                backgroundColor: '#414042',
+                border: '1px solid #ffffff4b',
+                padding: '8px',
+                borderRadius: '4px',
+            }}>
+                <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Data: {data.date}</p>
+                <p style={{ margin: '2px 0', fontSize: '12px' }}>Price {data.price}</p>
+            </div>
+        );
+    }
+    return null;
 };
 
 export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinition; onBack: () => void }>) {
@@ -77,6 +77,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
+    const [pendingTrade, setPendingTrade] = useState<{ type: 'buy' | 'sell' } | null>(null);
 
     const [shares, setShares] = useState(0);
     const [qty, setQty] = useState('1');
@@ -106,6 +107,10 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
         };
         initialize();
     }, [event, startDate, endDate]);
+
+    const allPrices: string[] = [];
+    const allDates: string[] = [];
+    const tickerBars: OHLCVBar[] = [];
 
     const { allPrices, allDates, allTimestamps } = useMemo(() => {
         const prices: string[] = [];
@@ -194,7 +199,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
         let quantity = Number.parseFloat(qty);
         if (!quantity || quantity < 1) quantity = 1;
         let qtyToTrade = quantity;
-
+        
         if (type === 'sell') {
             if (shares <= 0) {
                 setTradeError('You have no shares to sell.');
@@ -308,7 +313,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             type='button'
                             onClick={onBack}
                             className='flex self-center px-4 py-2 bg-blue-900 text-white rounded-xl'
-                            >
+                        >
                             Back to Events
                         </button>
                     </div>
@@ -338,7 +343,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                 </div>
                 <button
                     type='button'
-                    onClick={() => {setIsPlaying(b => !b)}}
+                    onClick={() => { setIsPlaying(b => !b) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
@@ -348,7 +353,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
 
                 <button
                     type='button'
-                    onClick={() => {setDayIndex(d => Math.min(d + 1, allPrices.length))}}
+                    onClick={() => { setDayIndex(d => Math.min(d + 1, allPrices.length)) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
@@ -382,34 +387,34 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
                         </div>
                     </div>
-                    <div style={{ width: '100%', height: '85%'}}>
+                    <div style={{ width: '100%', height: '85%' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
-                            data={chartData}
-                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                                data={chartData}
+                                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                             >
-                            <defs>
-                                <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
-                                    <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
-                                    <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                            <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }}/>
-                            <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
-                            <Tooltip
-                                cursor={{ stroke: '#9ca3af' }}
-                                content={<CustomTooltip />}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="price"
-                                stroke='var(--blue)'
-                                strokeWidth={4}
-                                fill={`url(#grad-${event.id})`}
-                                dot={false}
-                                activeDot={{ r: 4, stroke: '#1c75bc' }}
-                            />
+                                <defs>
+                                    <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
+                                        <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
+                                        <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
+                                <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }} />
+                                <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                                <Tooltip
+                                    cursor={{ stroke: '#9ca3af' }}
+                                    content={<CustomTooltip />}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="price"
+                                    stroke='var(--blue)'
+                                    strokeWidth={4}
+                                    fill={`url(#grad-${event.id})`}
+                                    dot={false}
+                                    activeDot={{ r: 4, stroke: '#1c75bc' }}
+                                />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -443,9 +448,10 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                     </div>
                     <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
                         <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
-                        <input 
-                            type='number' 
-                            value={qty} 
+                        <input
+                            type='number'
+                            min="1"
+                            value={qty}
                             onChange={e => setQty(e.target.value)}
                             placeholder='Quantity'
                             className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
@@ -464,17 +470,18 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             <button
                                 type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
-                                onClick={() => execute('buy')}
+                                onClick={() => setPendingTrade({ type: 'buy' })}
                             >
                                 Buy
                             </button>
                             <button
                                 type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
-                                onClick={() => execute('sell')}
+                                onClick={() => setPendingTrade({ type: 'sell' })}
                             >
                                 Sell
                             </button>
+                            {pendingTrade && (<TradeConfirmModal side={pendingTrade.type} quantity={Number.parseFloat(qty)} price={Number.parseFloat(currentPrice)} onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }} onCancel={() => { setPendingTrade(null) }} orderType="market" />)}
                         </div>
                     </div>
                     <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
@@ -485,7 +492,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                                 <span className='text-xs'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
                             </div>
                         ))
-                            
+
                         }
                     </div>
                 </div>
