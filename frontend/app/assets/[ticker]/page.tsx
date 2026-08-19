@@ -62,7 +62,7 @@ export default function AssetPage() {
 
       console.log('Buy order executed:', response);
 
-      await refreshAccountData;
+      await refreshAccountData();
       alert(`Successfully bought ${quantity} units of ${ticker}`);
     } catch (e: any) {
       alert(`Failed to execute order: ${e.message}`);
@@ -87,7 +87,7 @@ export default function AssetPage() {
 
       console.log('Sell order executed:', response);
 
-      await refreshAccountData;
+      await refreshAccountData();
       alert(`Successfully sold ${quantity} units of ${ticker}`);
     } catch (e: any) {
       alert(`Failed to execute order: ${e.message}`);
