@@ -50,12 +50,13 @@ export function SignupForm({
     if (!symbolRegex.test(password)) {
       setError('Password must contain at least 1 symbol.');
       setIsLoading(false);
+      return;
 
     }
     setIsLoading(true);
 
     try {
-      await register(fullName, email, password);
+      register(fullName, email, password);
       router.push('/dashboard');
     }
     catch (err: any) {
@@ -71,7 +72,7 @@ export function SignupForm({
     }
   };
   return (
-    <Card{...props}>
+    <Card>
       <CardHeader>
         <CardTitle>Create an account </CardTitle>
         <CardDescription> Enter your information below to create your account </CardDescription>
