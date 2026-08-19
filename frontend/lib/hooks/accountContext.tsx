@@ -7,12 +7,14 @@ import {
     useEffect,
     type ReactNode,
     useCallback,
+    useMemo
 } from "react";
 import { fetchAllInternationalAccounts, createAccount } from "../api/accounts";
 import type { InternationalAccount } from "../types/accounts";
 import type { Currency } from "../types/currencies";
 import { ApiError } from "../api";
 import {useAuth} from "@/lib/hooks/useAuth";
+import { AccountSelector } from "@/components/intAccSwitcher";
 
 type AccountContextType = {
     accounts: InternationalAccount[] | null;
@@ -122,8 +124,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         window.location.reload();
     }
 
+    const value = useMemo(() => ({
+        accounts,
+        activeAccount,
+        isLoading,
+        error,
+        create,
+        update,
+        refetchAccounts
+    }), [accounts, activeAccount, isLoading, error, create, update, refetchAccounts]);
+
     return (
-        <AccountContext.Provider value={{ accounts, activeAccount, isLoading, error, create, update, refetchAccounts }}>
+        <AccountContext.Provider value={value}>
     {children}
     </AccountContext.Provider>
     );
