@@ -39,6 +39,11 @@ export default function AssetPage() {
   const currentHolding = holdings.find(h => h.ticker === ticker);
   const currentHoldings = currentHolding?.net_quantity || 0;
 
+  const refreshAccountData = async () => {
+    await refetchHoldings();
+    await refetchAccounts();
+  }
+
   const handleBuy = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss' = 'market', limitPrice?: number) => {
     if (!activeAccount) {
       alert('No active account is selected');
@@ -57,10 +62,7 @@ export default function AssetPage() {
 
       console.log('Buy order executed:', response);
 
-      await Promise.all([
-        refetchHoldings(),
-        refetchAccounts()
-      ])
+      await refreshAccountData;
       alert(`Successfully bought ${quantity} units of ${ticker}`);
     } catch (e: any) {
       alert(`Failed to execute order: ${e.message}`);
@@ -85,10 +87,7 @@ export default function AssetPage() {
 
       console.log('Sell order executed:', response);
 
-      await Promise.all([
-        refetchHoldings(),
-        refetchAccounts()
-      ])
+      await refreshAccountData;
       alert(`Successfully sold ${quantity} units of ${ticker}`);
     } catch (e: any) {
       alert(`Failed to execute order: ${e.message}`);

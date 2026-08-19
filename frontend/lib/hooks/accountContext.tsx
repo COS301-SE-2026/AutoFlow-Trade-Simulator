@@ -14,7 +14,6 @@ import type { InternationalAccount } from "../types/accounts";
 import type { Currency } from "../types/currencies";
 import { ApiError } from "../api";
 import {useAuth} from "@/lib/hooks/useAuth";
-import { AccountSelector } from "@/components/intAccSwitcher";
 
 type AccountContextType = {
     accounts: InternationalAccount[] | null;
