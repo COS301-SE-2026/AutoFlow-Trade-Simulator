@@ -13,7 +13,7 @@ import {
 import { apiClient } from '@/lib/api';
 import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
-import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown } from 'lucide-react';
+import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
 
 interface EventDefinition {
@@ -83,6 +83,8 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
     const [trades, setTrades] = useState<any[]>([]);
     const [tradeError, setTradeError] = useState<string | null>(null);
 
+    const [speed, setSpeed] = useState(1);
+
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
     const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
 
@@ -126,9 +128,13 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
             setIsPlaying(false);
             return;
         }
-        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length - 1)), 2000);
+
+        const oldInterval = 2000;
+        const newInterval = oldInterval / speed;
+
+        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length - 1)), newInterval);
         return () => clearInterval(id);
-    }, [isPlaying, dayIndex, allPrices.length]);
+    }, [isPlaying, dayIndex, allPrices.length, speed]);
 
     const currentPrice = allPrices[dayIndex] ?? 0;
     const portfolioValue = cash + shares * Number.parseFloat(currentPrice);
@@ -301,6 +307,20 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                         {isPlaying ? <><Pause /> Pause</> : <><Play /> Play</>}
                     </div>
                 </button>
+
+                <div>
+                    <Gauge />
+                    Speed Controls:
+                    <button
+                        type='button'
+                        onClick={() => {setSpeed(1)}}
+                        className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
+                    >
+                        <div className={`flex items-center gap-3 ${speed == 1 ? '' : ''}`}>
+                            1x
+                        </div>
+                    </button>
+                </div>
 
                 <button
                     type='button'
