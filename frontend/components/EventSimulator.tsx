@@ -108,10 +108,6 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
         initialize();
     }, [event, startDate, endDate]);
 
-    const allPrices: string[] = [];
-    const allDates: string[] = [];
-    const tickerBars: OHLCVBar[] = [];
-
     const { allPrices, allDates, allTimestamps } = useMemo(() => {
         const prices: string[] = [];
         const dates: string[] = [];
