@@ -14,7 +14,6 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     const [activeTab, setActiveTab] = useState<TabId>('events');
 
     const switchToEvents = () => {
-        console.log("useLearning triggered")
         setActiveTab('events');
     }
 

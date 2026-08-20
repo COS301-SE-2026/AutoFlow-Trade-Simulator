@@ -18,10 +18,11 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                     <div className='flex justify-between items-center mb-4'>
                         <h3 className='text-xl font-bold'>Loading...</h3>
                         <button
+                            data-testid="close"
                             onClick={onClose}
                             className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
                         >
-                            ✕
+                            <X />
                         </button>
                     </div>
                     <div className='flex items-center justify-center py-8'>
@@ -41,10 +42,11 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                     <div className='flex justify-between items-center mb-4'>
                         <h3 className='text-xl font-bold text-red-400'>Strategy Not Found</h3>
                         <button
+                            data-testid="close"
                             onClick={onClose}
                             className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
                         >
-                            ✕
+                            <X />
                         </button>
                     </div>
                     <p className='text-sm text-gray-400 mb-6'>
@@ -69,10 +71,11 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 <div className='flex justify-between items-start mb-4'>
                     <h3 className='text-xl font-bold'>{strategy.name}</h3>
                     <button
+                        data-testid="close"
                         onClick={onClose}
                         className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
                     >
-                        ✕
+                        <X />
                     </button>
                 </div>
 
@@ -137,9 +140,9 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
 
                 {/* Try it now button */}
                 <Button
+                    data-testid="Try it now button"
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
                     onClick={() => {
-                        console.log("try it now button trigger");
                         switchToEvents();
                     }}
                 >
