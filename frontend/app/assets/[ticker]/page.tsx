@@ -12,14 +12,10 @@ import { useAccount } from '@/lib/hooks/accountContext';
 import { apiClient } from '@/lib/api';
 import { LiveDataGraph } from '@/components/liveDataGraph';
 import { useState } from 'react';
-import { useRealTimeTicksList } from '@/hooks/useRealTimeTicks';
+import { TickerSearch } from '@/components/TickerSearch';
 import Link from 'next/link';
 
 export default function AssetPage() {
-  const { realTimeTicksList, loading, error } = useRealTimeTicksList();
-
-  console.log(realTimeTicksList);
-
   const params = useParams();
   const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
   const ticker = iTicker?.replace('-', '/');
@@ -97,7 +93,8 @@ export default function AssetPage() {
       <Navbar />
       <div>
         <h1 className='flex justify-center'>{ticker}</h1>
-        <div>
+        <TickerSearch />
+        {/* <div>
           <input
             type="text"
             placeholder='ticker...'
@@ -111,7 +108,7 @@ export default function AssetPage() {
           ) : (
             <Link href={`/assets/${nextTicker}`}>Search</Link>
           )}
-        </div>
+        </div> */}
         <LiveDataGraph symbol={ticker} />
         <div className='m-4'>
           <BuySellForm

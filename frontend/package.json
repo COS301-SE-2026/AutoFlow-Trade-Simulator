@@ -12,9 +12,11 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.10",
     "@recharts/devtools": "^0.0.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "fuse.js": "^7.5.0",
     "lucide-react": "^1.16.0",
     "next": "^15.0.0",
     "radix-ui": "^1.4.3",
