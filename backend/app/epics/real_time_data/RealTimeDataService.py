@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status
-from sqlmodel import   Session,select
+from sqlmodel import   Session, select
 
-from .RealTimeDataDTOs import DataPoint, DataResponseDTO, EpicStatusDTO
+from .RealTimeDataDTOs import DataPoint, DataResponseDTO, EpicStatusDTO, SymbolResponseDTO
 from ...models.real_time_ticks import RealTimeTicks
 from ...models.asset import Asset
 
@@ -30,4 +30,10 @@ class RealTimeDataService:
         for tick in ticks:
             points.append(DataPoint(timestamp=tick.timestamp,price=tick.price,volume=tick.volume))
         return DataResponseDTO(points=points)
+
+    def get_symbol_list(self)->SymbolResponseDTO:
+        symbols:list[str]= list(self.session.exec(select(Asset.symbol).where(RealTimeTicks.asset_id==Asset.asset_id).distinct()).all())
+        count:int = len(symbols)
+        return SymbolResponseDTO(symbols=symbols,count=count)
+        
 
