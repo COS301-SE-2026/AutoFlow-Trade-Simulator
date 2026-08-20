@@ -12,9 +12,14 @@ import { useAccount } from '@/lib/hooks/accountContext';
 import { apiClient } from '@/lib/api';
 import { LiveDataGraph } from '@/components/liveDataGraph';
 import { useState } from 'react';
+import { useRealTimeTicksList } from '@/hooks/useRealTimeTicks';
 import Link from 'next/link';
 
 export default function AssetPage() {
+  const { realTimeTicksList, loading, error } = useRealTimeTicksList();
+
+  console.log(realTimeTicksList);
+
   const params = useParams();
   const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
   const ticker = iTicker?.replace('-', '/');
