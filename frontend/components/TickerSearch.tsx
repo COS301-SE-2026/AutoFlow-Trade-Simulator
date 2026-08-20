@@ -6,8 +6,8 @@ import { Search } from 'lucide-react';
 import Fuse from 'fuse.js'
 
 interface TickerSearchProps {
-    onSelect?: (ticker: string) => void;
-    placeholder?: string;
+    readonly onSelect?: (ticker: string) => void;
+    readonly placeholder?: string;
 }
 
 export function TickerSearch({
