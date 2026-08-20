@@ -54,9 +54,9 @@ export function TickerSearch({
                     />
                 </div>
                 {suggestions.length > 0 ? (
-                    <ComboboxOptions anchor={{ to: 'bottom start' }} style={{ position: 'absolute', background: 'black' }}>
+                    <ComboboxOptions anchor={{ to: 'bottom start' }} style={{ position: 'absolute', background: '#171620' }}>
                         {suggestions.map((ticker) => (
-                            <ComboboxOption key={ticker} value={ticker}>
+                            <ComboboxOption key={ticker} value={ticker} className='px-2 py-2' style={{ background: '#171620' }}>
                                 {ticker}
                             </ComboboxOption>
                         ))}
