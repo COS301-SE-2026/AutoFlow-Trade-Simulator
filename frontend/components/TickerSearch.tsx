@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 
 import { useRealTimeTicksList } from '@/hooks/useRealTimeTicks';
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
+import { Search } from 'lucide-react';
 import Fuse from 'fuse.js'
 
 interface TickerSearchProps {
@@ -45,10 +46,13 @@ export function TickerSearch({
     return (
         <div style={{ position: 'relative', }}>
             <Combobox value={query} onChange={handleSelect}>
-                <ComboboxInput
-                    placeholder={placeholder}
-                    onChange={(e) => setQuery(e.target.value.toUpperCase())}
-                />
+                <div className='flex gap-2'>
+                    <Search />
+                    <ComboboxInput
+                        placeholder={placeholder}
+                        onChange={(e) => setQuery(e.target.value.toUpperCase())}
+                    />
+                </div>
                 {suggestions.length > 0 ? (
                     <ComboboxOptions anchor={{ to: 'bottom start' }} style={{ position: 'absolute', background: 'black' }}>
                         {suggestions.map((ticker) => (
