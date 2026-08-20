@@ -91,32 +91,27 @@ export default function AssetPage() {
   return (
     <div>
       <Navbar />
-      <div>
-        <h1 className='flex justify-center'>{ticker}</h1>
-        <TickerSearch />
-        {/* <div>
-          <input
-            type="text"
-            placeholder='ticker...'
-            value={nextTicker}
-            onChange={(e) => {
-              setNextTicker(e.target.value);
-            }}
-          />
-          {nextTicker === '' ? (
-            <span>Search</span>
-          ) : (
-            <Link href={`/assets/${nextTicker}`}>Search</Link>
-          )}
-        </div> */}
-        <LiveDataGraph symbol={ticker} />
-        <div className='m-4'>
+      <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <h1 style={{ textAlign: 'center' }}>{ticker}</h1>
+        </div>
+
+        <div style={{ marginBottom: '24px' }}>
+          <TickerSearch />
+        </div>
+
+        <div style={{ marginBottom: '24px' }}>
+          <LiveDataGraph symbol={ticker} />
+        </div>
+
+        <div style={{ marginBottom: '24px' }}>
           <BuySellForm
             price={currentPrice}
             accountBalance={accountBalance}
             currentHoldings={currentHoldings}
             onBuy={handleBuy}
-            onSell={handleSell} />
+            onSell={handleSell}
+          />
         </div>
       </div>
     </div>
