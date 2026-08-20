@@ -39,23 +39,28 @@ export function TickerSearch({
         }
     }
 
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error loading tickers</div>;
+
     return (
-        <Combobox value={query} onChange={handleSelect}>
-            <ComboboxInput
-                placeholder={placeholder}
-                onChange={(e) => setQuery(e.target.value.toUpperCase())}
-            />
-            {suggestions.length > 0 ? (
-                <ComboboxOptions>
-                    {suggestions.map((ticker) => (
-                        <ComboboxOption key={ticker} value={ticker}>
-                            {ticker}
-                        </ComboboxOption>
-                    ))}
-                </ComboboxOptions>
-            ) : (
-                <></>
-            )}
-        </Combobox>
+        <div style={{ position: 'relative', }}>
+            <Combobox value={query} onChange={handleSelect}>
+                <ComboboxInput
+                    placeholder={placeholder}
+                    onChange={(e) => setQuery(e.target.value.toUpperCase())}
+                />
+                {suggestions.length > 0 ? (
+                    <ComboboxOptions anchor={{ to: 'bottom start' }} style={{ position: 'absolute', background: 'black' }}>
+                        {suggestions.map((ticker) => (
+                            <ComboboxOption key={ticker} value={ticker}>
+                                {ticker}
+                            </ComboboxOption>
+                        ))}
+                    </ComboboxOptions>
+                ) : (
+                    <></>
+                )}
+            </Combobox>
+        </div>
     )
 }
