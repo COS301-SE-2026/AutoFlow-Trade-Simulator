@@ -15,6 +15,7 @@ import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
+import { map } from 'zod/v4';
 
 interface EventDefinition {
     id: string;
@@ -311,15 +312,21 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                 <div>
                     <Gauge />
                     Speed Controls:
-                    <button
-                        type='button'
-                        onClick={() => {setSpeed(1)}}
-                        className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
-                    >
-                        <div className={`flex items-center gap-3 ${speed == 1 ? '' : ''}`}>
-                            1x
-                        </div>
-                    </button>
+                    {[1, 2, 4].map((s) => {
+
+                        return (
+                            <button
+                            key={s}
+                            type='button'
+                            onClick={() => {setSpeed(s)}}
+                            className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
+                        >
+                            <div className={`flex items-center gap-3 ${speed == s ? '' : ''}`}>
+                                {s}x
+                            </div>
+                        </button>
+                        )
+                    })}
                 </div>
 
                 <button
