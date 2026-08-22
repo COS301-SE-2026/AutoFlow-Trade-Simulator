@@ -155,4 +155,57 @@ describe ('BuySellForm', () => {
         expect(defaultProps.onSell).not.toHaveBeenCalled();
     });
   
+    // zero fallback
+    it('renders fallback when price is 0', () => {
+        render(<BuySellForm {...defaultProps} price={0}/>);
+
+        const zeroElements = screen.getAllByText('0.00');
+        expect(zeroElements.length).toBe(2);
+        expect(zeroElements[0]).toBeInTheDocument();
+    });
+
+    // Handle Sumbit test
+    it('handles direct form submisson', async () => {
+        render(<BuySellForm {...defaultProps}/>);
+        const qtyInput = screen.getByPlaceholderText('Enter Quantity');
+
+        fireEvent.change(qtyInput, { target: { value: '2'} });
+        fireEvent.submit(qtyInput.closest('form')!);
+        expect(screen.getByTestId('trade-confirm-modal')).toBeInTheDocument();
+    });
+
+    // tests handleconfirm
+    it('handles comfirm modal when it throws a error', async () => {
+
+        const consoleWatcher = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        const errorOnBuy = jest.fn().mockImplementation(() => {
+            new Error('Transaction failed! Try again later :)');
+        });
+        
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps} onBuy={errorOnBuy}/>);
+
+        await user.type(screen.getByPlaceholderText('Enter Quantity'), '1');
+        await user.click(screen.getByRole('button', { name: /^buy$/i }));
+
+        await user.click(screen.getByRole('button', { name: /confirm modal/i }));
+
+        expect(errorOnBuy).toHaveBeenCalled();
+        expect(consoleWatcher).toHaveBeenCalled();
+
+        consoleWatcher.mockRestore();
+    });
+
+    // Missing onBuy/onSell props
+    it('Handle onBuy/onSell when they are missing', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm price={500} accountBalance={1000} currentHoldings={10}/>);
+
+        await user.type(screen.getByPlaceholderText('Enter Quantity'), '2');
+        await user.click(screen.getByRole('button', { name: /^buy$/i }));
+        await user.click(screen.getByRole('button', { name: /confirm modal/i }));
+
+        expect(screen.queryByTestId('trade-confirm-modal')).not.toBeInTheDocument();
+    });
 });
