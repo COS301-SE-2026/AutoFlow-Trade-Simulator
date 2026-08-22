@@ -15,18 +15,34 @@ const mockStrategy = {
 }
 
 const mockOnClose = jest.fn();
+const mockSwitchToEvents = jest.fn();
 
 jest.mock('@/hooks/useStrategy', () => ({
-    useStrategy: () => ({
-        strategy: null,
-        loading: false,
-        error: null,
-    }),
+    useStrategy: jest.fn(),
 }))
+
+jest.mock('@/context/LearningContext', () => ({
+    useLearning: jest.fn(),
+}))
+
 
 describe('StrategyDetail', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+
+        const { useStrategy } = require('@/hooks/useStrategy');
+        useStrategy.mockReturnValue({
+            strategy: mockStrategy,
+            loading: false,
+            error: null,
+        })
+
+        const { useLearning } = require('@/context/LearningContext');
+        useLearning.mockReturnValue({
+            activeTab: 'strategies',
+            setActiveTab: jest.fn(),
+            switchToEvents: mockSwitchToEvents,
+        })
     })
 
     describe('StrategyDetail content present', () => {
@@ -73,8 +89,21 @@ describe('StrategyDetail', () => {
                 />
             );
 
-            fireEvent.click(screen.getByRole('button'));
+            fireEvent.click(screen.getByTestId('close'));
             expect(mockOnClose).toHaveBeenCalled();
+        });
+
+        it('try it now button clicked', () => {
+            render(
+                <StrategyDetail
+                    id={mockStrategy.id}
+                    onClose={mockOnClose}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId('Try it now button'));
+
+            expect(mockSwitchToEvents).toHaveBeenCalled();
         });
     });
 })
