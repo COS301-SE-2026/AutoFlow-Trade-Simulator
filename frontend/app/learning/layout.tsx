@@ -3,7 +3,7 @@
 import { LearningProvider } from '@/context/LearningContext';
 import { ReactNode } from 'react';
 
-export default function LearningLayout({ children }: { children: ReactNode }) {
+export default function LearningLayout({ children }: { readonly children: ReactNode }) {
     return (
         <LearningProvider>
             {children}

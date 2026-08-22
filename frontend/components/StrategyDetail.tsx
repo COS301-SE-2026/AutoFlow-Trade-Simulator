@@ -18,6 +18,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                     <div className='flex justify-between items-center mb-4'>
                         <h3 className='text-xl font-bold'>Loading...</h3>
                         <button
+                            type='button'
                             data-testid="close"
                             onClick={onClose}
                             className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
@@ -42,6 +43,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                     <div className='flex justify-between items-center mb-4'>
                         <h3 className='text-xl font-bold text-red-400'>Strategy Not Found</h3>
                         <button
+                            type='button'
                             data-testid="close"
                             onClick={onClose}
                             className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
@@ -53,6 +55,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                         {error || 'The strategy you\'re looking for doesn\'t exist or has been removed.'}
                     </p>
                     <button
+                        type='button'
                         onClick={onClose}
                         className='w-full bg-[var(--background)] hover:bg-[var(--border)] text-[var(--text)] font-bold py-3 px-6 rounded-xl border border-[var(--border)] transition-colors'
                     >
@@ -71,6 +74,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 <div className='flex justify-between items-start mb-4'>
                     <h3 className='text-xl font-bold'>{strategy.name}</h3>
                     <button
+                        type='button'
                         data-testid="close"
                         onClick={onClose}
                         className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
