@@ -24,7 +24,7 @@ export default function AssetPage() {
   const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
   const { data: summary, loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
 
-  const { activeAccount } = useAccount();
+  const { activeAccount, refetchAccounts } = useAccount();
   const { holdings, refetch: refetchHoldings } = useHoldings(activeAccount?.id ?? null);
 
   if (!ticker) return <div>Invalid ticker</div>;
@@ -39,7 +39,12 @@ export default function AssetPage() {
   const currentHolding = holdings.find(h => h.ticker === ticker);
   const currentHoldings = currentHolding?.net_quantity || 0;
 
-  const handleBuy = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss', limitPrice?: number) => {
+  const refreshAccountData = async () => {
+    await refetchHoldings();
+    await refetchAccounts();
+  }
+
+  const handleBuy = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss' = 'market', limitPrice?: number) => {
     if (!activeAccount) {
       alert('No active account is selected');
       return;
@@ -56,14 +61,15 @@ export default function AssetPage() {
       })
 
       console.log('Buy order executed:', response);
-      refetchHoldings();
+
+      await refreshAccountData();
       alert(`Successfully bought ${quantity} units of ${ticker}`);
     } catch (e: any) {
       alert(`Failed to execute order: ${e.message}`);
     }
   }
 
-  const handleSell = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss', limitPrice?: number) => {
+  const handleSell = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss' = 'market', limitPrice?: number) => {
     if (!activeAccount) {
       alert('No active account is selected');
       return;
@@ -80,7 +86,8 @@ export default function AssetPage() {
       })
 
       console.log('Sell order executed:', response);
-      refetchHoldings();
+
+      await refreshAccountData();
       alert(`Successfully sold ${quantity} units of ${ticker}`);
     } catch (e: any) {
       alert(`Failed to execute order: ${e.message}`);
