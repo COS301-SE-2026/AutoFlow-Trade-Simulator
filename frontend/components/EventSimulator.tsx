@@ -309,9 +309,9 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                     </div>
                 </button>
 
-                <div>
-                    <Gauge />
-                    Speed Controls:
+                <div className='flex flex-row gap-1 bg-blue-900 border border-[var(--border)] items-center px-3 rounded-xl font-semibold text-sm'>
+                    <Gauge className='mr-2'/>
+                    <span className='mr-2'>Speed Controls:</span>
                     {[1, 2, 4].map((s) => {
 
                         return (
@@ -319,11 +319,10 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             key={s}
                             type='button'
                             onClick={() => {setSpeed(s)}}
-                            className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm border-[var(--border)] border-2
+                                ${speed == s ? 'bg-[var(--background-alt)]' : 'bg-blue-900'}`}
                         >
-                            <div className={`flex items-center gap-3 ${speed == s ? '' : ''}`}>
-                                {s}x
-                            </div>
+                            {s}x
                         </button>
                         )
                     })}
