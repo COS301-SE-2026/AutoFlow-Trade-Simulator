@@ -2,8 +2,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event'
 import BuySellForm from '@/components/BuySellForm';
+import { Target } from 'lucide-react';
 
-jest.mock('./TradeConfirmModal', () => {
+jest.mock('@/components/TradeConfirmModal', () => {
     return function DummyTradeConfirmModal({
         side,
         quantity,
@@ -63,13 +64,15 @@ describe ('BuySellForm', () => {
         await user.type(qtyInput, 'abc');
         expect(qtyInput.value).toBe('');
 
+        await user.clear(qtyInput);
+
         await user.type(qtyInput, '5');
         expect(qtyInput.value).toBe('5');
         expect(screen.getByText('500.00')).toBeInTheDocument()
 
         await user.clear(qtyInput);
 
-        await user.type(qtyInput, '5.11');
+        fireEvent.change(qtyInput, { target: {value: '5.11'} })
         expect(qtyInput.value).toBe('5.11');
 
         expect(screen.getByText('511.00')).toBeInTheDocument();
@@ -111,7 +114,7 @@ describe ('BuySellForm', () => {
         expect(defaultProps.onBuy).toHaveBeenCalledTimes(1);
 
         expect(screen.queryByTestId('trade-confirm-modal')).not.toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Enter Quantity')).toHaveValue(null);
+        expect(screen.getByPlaceholderText('Enter Quantity')).toHaveValue('');
     });
 
     // Sell interaction
@@ -132,7 +135,7 @@ describe ('BuySellForm', () => {
         expect(defaultProps.onSell).toHaveBeenCalledTimes(1);
 
         expect(screen.queryByTestId('trade-confirm-modal')).not.toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Enter Quantity')).toHaveValue(null);
+        expect(screen.getByPlaceholderText('Enter Quantity')).toHaveValue('');
     });
 
     //Cacel modal flow
