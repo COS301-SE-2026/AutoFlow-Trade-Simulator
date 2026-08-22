@@ -262,7 +262,41 @@ describe ('BuySellForm', () => {
     });
 
     //This test will be testing the inputs
-    it('Testing inputs and the assocaited validation', () => {
-        
-    })
+    it('Testing inputs and the assocaited validation', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps}/>);
+
+        const qtyInput = screen.getByPlaceholderText('Enter Quantity') as HTMLInputElement;
+
+        await user.type(qtyInput, '5');
+        expect(qtyInput.value).toBe('5');
+
+        await user.clear(qtyInput);
+
+        await user.type(qtyInput, '12.345');
+        expect(qtyInput.value).toBe('12.345');
+
+        expect(screen.getByText('500.00')).toBeInTheDocument();
+    });
+
+    // Button enabling
+    it('enable buy and sell button when qty > 0', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps} />);
+
+        const qtyInput = screen.getByPlaceholderText('Enter Quantity');
+        const buyBtn = screen.getByRole('button', { name: /^buy$/i });
+        const sellBtn = screen.getByRole('button', { name: /^sell$/i });
+
+        expect(buyBtn).toBeDisabled();
+        expect(sellBtn).toBeDisabled();
+
+        await user.type(qtyInput, '5');
+
+        expect(buyBtn).not.toBeDisabled();
+        expect(sellBtn).not.toBeDisabled();
+    });
+
+    // Buy interaction
+    
 });
