@@ -211,6 +211,26 @@ import BuySellForm from '@/components/BuySellForm';
 //     });
 // })
 
+jest.mock('./TradeConfirmModal', () => {
+    return function DummyTradeConfirmModal({
+        side,
+        quantity,
+        price,
+        onConfirm,
+        onCancel,
+    }: any) {
+        return (
+            <div data-testid="trade-confirm-modal">
+                <span>Modal Side: {side} </span>
+                <span>Modal Qty: {quantity} </span>
+                <span>Modal Price: {price} </span>
+                <span onClick={onConfirm}>  Confirm Modal </span>
+                <span onClick={onCancel}> Cancel Modal </span>
+            </div>
+        )
+    }
+});
+
 describe ('BuySellForm', () => {
     const mockOnBuy = jest.fn();
     const mockOnSell = jest.fn();
@@ -227,12 +247,22 @@ describe ('BuySellForm', () => {
         jest.clearAllMocks();
     });
 
+    //Becase ik im going to start loosing track of where the tests are time to leave so comments
+    //This is the basic account information test
     it('rendering initial account informmation', () => {
         render(<BuySellForm {...defaultProps}/>)
 
         expect(screen.getByText('Available Balance')).toBeInTheDocument();
-        expect(screen.getByText('12000.00')).toBeInTheDocument();
-        expect(screen.getByText('5.0000 units')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /buy 0 units/i })).toBeDisabled();
+        expect(screen.getByText('12000.0000')).toBeInTheDocument();
+        expect(screen.getByText('5 units')).toBeInTheDocument();
+        expect(screen.getByText('100.00')).toBeInTheDocument();
+
+        expect(screen.getByRole('button', { name: /^buy$/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /^sell$/i })).toBeDisabled();
     });
+
+    //This test will be testing the inputs
+    it('Testing inputs and the assocaited validation', () => {
+        
+    })
 });
