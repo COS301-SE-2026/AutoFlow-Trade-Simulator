@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from pathlib import Path
 
-TICKER_RE = re.compile(r"<B>\s*([^<()]++)\s*\(([A-Za-z0-9.-]++)\)\s*</B>", re.IGNORECASE)
+TICKER_RE = re.compile(r"<B>\s*([^<()]+?)\s*\(([A-Za-z0-9.\-]+)\)\s*</B>", re.IGNORECASE)
 
 REQUIRED_HEADER = ["Date", "High", "Low", "Open", "Close", "Volume"]
 
@@ -14,8 +14,21 @@ def sql_str(value: str) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
+def _safe_path(path_str: str) -> Path:
+    base = Path.cwd().resolve()
+    raw_path = Path(path_str)
+    candidate = raw_path.resolve() if raw_path.is_absolute() else (base / raw_path).resolve()
+
+    try:
+        candidate.relative_to(base)
+    except ValueError:
+        raise ValueError(f"Refusing to access path outside the working directory: {path_str}")
+
+    return candidate
+
+
 def parse_report(path: str, price_divisor: float):
-    raw = Path(path).read_text(encoding="utf-8", errors="ignore")
+    raw = _safe_path(path).read_text(encoding="utf-8", errors="ignore")
 
     m = TICKER_RE.search(raw)
     if not m:
@@ -141,7 +154,7 @@ def main():
     ap.add_argument("--exchange", default="JSE", help="Exchange tag for new assets (default: JSE)")
     ap.add_argument("--currency", default="ZAR", help="Currency tag for new assets (default: ZAR)")
     ap.add_argument("--asset-class", default="stocks", help="Asset class tag for new assets (default: stocks)")
-    # the iress reports use cents, so we must divide by two.
+    # JSE reports store price * 100 (cents), so we divide by 100 to get Rand.
     ap.add_argument(
         "--price-divisor",
         type=float,
@@ -158,7 +171,7 @@ def main():
         reports.append((ticker, name, rows))
 
     sql = build_sql(reports, args.exchange, args.currency, args.asset_class, args.chunk_size)
-    Path(args.output).write_text(sql, encoding="utf-8")
+    _safe_path(args.output).write_text(sql, encoding="utf-8")
     print(f"Wrote {args.output}", file=sys.stderr)
 
 
