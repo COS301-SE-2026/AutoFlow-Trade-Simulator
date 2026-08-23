@@ -46,14 +46,39 @@ def test_build_sql_chunks_rows_correctly():
         assert len(tuples) <= 50
 
 def test_parse_report_extracts_ticker_and_rows():
-    ...
+    report_path = "fixtures/valid_report.xls"
+    ticker, name, rows = parse_report(str(report_path), price_divisor=100.0)
+    assert ticker == "ABG"
+    assert name == "ABSA GROUP LTD"
+    assert len(rows) > 0
+    first = rows[0]
+    assert first["timestamp"].strftime("%Y-%m-%d") == "2026-07-30"
+    assert first["high"] == 226.76
+    assert first["low"] == 220.36
+    assert first["open"] == 224.55
+    assert first["close"] == 225.46
+    assert first["volume"] == 1693205.0
 
 
 def test_parse_report_missing_ticker_raises():
-    ...
+    report_path = "fixtures/missing_ticker.xls"
+    report = str(report_path)
+    with pytest.raises(ValueError) as e: parse_report(report, price_divisor=100.0)
+    assert "could not find a '<Name> (<TICKER>)' header" in str(e.value)
 
 def test_parse_report_missing_table_raises():
-    ...
+    report_path = "missing_table.xls"
+    report = str(report_path)
+    with pytest.raises(ValueError) as e: parse_report(report, price_divisor=100.0)
+    assert "could not find the price table (tblSharesAndIndices)" in str(e.value)
 
-def test_parse_report_skips_malformed_rows(capsys):
-    ...
+def test_parse_report_skips_malformed_rows(captured):
+    report_path = "fixtures/malformed_rows.xls"
+    ticker, name, rows = parse_report(str(report_path), price_divisor=100.0)
+    captured = capsys.readouterr()
+    assert "skipped" in captured.err
+    assert len(rows) > 0
+    assert rows[0]["timestamp"].strftime("%Y-%m-%d") == "2026-07-30"
+    # The second row is invalid
+    # the third row on 28 Jul 2026 is valid
+    assert rows[1]["timestamp"].strftime("%Y-%m-%d") == "2026-07-28"
