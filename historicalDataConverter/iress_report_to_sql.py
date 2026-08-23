@@ -6,13 +6,75 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from pathlib import Path
 
+TICKER_RE = re.compile(r"<B>\s*([^<()]++)\s*\(([A-Za-z0-9.-]++)\)\s*</B>", re.IGNORECASE)
+
+REQUIRED_HEADER = ["Date", "High", "Low", "Open", "Close", "Volume"]
 
 def sql_str(value: str) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
 def parse_report(path: str, price_divisor: float):
-    ...
+    raw = Path(path).read_text(encoding="utf-8", errors="ignore")
+
+    m = TICKER_RE.search(raw)
+    if not m:
+        raise ValueError(
+            f"{path}: could not find a '<Name> (<TICKER>)' header — "
+            "is this really an Iress price data report?"
+        )
+    company_name, ticker = m.group(1).strip(), m.group(2).strip().upper()
+
+    soup = BeautifulSoup(raw, "lxml")
+    table = soup.find("table", id="tblSharesAndIndices")
+    if table is None:
+        raise ValueError(f"{path}: could not find the price table (tblSharesAndIndices)")
+
+    rows = table.find_all("tr")
+
+    header_idx = None
+    for i, r in enumerate(rows):
+        cells = [c.get_text(strip=True) for c in r.find_all("td")]
+        if cells[: len(REQUIRED_HEADER)] == REQUIRED_HEADER:
+            header_idx = i
+            break
+    if header_idx is None:
+        raise ValueError(f"{path}: could not locate the Date/High/Low/Open/Close/Volume header row")
+
+    out_rows = []
+    skipped = 0
+    for r in rows[header_idx + 1:]:
+        cells = [c.get_text(strip=True) for c in r.find_all("td")]
+        if len(cells) < 6 or not cells[0]:
+            continue
+
+        date_str, high, low, open_, close, volume = cells[:6]
+
+        try:
+            ts = datetime.strptime(date_str, "%d %b %Y")
+        except ValueError:
+            skipped += 1
+            continue
+
+        try:
+            out_rows.append(
+                {
+                    "timestamp": ts,
+                    "open": float(open_) / price_divisor,
+                    "high": float(high) / price_divisor,
+                    "low": float(low) / price_divisor,
+                    "close": float(close) / price_divisor,
+                    "volume": float(volume),
+                }
+            )
+        except ValueError:
+            skipped += 1
+            continue
+
+    if skipped:
+        print(f"{path}: skipped {skipped} malformed row(s)", file=sys.stderr)
+
+    return ticker, company_name, out_rows
 
 
 def build_sql(reports, exchange: str, currency: str, asset_class: str, chunk_size: int) -> str:
@@ -70,4 +132,35 @@ def build_sql(reports, exchange: str, currency: str, asset_class: str, chunk_siz
 
 
 def main():
-    ...
+    ap = argparse.ArgumentParser(
+        description="Convert Iress price-data report .xls exports into a SQL insert script.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    ap.add_argument("files", nargs="+", help="One or more Iress report .xls files")
+    ap.add_argument("-o", "--output", default="insert_price_history.sql", help="Output .sql path")
+    ap.add_argument("--exchange", default="JSE", help="Exchange tag for new assets (default: JSE)")
+    ap.add_argument("--currency", default="ZAR", help="Currency tag for new assets (default: ZAR)")
+    ap.add_argument("--asset-class", default="stocks", help="Asset class tag for new assets (default: stocks)")
+    # the iress reports use cents, so we must divide by two.
+    ap.add_argument(
+        "--price-divisor",
+        type=float,
+        default=100.0,
+        help="Divide raw High/Low/Open/Close by this (default: 100, JSE cents convention). Use 1 to disable.",
+    )
+    ap.add_argument("--chunk-size", type=int, default=500, help="Rows per multi-row INSERT (default: 500)")
+    args = ap.parse_args()
+
+    reports = []
+    for f in args.files:
+        ticker, name, rows = parse_report(f, args.price_divisor)
+        print(f"Parsed {f}: {name} ({ticker}) -> {len(rows)} row(s)", file=sys.stderr)
+        reports.append((ticker, name, rows))
+
+    sql = build_sql(reports, args.exchange, args.currency, args.asset_class, args.chunk_size)
+    Path(args.output).write_text(sql, encoding="utf-8")
+    print(f"Wrote {args.output}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
