@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
-
+import string
 from ...core.security import create_access_token, create_password_hash, verify_password_hash
 from ...models import User,Portfolio
 from .AuthDTOs import LoginResponseDTO, RegistrationDTO,LoginDTO,EpicStatusDTO, RegistrationResponseDTO
@@ -19,6 +19,10 @@ class AuthService:
         # check if password is valid length
             if len(data.password) < 8 :
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Password field must be 8 or more characters")
+            # check if password contains a symbol
+
+            if any(char in string.punctuation for char in data.password):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Password field must contain a symbol")
         # Create user
             user = User(email=data.email,full_name=data.full_name,password_hash=create_password_hash(data.password))
             self.session.add(user)

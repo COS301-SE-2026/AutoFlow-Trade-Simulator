@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
     user: "${UID:-1000}:${GID:-1000}"
     env_file:
-      - ./stock-poller/.env
+      - ./.env
     volumes:
       - ./stock-poller/storage/raw_harvest:/app/storage/raw_harvest
       - ./stock-poller/config.yaml:/app/config.yaml:ro
