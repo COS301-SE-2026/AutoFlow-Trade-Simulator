@@ -33,6 +33,7 @@ export const AssetSummarySchema = z.object({
   current_price: z.number().positive(),
   daily_high: z.number().positive(),
   daily_low: z.number().positive(),
+  open_price: z.number().positive().optional(),
   timestamp: z.string(),
 });
 
