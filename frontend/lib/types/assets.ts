@@ -38,8 +38,39 @@ export const AssetSummarySchema = z.object({
 
 export const AssetPricesResponseSchema = z.array(OHLCVSchema);
 
+export const RealTimeTickSchema = z.object({
+  timestamp: z.string(),
+  price: z.coerce.number().positive(),
+  volume: z.coerce.number().nonnegative(),
+});
+
+export const RealTimeDataResponseSchema = z.object({
+  points: z.array(RealTimeTickSchema),
+});
+
+export const ChartBarSchema = z.object({
+  time: z.string(),
+  open: z.number().nullable().default(null),
+  high: z.number().nullable().default(null),
+  low: z.number().nullable().default(null),
+  close: z.number().nullable().default(null),
+  volume: z.number().default(0),
+});
+
+export const ChartBarsResponseSchema = z.array(ChartBarSchema);
+
+export const RealTimeSymbolsResponseSchema = z.object({
+  symbols: z.array(z.string()),
+  count: z.number().nonnegative(),
+});
+
 export type SimCreateResponse = z.infer<typeof SimCreateResponseSchema>;
 export type OHLCVBar = z.infer<typeof OHLCVBarSchema>;
 export type OHLCV = z.infer<typeof OHLCVSchema>;
 export type AssetSummary = z.infer<typeof AssetSummarySchema>;
 export type AssetPricesResponse = z.infer<typeof AssetPricesResponseSchema>;
+export type RealTimeTick = z.infer<typeof RealTimeTickSchema>;
+export type RealTimeDataResponse = z.infer<typeof RealTimeDataResponseSchema>;
+export type RealTimeSymbolsResponse = z.infer<typeof RealTimeSymbolsResponseSchema>;
+export type ChartBar = z.infer<typeof ChartBarSchema>;
+export type ChartInterval = '1d' | '1w' | '1m' | '6m' | '1y';
