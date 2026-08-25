@@ -21,7 +21,7 @@ class AuthService:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Password field must be 8 or more characters")
             # check if password contains a symbol
 
-            if any(char in string.punctuation for char in data.password):
+            if not any(char in string.punctuation for char in data.password):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Password field must contain a symbol")
         # Create user
             user = User(email=data.email,full_name=data.full_name,password_hash=create_password_hash(data.password))
