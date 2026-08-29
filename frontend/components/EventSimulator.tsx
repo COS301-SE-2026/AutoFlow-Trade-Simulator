@@ -2,7 +2,6 @@
 
 import {useState, useEffect, useMemo} from 'react';
 import { useGreeks } from '@/hooks/useGreeks';
-const { greeks, calculateGreeks } = useGreeks();
 import {
   ResponsiveContainer,
   AreaChart,
@@ -76,11 +75,21 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinition; onBack: () => void }>) {
 
+    const { greeks, calculateGreeks } = useGreeks();
+
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
     const [pendingTrade, setPendingTrade] = useState<{ type: 'buy' | 'sell' } | null>(null);
+
+    const [greeksResult, setGreeksResult] = useState<{
+        delta: number,
+        gamma: number,
+        theta: number,
+        vega: number,
+        rho: number
+    } | null>(null);
 
     const [shares, setShares] = useState(0);
     const [qty, setQty] = useState('1');
@@ -184,12 +193,50 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length, speed]);
 
-    const currentPrice = allPrices[dayIndex] ?? 0;
+    const currentPrice = allPrices[dayIndex] ?? "0";
     const portfolioValue = cash + shares * Number.parseFloat(currentPrice);
     const totalProfit = portfolioValue - event.initialBalance;
     const startPrice = allPrices[0];
     const profitPct = ((totalProfit / event.initialBalance) * 100);
     const priceChangePct = startPrice ? (((Number.parseFloat(currentPrice) - Number.parseFloat(startPrice)) / Number.parseFloat(startPrice)) * 100) : 0;
+
+    //State for greeks
+    const [strikePrice, setStrikePrice] = useState<number>(Number.parseFloat(allPrices[0] || '0'));
+    const daysToExpiration = Math.max(1, allPrices.length - dayIndex);
+
+    useEffect(() => {
+        if (allPrices.length === 0) return;
+        
+        const current = Number.parseFloat(allPrices[dayIndex] || allPrices[0]);
+        if(!current || current <= 0) return;
+
+        if(isPlaying || strikePrice === 0) {
+            setStrikePrice(Math.round(current));
+        }
+
+    }, [allPrices, dayIndex, strikePrice]);
+
+    useEffect(() => {
+        const price = Number.parseFloat(currentPrice);
+        if(!price || price <= 0) return;
+
+        const fetchGreeks = async () => {
+            const res = await calculateGreeks({
+                current_price: price,
+                strike_price: strikePrice,
+                time_to_expire: daysToExpiration / 365,
+                interest_rate: 0.05,
+                sigma: 0.25,
+                option_type: 'call'
+            });
+
+            if (res) {
+                setGreeksResult(res);
+            }
+        };
+
+        fetchGreeks();
+    }, [dayIndex, currentPrice, strikePrice, daysToExpiration, calculateGreeks]);
 
     const currentBarTimestamp = allTimestamps[dayIndex];
     const visibleNews = currentBarTimestamp
@@ -507,6 +554,57 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             {pendingTrade && (<TradeConfirmModal side={pendingTrade.type} quantity={Number.parseFloat(qty)} price={Number.parseFloat(currentPrice)} onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }} onCancel={() => { setPendingTrade(null) }} orderType="market" />)}
                         </div>
                     </div>
+                    
+                    <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)] space-y-2'>
+                        <div className='flex justify-between items-center text-xs font-bold text-blue-400 uppercase tracking-wider'>
+                            <span>Call Option Risk</span>
+                            <span className='text-gray-400 font-normal'>DTE: {daysToExpiration}d</span>
+                        </div>
+
+                        <div className='flex items-center justify-between text-xs bg-gray-800/50 p-1.5 rounded-lg border border-gray-700/50'>
+                            <span className='text-gray-400'>Strike Price </span>
+                            <input
+                                type='number'
+                                value={strikePrice}
+                                onChange={(e) => setStrikePrice(Number.parseFloat(e.target.value) || 0)}
+                                className='w-20 bg-gray-900 text-right px-2 py-0.5 rounded text-white text-xs font-mono border border-gray-700'
+                            />
+                        </div>
+
+                        <div className='grid grid-cols-2 gap-2 text-xs pt-1'>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Delta (Δ)</span>
+                                <span className='font-mono font-bold text-sm text-white'>
+                                    {greeksResult ? greeksResult.delta.toFixed(3) : '0.000'}
+                                </span>
+                            </div>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Gamma (Γ)</span>
+                                <span className='font-mono font-bold text-sm text-white'>
+                                    {greeksResult ? greeksResult.gamma.toFixed(4) : '0.0000'}
+                                </span>
+                            </div>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Theta (Θ)</span>
+                                <span className='font-mono font-bold text-sm text-white'>
+                                    {greeksResult ? greeksResult.theta.toFixed(3) : '0.000'}
+                                </span>
+                            </div>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Vega (ν)</span>
+                                <span className='font-mono font-bold text-sm text-white'>
+                                    {greeksResult ? greeksResult.vega.toFixed(3) : '0.000'}
+                                </span>
+                            </div>
+                             <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Rho ()</span>
+                                <span className='font-mono font-bold text-sm text-white'>
+                                    {greeksResult ? greeksResult.rho.toFixed(3) : '0.000'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
                         History
                         {trades.length === 0 ? <p>No trades</p> : [...trades].reverse().map((t, i) => (
