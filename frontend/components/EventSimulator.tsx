@@ -1,6 +1,8 @@
 'use client';
 
 import {useState, useEffect, useMemo} from 'react';
+import { useGreeks } from '@/hooks/useGreeks';
+const { greeks, calculateGreeks } = useGreeks();
 import {
   ResponsiveContainer,
   AreaChart,
