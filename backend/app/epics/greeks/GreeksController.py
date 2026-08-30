@@ -47,4 +47,4 @@ def calculate_greeks (
     Depends(get_greeks_service)], 
     user: Annotated[User, Depends(get_current_user)]
 ) -> GreekValues:
-    return await service.calculate_greeks(req)
+    return service.calculate_greeks(req)
