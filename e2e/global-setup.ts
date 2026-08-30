@@ -69,7 +69,7 @@ create_tables()
         fs.writeFileSync(tempScriptPath, createTablesScript);
 
         const { stdout: createOutput } = await execAsync(
-            `python ${tempScriptPath}`,
+            `python3 ${tempScriptPath}`,
             { env: { ...process.env, DATABASE_URL: dbUrl } }
         );
         console.log('createOutput ' + createOutput);
@@ -86,26 +86,23 @@ sys.path.insert(0, "backend")
 os.environ["DATABASE_URL"] = "${dbUrl}"
 
 try:
-    from seeds import seed_all
-    print("Found seeds.seed_all()")
-    seed_all()
+    from seeds import seed_data
+    print("Found seeds.seed_data()")
+    seed_data()
     print("✅ Seeding complete!")
-except ImportError:
-    try:
-        from seeds import main
-        print("Found seeds.main()")
-        main()
-        print("✅ Seeding complete!")
-    except ImportError as e:
-        print(f"⚠️  No seed function found: {e}")
-        print("Skipping seed...")
-        `;
+except ImportError as e:
+    print(f"⚠️  Could not import seed_data: {e}")
+    print("Skipping seed...")
+except Exception as e:
+    print(f"⚠️  Seed execution failed: {e}")
+    print("Skipping seed...")
+`;
 
         const tempSeedScriptPath = '/tmp/seed_data.py';
         fs.writeFileSync(tempSeedScriptPath, seedScript);
 
         const { stdout: seedOutput } = await execAsync(
-            `python ${tempSeedScriptPath}`,
+            `python3 ${tempSeedScriptPath}`,
             { env: { ...process.env, DATABASE_URL: dbUrl } }
         );
         console.log('seedOutput ' + seedOutput);
@@ -115,37 +112,36 @@ except ImportError:
 
         // creating ohlcv view
         const createViewScript = `
-import psycopg2
 import os
+import sys
+sys.path.insert(0, "backend")
+from app.database import engine
+from sqlmodel import Session, text
 
-conn = psycopg2.connect(os.environ["DATABASE_URL"])
-conn.autocommit = True
-cur = conn.cursor()
-
-cur.execute("""
-CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1d AS
-SELECT 
-    asset_id,
-    timestamp AS bucket_time,
-    open,
-    high,
-    low,
-    close,
-    volume
-FROM dailyohlcv
-ORDER BY asset_id, timestamp DESC;
-""")
-
-cur.close()
-conn.close()
-print("✅ ohlcv_1d view created!")
-`;
+# Use SQLAlchemy to execute the CREATE VIEW command
+with Session(engine) as session:
+    session.execute(text("""
+        CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1d AS
+        SELECT 
+            asset_id,
+            timestamp AS bucket_time,
+            open,
+            high,
+            low,
+            close,
+            volume
+        FROM dailyohlcv
+        ORDER BY asset_id, timestamp DESC;
+    """))
+    session.commit()
+    print("✅ ohlcv_1d view created!")
+    `;
 
         const tempViewScriptPath = '/tmp/create_view.py';
         fs.writeFileSync(tempViewScriptPath, createViewScript);
 
         const { stdout: viewOutput } = await execAsync(
-            `python ${tempViewScriptPath}`,
+            `python3 ${tempViewScriptPath}`,
             { env: { ...process.env, DATABASE_URL: dbUrl } }
         );
         console.log('viewOutput ' + viewOutput);
