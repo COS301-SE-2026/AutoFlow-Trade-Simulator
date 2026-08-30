@@ -160,5 +160,152 @@ describe('EventSimulator Component', () => {
         expect(screen.getByText('COST: R105.00')).toBeInTheDocument();
     });
 
+    it('Open trade confirmation window and executes a successful BUY order', async () => {
+        (apiClient as jest.Mock).mockResolvedValue({
+            positions: { AAPL: 2},
+            nav: 10000
+        });
+
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/> );
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /^Buy&/i })).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByRole('button', { name: /^Buy$/i }));
+        expect(screen.getByTestId('trade-confirm-modal')).toBeInTheDocument();
+
+        await act(async () => {
+            fireEvent.click(screen.getByText('Confirm Trade'));
+        });
+
+        expect(apiClient).toHaveBeenCalledWith(
+            '/simulation/practice/simulate/actions',
+            expect.objectContaining({
+                method: 'POST',
+                body: {
+                    simulation_id: 101,
+                    actions: [
+                        {
+                            type: 'buy',
+                            symbol: 'AAPL',
+                            qty: 1,
+                            timestamp: '2008-01-01T00:00:00Z'
+                        }
+                    ]
+                }
+            })
+        );
+
+        expect(screen.getByText(/BUY 1 @ R100.0/i)).toBeInTheDocument();
+    });
+
+    it('handles sell validation when user has zero shares', async () => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /^Sell$/i })).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByRole('button', { name: /^Sell%/i }));
+        fireEvent.click(screen.getByText('Confirm Trade'));
+
+        expect(screen.getByText('You have no share to sell.')).toBeInTheDocument();
+    });
+
+    it('renders simulation finish summary upon completion', async () => {
+        const mockFinishResponse = {
+            simulation_id: 101,
+            status: 'finished',
+            start_date: '2008-01-01',
+            end_date: '2008-01-10',
+            initial_balance: '10000.00',
+            summary: {
+                final_balance: '12500.50',
+                returns_pct: '25.01',
+                max_drawdown: '3.42',
+                trades_count: 4,
+                per_symbol_results: {
+                    AAPL: { final_value: '12500.50', returns_pct: '25.01' },
+                },
+            },
+        };
+
+        (apiClient as jest.Mock).mockResolvedValue(mockFinishResponse);
+
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('View Simulation Summary')).toBeInTheDocument();
+        });
+
+        await act(async () => {
+            fireEvent.click(screen.getByText('View Simulation Summary'));
+        });
+
+        expect(screen.getByText('Simulation Finished')).toBeInTheDocument();
+        expect(screen.getByText('R 12500.00')).toBeInTheDocument();
+        expect(screen.getByText('25.01%')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: /Back to Events/i }));
+        expect(mockOnBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles simulation creation API failure', async () => {
+        //Yay console spy is back :D
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        (startSimulation as jest.Mock).mockRejectedValueOnce(new Error('Init failed'));
+
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'Failed to create simulation',
+                expect.any(Error)
+            )
+        });
+
+        consoleSpy.mockRestore();
+    });
+
+    it('caps sell quantity to max avaialable owned shares', async () => {
+        (apiClient as jest.Mock).mockResolvedValue({
+            positions: { AAPL: 2},
+            nav: 10000
+        });
+
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack} />);
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /^Buy$/i })).toBeInTheDocument();
+        });
+        fireEvent.click(screen.getByRole('button', { name: /^Buy$/i }));
+        await act(async () => {
+            fireEvent.click(screen.getByText('Confirm Trade'));
+        });
+
+        const qtyInput = screen.getByPlaceholderText('Quantity');
+        fireEvent.change(qtyInput, { target: {value: '10'} });
+
+        fireEvent.click(screen.getByRole('button', { name: /^Sell$/i }));
+        await act(async () => {
+            fireEvent.click(screen.getByText('ConfirmTrade'));
+        });
+
+        expect(apiClient).toHaveBeenCalledWith(
+            '/simulation/practice/simulate/actions',
+            expect.objectContaining({
+            body: expect.objectContaining({
+                        actions: [
+                            expect.objectContaining({
+                            type: 'sell',
+                            qty: 2,
+                        }),
+                    ],
+                }),
+            })
+        );
+    });
+
     
 });
