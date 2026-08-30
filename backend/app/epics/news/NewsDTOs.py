@@ -5,6 +5,10 @@ from sqlmodel import SQLModel
 from ...models.news import NewsCategory
 
 
+class EpicStatusDTO(SQLModel):
+    epic: str
+    status: str
+
 class NewsItem(SQLModel):
     id:int
     timestamp:datetime

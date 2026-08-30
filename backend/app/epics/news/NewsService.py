@@ -1,11 +1,17 @@
 from sqlmodel import Session, select
 from ...models.news import News
-from .NewsDTOs import NewsItem, NewsRequest, NewsRepsonse
+from .NewsDTOs import NewsItem, NewsRequest, NewsRepsonse,EpicStatusDTO
 
 class NewsService:
     def __init__(self,session:Session) -> None:
         self.session=session
 
+    @staticmethod
+    def get_status() -> EpicStatusDTO:
+        return EpicStatusDTO(
+            epic="News",
+            status="healthy",
+        )
     def createNews(self,news:News)->News:
         #ensures that all tickers are stored in upper case
         news.ticker=news.ticker.upper()
