@@ -29,6 +29,8 @@
     "perf": "npm run lhci && npm run k6"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.10",
+    "fuse.js": "^7.5.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
