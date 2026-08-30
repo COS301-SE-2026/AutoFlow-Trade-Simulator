@@ -1,4 +1,5 @@
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -14,12 +15,11 @@ def sql_str(value: str) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
-def _safe_path(path_str: str) -> Path:
-    base = Path.cwd().resolve()
-    raw_path = Path(path_str)
-    candidate = raw_path.resolve() if raw_path.is_absolute() else (base / raw_path).resolve()
+def _safe_path(path_str: str) -> str:
+    base = os.path.realpath(os.getcwd())
+    candidate = os.path.realpath(os.path.join(base, path_str))
 
-    if not candidate.is_relative_to(base):
+    if candidate != base and not candidate.startswith(base + os.sep):
         raise ValueError(f"Refusing to access path outside the working directory: {path_str}")
 
     return candidate
@@ -27,7 +27,7 @@ def _safe_path(path_str: str) -> Path:
 
 def parse_report(path: str, price_divisor: float):
     safe_path = _safe_path(path)
-    raw = safe_path.read_text(encoding="utf-8", errors="ignore")
+    raw = Path(safe_path).read_text(encoding="utf-8", errors="ignore")
 
     m = TICKER_RE.search(raw)
     if not m:
@@ -171,7 +171,8 @@ def main():
 
     sql = build_sql(reports, args.exchange, args.currency, args.asset_class, args.chunk_size)
     output_path = _safe_path(args.output)
-    output_path.write_text(sql, encoding="utf-8")
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(sql)
     print(f"Wrote {output_path}", file=sys.stderr)
 
 
