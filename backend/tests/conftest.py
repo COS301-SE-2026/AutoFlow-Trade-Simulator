@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+#these have to be here because they must run before the import.
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 os.environ["SECRET_KEY"] = "test-secret"
@@ -13,12 +14,12 @@ os.environ["ALGORITHM"] = "HS256"
 os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "30"
 os.environ["REDIS_URL"] = "redis://localhost:6379/0"
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlmodel import SQLModel, Session, create_engine
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from sqlmodel import SQLModel, Session, create_engine  # noqa: E402
 
-from app.database import get_session
-from app.main import app
+from app.database import get_session  # noqa: E402
+from app.main import app  # noqa: E402
 
 test_engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
 
