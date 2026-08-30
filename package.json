@@ -27,7 +27,7 @@
     "test:lhci": "lhci autorun",
     "test:k6": "docker run --rm --network=host --env-file .env -v \"$PWD/backend/tests/performance:/tests\" grafana/k6 run /tests/performance-baseline.js",
     "test:perf": "npm run test:lhci && npm run test:k6",
-    "test:playwright": "npx playwright test"
+    "test:e2e": "npx playwright test"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
@@ -38,8 +38,10 @@
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.2.0",
+    "@types/pg": "^8.23.1",
     "autoprefixer": "^10.5.0",
     "dotenv-cli": "^11.0.0",
+    "pg": "^8.23.0",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.3.0"
   }
