@@ -27,7 +27,7 @@ def get_epic_status()->EpicStatusDTO:
 )
 def create_news(req:News,service:Annotated[NewsService, Depends(get_news_service)],current_user:Annotated[User,Depends(get_current_user)])->News  :
     if current_user.id is None:
-        raise HTTPException(status_code=401, detail="User not authenticated")
+        raise HTTPException(status_code=401, detail=auth_error)
     return service.create_news(req)
 
 @router.post(
@@ -38,5 +38,5 @@ def create_news(req:News,service:Annotated[NewsService, Depends(get_news_service
 )
 def find_news(req:NewsRequest,service:Annotated[NewsService, Depends(get_news_service)],current_user:Annotated[User,Depends(get_current_user)])->NewsRepsonse  :
     if current_user.id is None:
-        raise HTTPException(status_code=401, detail="User not authenticated")
+        raise HTTPException(status_code=401, detail=auth_error)
     return service.find_news(req)
