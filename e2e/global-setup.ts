@@ -77,7 +77,7 @@ create_tables()
         console.log('created tables successfully!\n');
 
         const seedScript = `
-        import sys
+import sys
 import os
 sys.path.insert(0, "backend")
 
