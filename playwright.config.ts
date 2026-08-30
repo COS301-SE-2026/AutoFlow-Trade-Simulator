@@ -6,20 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 import dotenv from 'dotenv';
 import path from 'path';
-import os from 'os';
-
 dotenv.config({ path: '.env.test' });
-
-const getVenvPython = () => {
-    const venvPath = path.join(process.cwd(), '.venv');
-    if (os.platform() === 'win32') {
-        return path.join(venvPath, 'Scripts', 'python.exe');
-    }
-    return path.join(venvPath, 'bin', 'python');
-};
-
-const VENV_PYTHON = getVenvPython();
-console.log('VENV_PYTHON ' + VENV_PYTHON);
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -87,8 +74,8 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'cd backend && ${VENV_PYTHON} -m uvicorn app.main:app --host 127.0.0.1 --port 8000',
-    url: 'http://127.0.0.1:8000.docs',
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },
 });
