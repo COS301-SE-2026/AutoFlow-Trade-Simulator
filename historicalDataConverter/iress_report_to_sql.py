@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from pathlib import Path
 
-TICKER_RE = re.compile(r"<B>\s*([^<()]+?)\s*\(([A-Za-z0-9.\-]+)\)\s*</B>", re.IGNORECASE)
+TICKER_RE = re.compile(r"<B>([^<()]+?)\(([A-Z0-9.\-]+)\)\s*</B>", re.IGNORECASE)
 
 REQUIRED_HEADER = ["Date", "High", "Low", "Open", "Close", "Volume"]
 
@@ -19,16 +19,15 @@ def _safe_path(path_str: str) -> Path:
     raw_path = Path(path_str)
     candidate = raw_path.resolve() if raw_path.is_absolute() else (base / raw_path).resolve()
 
-    try:
-        candidate.relative_to(base)
-    except ValueError:
+    if not candidate.is_relative_to(base):
         raise ValueError(f"Refusing to access path outside the working directory: {path_str}")
 
     return candidate
 
 
 def parse_report(path: str, price_divisor: float):
-    raw = _safe_path(path).read_text(encoding="utf-8", errors="ignore")
+    safe_path = _safe_path(path)
+    raw = safe_path.read_text(encoding="utf-8", errors="ignore")
 
     m = TICKER_RE.search(raw)
     if not m:
@@ -171,8 +170,9 @@ def main():
         reports.append((ticker, name, rows))
 
     sql = build_sql(reports, args.exchange, args.currency, args.asset_class, args.chunk_size)
-    _safe_path(args.output).write_text(sql, encoding="utf-8")
-    print(f"Wrote {args.output}", file=sys.stderr)
+    output_path = _safe_path(args.output)
+    output_path.write_text(sql, encoding="utf-8")
+    print(f"Wrote {output_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":
