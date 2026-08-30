@@ -18,6 +18,15 @@ class NewsItem(SQLModel):
     author:Optional[str]
     full_story:str
 
+class NewsCreateRequest(SQLModel):
+    timestamp:datetime
+    category:NewsCategory
+    description:str
+    source:Optional[str] 
+    author:Optional[str] 
+    full_story:str 
+    ticker:str
+
 class NewsRepsonse(SQLModel):
     news_items: list[NewsItem]
 

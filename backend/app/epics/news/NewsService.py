@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 from ...models.news import News
-from .NewsDTOs import NewsItem, NewsRequest, NewsRepsonse,EpicStatusDTO
+from .NewsDTOs import NewsCreateRequest, NewsItem, NewsRequest, NewsRepsonse,EpicStatusDTO
 
 class NewsService:
     def __init__(self,session:Session) -> None:
@@ -12,15 +12,17 @@ class NewsService:
             epic="News",
             status="healthy",
         )
-    def create_news(self,news:News)->News:
+    def create_news(self,news:NewsCreateRequest)->News:
         #ensures that all tickers are stored in upper case
+        
         news.ticker=news.ticker.upper()
-        self.session.add(news)
+        added:News=News(timestamp=news.timestamp,category=news.category,description=news.description,source=news.source,author=news.author,full_story=news.full_story,ticker=news.ticker)
+        self.session.add(added)
         self.session.commit()
-        self.session.refresh(news)
-        if news.id is None:
+        self.session.refresh(added)
+        if added.id is None:
             raise ValueError("Failed to create news")
-        return news;
+        return added;
 
     def find_news(self,news:NewsRequest)->NewsRepsonse:
         results=self.session.exec(select(News).where(News.ticker==news.ticker.upper()).where(News.timestamp<=news.end_date).where(News.timestamp>=news.start_date)).all()

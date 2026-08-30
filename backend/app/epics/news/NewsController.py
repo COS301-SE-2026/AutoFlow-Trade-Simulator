@@ -5,7 +5,7 @@ from ...core.security import get_current_user
 from ...models.user import User
 from .NewsService import NewsService
 from ...database import get_session
-from .NewsDTOs import EpicStatusDTO, NewsRepsonse, NewsRequest
+from .NewsDTOs import EpicStatusDTO, NewsCreateRequest, NewsRepsonse, NewsRequest
 from ...models.news import News
 
 
@@ -25,7 +25,7 @@ def get_epic_status()->EpicStatusDTO:
         401: {"description":auth_error},
     }
 )
-def create_news(req:News,service:Annotated[NewsService, Depends(get_news_service)],current_user:Annotated[User,Depends(get_current_user)])->News  :
+def create_news(req:NewsCreateRequest,service:Annotated[NewsService, Depends(get_news_service)],current_user:Annotated[User,Depends(get_current_user)])->News  :
     if current_user.id is None:
         raise HTTPException(status_code=401, detail=auth_error)
     return service.create_news(req)
