@@ -40,18 +40,11 @@ def get_greeks_history(
 ) -> HistPriceHistoryResponse:
     return service.get_history(symbol, period)
 
-@router.post("/calculate", response_model=GreekValues)
+@router.post("/calculate")
 def calculate_greeks (
     req: CalculateGreeksRequest, 
     service: Annotated[GreeksService, 
     Depends(get_greeks_service)], 
     user: Annotated[User, Depends(get_current_user)]
 ) -> GreekValues:
-    return service.calc_greeks(
-        current_price = req.current_price,
-        strike_price = req.strike_price,
-        time_to_expire = req.time_to_expire,
-        interest_rate = req.interest_rate,
-        sigma = req.sigma,
-        option_type = req.option_type
-    )
+    return await service.calculate_greeks(req)
