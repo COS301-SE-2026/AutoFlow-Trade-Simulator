@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env", ".env.test"),
+        env_file=".env",
         extra="ignore",
     )
 

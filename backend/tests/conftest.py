@@ -1,22 +1,24 @@
-from fastapi.testclient import TestClient
-from sqlmodel import SQLModel, Session, create_engine
-from app.database import get_session
-from app.main import app
-import pytest
-
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
-os.environ.setdefault("SECRET_KEY", "test-secret")
-os.environ.setdefault("ALGORITHM", "HS256")
-os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
-os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+os.environ["APP_ENV"] = "test"
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+os.environ["SECRET_KEY"] = "test-secret"
+os.environ["ALGORITHM"] = "HS256"
+os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "30"
+os.environ["REDIS_URL"] = "redis://localhost:6379/0"
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlmodel import SQLModel, Session, create_engine
+
+from app.database import get_session
+from app.main import app
 
 test_engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
 
