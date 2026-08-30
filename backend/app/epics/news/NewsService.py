@@ -12,7 +12,7 @@ class NewsService:
             epic="News",
             status="healthy",
         )
-    def createNews(self,news:News)->News:
+    def create_news(self,news:News)->News:
         #ensures that all tickers are stored in upper case
         news.ticker=news.ticker.upper()
         self.session.add(news)
@@ -22,7 +22,7 @@ class NewsService:
             raise ValueError("Failed to create news")
         return news;
 
-    def findNews(self,news:NewsRequest)->NewsRepsonse:
+    def find_news(self,news:NewsRequest)->NewsRepsonse:
         results=self.session.exec(select(News).where(News.ticker==news.ticker.upper()).where(News.timestamp<=news.end_date).where(News.timestamp>=news.start_date)).all()
         news_items:list[NewsItem] = []
         for result in results:
