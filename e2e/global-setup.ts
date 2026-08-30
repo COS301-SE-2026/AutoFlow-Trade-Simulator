@@ -31,7 +31,7 @@ export default async function globalSetup() {
     const client = new Client({
         host,
         port: parseInt(port),
-        database : management_db,
+        database: management_db,
         user,
         password,
     })
@@ -45,6 +45,7 @@ export default async function globalSetup() {
 
         await client.end();
 
+        // creating tables
         const createTablesScript = `
 import sys
 import os
@@ -76,6 +77,7 @@ create_tables()
         fs.unlinkSync(tempScriptPath);
         console.log('created tables successfully!\n');
 
+        // seeding tables
         const seedScript = `
 import sys
 import os
@@ -97,7 +99,7 @@ except ImportError:
     except ImportError as e:
         print(f"⚠️  No seed function found: {e}")
         print("Skipping seed...")
-        `
+        `;
 
         const tempSeedScriptPath = '/tmp/seed_data.py';
         fs.writeFileSync(tempSeedScriptPath, seedScript);
@@ -110,6 +112,47 @@ except ImportError:
 
         fs.unlinkSync(tempSeedScriptPath);
         console.log('seeded tables successfully!\n');
+
+        // creating ohlcv view
+        const createViewScript = `
+import psycopg2
+import os
+
+conn = psycopg2.connect(os.environ["DATABASE_URL"])
+conn.autocommit = True
+cur = conn.cursor()
+
+cur.execute("""
+CREATE MATERIALIZED VIEW IF NOT EXISTS ohlcv_1d AS
+SELECT 
+    asset_id,
+    timestamp AS bucket_time,
+    open,
+    high,
+    low,
+    close,
+    volume
+FROM dailyohlcv
+ORDER BY asset_id, timestamp DESC;
+""")
+
+cur.close()
+conn.close()
+print("✅ ohlcv_1d view created!")
+`;
+
+        const tempViewScriptPath = '/tmp/create_view.py';
+        fs.writeFileSync(tempViewScriptPath, createViewScript);
+
+        const { stdout: viewOutput } = await execAsync(
+            `python ${tempViewScriptPath}`,
+            { env: { ...process.env, DATABASE_URL: dbUrl } }
+        );
+        console.log('viewOutput ' + viewOutput);
+
+        fs.unlinkSync(tempViewScriptPath);
+        console.log('views successfully!\n');
+
     } catch (error) {
         console.log(error);
         throw error;
