@@ -7,9 +7,10 @@ client = TestClient(app)
 def test_register_success() -> None:
     response = client.post("/auth/register", json={
         "email": "test@example.com",
-        "password": "password123",
+        "password": "Password123!",
         "full_name": "Test User"
     })
+    print(response.json())
     assert response.status_code == 200
     assert "access_token" in response.json()
 
@@ -17,12 +18,12 @@ def test_register_success() -> None:
 def test_register_duplicate_email() -> None:
     client.post("/auth/register", json={
         "email": "test@example.com",
-        "password": "password123",
+        "password": "Password123!",
         "full_name": "Test User"
     })
     response = client.post("/auth/register", json={
         "email": "test@example.com",
-        "password": "password123",
+        "password": "Password123!",
         "full_name": "Test User"
     })
     assert response.status_code == 409
@@ -40,12 +41,12 @@ def test_register_short_password() -> None:
 def test_login_success() -> None:
     client.post("/auth/register", json={
         "email": "user@example.com",
-        "password": "password123",
+        "password": "Password123!",
         "full_name": "Test User"
     })
     response = client.post("/auth/login", json={
         "email": "user@example.com",
-        "password": "password123"
+        "password": "Password123!"
     })
     assert response.status_code == 200
     assert "access_token" in response.json()
@@ -54,7 +55,7 @@ def test_login_success() -> None:
 def test_login_wrong_password() -> None:
     client.post("/auth/register", json={
         "email": "user@example.com",
-        "password": "password123",
+        "password": "Password123!",
         "full_name": "Test User"
     })
     response = client.post("/auth/login", json={
@@ -67,12 +68,12 @@ def test_login_wrong_password() -> None:
 def test_login_unknown_email() -> None:
     client.post("/auth/register", json={
         "email": "user@example.com",
-        "password": "password123",
+        "password": "Password123!",
         "full_name": "Test User"
     })
     response = client.post("/auth/login", json={
         "email": "stranger@example.com",
-        "password": "password123"
+        "password": "Password123!"
     })
     assert response.status_code == 401
 
