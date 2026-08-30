@@ -160,7 +160,7 @@ describe ('BuySellForm', () => {
         render(<BuySellForm {...defaultProps} price={0}/>);
 
         const zeroElements = screen.getAllByText('0.00');
-        expect(zeroElements.length).toBe(2);
+        expect(zeroElements).toHaveLength(2);
         expect(zeroElements[0]).toBeInTheDocument();
     });
 
