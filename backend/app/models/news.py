@@ -12,9 +12,10 @@ class NewsCategory(Enum):
 
 class News(SQLModel,table=True):
     id:Optional[int] = Field(default=None,primary_key=True)
-    timestamp:datetime=Field()
+    timestamp:datetime=Field(nullable=False)
     category:NewsCategory=Field(nullable=False)
-    source:str = Field(nullable=False)
-    author:str =Field(nullable=False)
+    source:Optional[str] = Field(nullable=False)
+    author:Optional[str] =Field(nullable=False)
     full_story:str =Field(nullable=False)
+    ticker:str=Field(nullable=False)
 
