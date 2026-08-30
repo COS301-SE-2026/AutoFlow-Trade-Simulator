@@ -16,7 +16,6 @@ import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
-import { map } from 'zod/v4';
 
 import {NewsItem, NewsTicker} from '@/components/news/newsScroll';
 
@@ -75,7 +74,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinition; onBack: () => void }>) {
 
-    const { greeks, calculateGreeks } = useGreeks();
+    const { calculateGreeks } = useGreeks();
 
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
