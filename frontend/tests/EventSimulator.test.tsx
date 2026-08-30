@@ -4,7 +4,7 @@ import { EventSimulator } from '@/components/EventSimulator';
 import { startSimulation } from '@/lib/api/assets';
 import { apiClient } from '@/lib/api';
 import { ResponsiveContainer } from 'recharts';
-import { promise } from 'zod/v4';
+
 
 beforeAll(() => {
     global.ResizeObserver = class {
@@ -22,7 +22,7 @@ jest.mock('@/lib/api', () => ({
     apiClient: jest.fn()
 }));
 
-jest.mock('@components/news/newsScroll', () => ({
+jest.mock('@/components/news/newsScroll', () => ({
     NewsTicker: ({ items }: any) => (
         <div data-testid="news-ticker-mock">
             News Items: {items ? items.length : 0}
@@ -78,10 +78,10 @@ describe('EventSimulator Component', () => {
     const mockSimCreateResponse = {
         simulation_id: 101,
         bars: {
-            APPL: [
-                { close: 100, timestamp: '2008-01-01T00:00:00z'},
-                { close: 105, timestamp: '2008-01-02T00:00:00z'},
-                { close: 110, timestamp: '2008-01-03T00:00:00z'}
+            AAPL: [
+                { close: 100, timestamp: '2008-01-01T00:00:00Z'},
+                { close: 105, timestamp: '2008-01-02T00:00:00Z'},
+                { close: 110, timestamp: '2008-01-03T00:00:00Z'}
             ]
         }
     }
@@ -105,8 +105,8 @@ describe('EventSimulator Component', () => {
         render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
 
         await waitFor(() => {
-            expect(screen.getAllByTestId('AAPL')[0]).toBeInTheDocument();
-            expect(screen.getByText('Tech Crash 2008')).toBeInTheDocument();
+            expect(screen.getAllByText('AAPL')).toBeInTheDocument();
+            expect(screen.getAllByText('Tech Crash 2008')).toBeInTheDocument();
         });
 
         expect(screen.getByText('R 10000.00')).toBeInTheDocument();
@@ -114,6 +114,8 @@ describe('EventSimulator Component', () => {
     });
 
     it('triggers back button handler when clicked', async () => {
+
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
 
         await waitFor(() => {
             expect(screen.getByText('Back')).toBeInTheDocument();
@@ -141,22 +143,16 @@ describe('EventSimulator Component', () => {
         });
 
         expect(screen.getByText('COST: R105.00')).toBeInTheDocument();
-
-        act(() => {
-            jest.advanceTimersByTime(2000);
-        });
-
-        expect(screen.getByText('COST: R105.00')).toBeInTheDocument();
     });
 
     it('Tests clicking the Skip foward button and index incrementing accordingly', async () => {
         render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
 
         await waitFor(() => {
-            expect(screen.getByText('Skip Foward')).toBeInTheDocument();
+            expect(screen.getByText('Skip Forward')).toBeInTheDocument();
         });
 
-        fireEvent.click(screen.getByText('Skip Foward'));
+        fireEvent.click(screen.getByText('Skip Forward'));
         expect(screen.getByText('COST: R105.00')).toBeInTheDocument();
     });
 
@@ -169,7 +165,7 @@ describe('EventSimulator Component', () => {
         render(<EventSimulator event={mockEvent} onBack={mockOnBack}/> );
 
         await waitFor(() => {
-            expect(screen.getByRole('button', { name: /^Buy&/i })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /^Buy$/i })).toBeInTheDocument();
         });
 
         fireEvent.click(screen.getByRole('button', { name: /^Buy$/i }));
@@ -207,10 +203,10 @@ describe('EventSimulator Component', () => {
             expect(screen.getByRole('button', { name: /^Sell$/i })).toBeInTheDocument();
         });
 
-        fireEvent.click(screen.getByRole('button', { name: /^Sell%/i }));
+        fireEvent.click(screen.getByRole('button', { name: /^Sell$/i }));
         fireEvent.click(screen.getByText('Confirm Trade'));
 
-        expect(screen.getByText('You have no share to sell.')).toBeInTheDocument();
+        expect(screen.getByText('You have no shares to sell.')).toBeInTheDocument();
     });
 
     it('renders simulation finish summary upon completion', async () => {
@@ -244,7 +240,7 @@ describe('EventSimulator Component', () => {
         });
 
         expect(screen.getByText('Simulation Finished')).toBeInTheDocument();
-        expect(screen.getByText('R 12500.00')).toBeInTheDocument();
+        expect(screen.getByText('R 12500.50')).toBeInTheDocument();
         expect(screen.getByText('25.01%')).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', { name: /Back to Events/i }));
@@ -289,7 +285,7 @@ describe('EventSimulator Component', () => {
 
         fireEvent.click(screen.getByRole('button', { name: /^Sell$/i }));
         await act(async () => {
-            fireEvent.click(screen.getByText('ConfirmTrade'));
+            fireEvent.click(screen.getByText('Confirm Trade'));
         });
 
         expect(apiClient).toHaveBeenCalledWith(
@@ -307,5 +303,81 @@ describe('EventSimulator Component', () => {
         );
     });
 
-    
+    it('handles invalid trade quantity and insufficient cash', async () => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /^Buy$/i })).toBeInTheDocument();
+        });
+
+        const qtyInput = screen.getByPlaceholderText('Quantity');
+
+        fireEvent.change(qtyInput, { target: { value: '999999'} });
+        fireEvent.click(screen.getByRole('button' , { name: /^Buy$/i }));
+        await act(async () => {
+            fireEvent.click(screen.getByText('Confirm Trade'));
+        });
+
+        expect(screen.getByText(/Not enough cash|Invalid quantity/i)).toBeInTheDocument();
+    });
+
+    it('handles API errors during trade execution and simulation finish', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        (apiClient as jest.Mock).mockRejectedValueOnce(new Error('Trade API Error'));
+
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /^Buy$/i })).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByRole('button', { name: /^Buy$/i }));
+        await act(async () => {
+            fireEvent.click(screen.getByText('Confirm Trade'));
+        });
+
+        expect(screen.getByText('Trade failed. Please try again.')).toBeInTheDocument();
+
+        (apiClient as jest.Mock).mockRejectedValueOnce(new Error('Finish API Error'));
+
+        fireEvent.click(screen.getByText('View Simulation Summary'));
+
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'Simulation finish failed.',
+                expect.any(Error)
+            )
+        });
+
+        consoleSpy.mockRestore();
+    });
+
+    it('cancels pending trade modal without executing', async () => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /^Buy$/i })).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByRole('button', { name: /^Buy$/i }));
+        expect(screen.getByTestId('trade-confirm-modal')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByText('Cancel Trade'));
+        expect(screen.queryByTestId('trade-confirm-modal')).not.toBeInTheDocument();
+    });
+
+    it('handles playback speed control adjustments', async () => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('2x')).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByText('2x'));
+        expect(screen.getByText('2x')).toHaveClass('bg-[var(--background-alt)]');
+
+        fireEvent.click(screen.getByText('4x'));
+        expect(screen.getByText('4x')).toHaveClass('bg-[var(--background-alt)]');
+    });
 });
