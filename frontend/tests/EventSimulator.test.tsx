@@ -4,6 +4,7 @@ import { EventSimulator } from '@/components/EventSimulator';
 import { startSimulation } from '@/lib/api/assets';
 import { apiClient } from '@/lib/api';
 import { ResponsiveContainer } from 'recharts';
+import { promise } from 'zod/v4';
 
 beforeAll(() => {
     global.ResizeObserver = class {
@@ -92,6 +93,71 @@ describe('EventSimulator Component', () => {
 
     afterEach(() => {
         jest.useRealTimers();
+    });
+
+    it('renders loading state whilst API resolves', () => {
+        (startSimulation as jest.Mock).mockReturnValue(new Promise(() => {}));
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+        expect(screen.getByText(/Loading simulation.../i)).toBeInTheDocument();
+    });
+
+    it('Initialize and renders simulation interface correctly' ,async () => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getAllByTestId('AAPL')[0]).toBeInTheDocument();
+            expect(screen.getByText('Tech Crash 2008')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText('R 10000.00')).toBeInTheDocument();
+        expect(screen.getByText('COST: R100.00')).toBeInTheDocument();
+    });
+
+    it('triggers back button handler when clicked', async () => {
+
+        await waitFor(() => {
+            expect(screen.getByText('Back')).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByText('Back'));
+        expect(mockOnBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('toggles playback using play/pause buttons', async () => {
+        jest.useFakeTimers();
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack} /> );
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        const playBtn = await screen.findByRole('button', { name: /^Play$/i});
+        fireEvent.click(playBtn);
+
+        expect(screen.getByRole('button', {name : /^Pause$/i})).toBeInTheDocument();
+
+        act(() => {
+            jest.advanceTimersByTime(2000);
+        });
+
+        expect(screen.getByText('COST: R105.00')).toBeInTheDocument();
+
+        act(() => {
+            jest.advanceTimersByTime(2000);
+        });
+
+        expect(screen.getByText('COST: R105.00')).toBeInTheDocument();
+    });
+
+    it('Tests clicking the Skip foward button and index incrementing accordingly', async () => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Skip Foward')).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByText('Skip Foward'));
+        expect(screen.getByText('COST: R105.00')).toBeInTheDocument();
     });
 
     
