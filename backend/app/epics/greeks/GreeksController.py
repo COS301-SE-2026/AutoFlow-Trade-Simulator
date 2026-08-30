@@ -40,7 +40,7 @@ def get_greeks_history(
 ) -> HistPriceHistoryResponse:
     return service.get_history(symbol, period)
 
-@router.post("/calculate", response_model=GreekValues)
+@router.post("/calculate")
 def calculate_greeks (
     req: CalculateGreeksRequest, 
     service: Annotated[GreeksService, 

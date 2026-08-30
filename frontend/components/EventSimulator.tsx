@@ -75,7 +75,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinition; onBack: () => void }>) {
 
-    const { greeks, calculateGreeks } = useGreeks();
+    const { calculateGreeks } = useGreeks();
 
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
