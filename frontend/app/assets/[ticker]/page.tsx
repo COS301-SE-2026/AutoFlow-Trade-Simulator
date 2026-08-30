@@ -16,9 +16,10 @@ import { TickerSearch } from '@/components/TickerSearch';
 import Link from 'next/link';
 import Toast from '@/components/Toast';
 
-const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
 
 export default function AssetPage() {
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
+  
   const params = useParams();
   const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
   const ticker = iTicker?.replace('-', '/');
@@ -30,7 +31,7 @@ export default function AssetPage() {
 
   const { activeAccount, refetchAccounts } = useAccount();
   const { holdings, refetch: refetchHoldings } = useHoldings(activeAccount?.id ?? null);
-
+  
   if (!ticker) return <div>Invalid ticker</div>;
   if (pricesLoading || summaryLoading) return <div>Loading...</div>;
   if (pricesError || summaryError) return <div>Error: {pricesError || summaryError}</div>;
