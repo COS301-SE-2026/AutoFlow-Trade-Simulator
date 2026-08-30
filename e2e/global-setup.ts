@@ -3,10 +3,23 @@ import { promisify } from 'util';
 import { Client } from 'pg';
 import dotenv from 'dotenv';
 import fs from 'fs'
+import path from 'path';
+import os from 'os';
 
 const execAsync = promisify(exec);
 
 dotenv.config({ path: '.env.test' });
+
+const getVenvPython = () => {
+    const venvPath = path.join(process.cwd(), '.venv');
+    if (os.platform() === 'win32') {
+        return path.join(venvPath, 'Scripts', 'python.exe');
+    }
+    return path.join(venvPath, 'bin', 'python');
+};
+
+const VENV_PYTHON = getVenvPython();
+console.log('VENV_PYTHON ' + VENV_PYTHON);
 
 export default async function globalSetup() {
     const dbUrl = process.env.DATABASE_URL!;
@@ -24,7 +37,6 @@ export default async function globalSetup() {
     console.log('port ' + port);
     console.log('user ' + user);
     console.log('password ' + password);
-
     console.log('test_db ' + test_db);
     console.log('management_db ' + management_db);
 
@@ -39,13 +51,20 @@ export default async function globalSetup() {
     try {
         await client.connect();
 
+        await client.query(`
+                SELECT pg_terminate_backend(pid)
+                FROM pg_stat_activity
+                WHERE datname = '${test_db}' AND pid <> pg_backend_pid();
+                `);
+
         await client.query(`DROP DATABASE IF EXISTS ${test_db}`);
 
         await client.query(`CREATE DATABASE ${test_db}`);
 
         await client.end();
 
-        // creating tables
+        // 1. creating tables
+
         const createTablesScript = `
 import sys
 import os
@@ -69,7 +88,7 @@ create_tables()
         fs.writeFileSync(tempScriptPath, createTablesScript);
 
         const { stdout: createOutput } = await execAsync(
-            `python3 ${tempScriptPath}`,
+            `${VENV_PYTHON} ${tempScriptPath}`,
             { env: { ...process.env, DATABASE_URL: dbUrl } }
         );
         console.log('createOutput ' + createOutput);
@@ -77,40 +96,8 @@ create_tables()
         fs.unlinkSync(tempScriptPath);
         console.log('created tables successfully!\n');
 
-        // seeding tables
-        const seedScript = `
-import sys
-import os
-sys.path.insert(0, "backend")
+        // 2. creating ohlcv view
 
-os.environ["DATABASE_URL"] = "${dbUrl}"
-
-try:
-    from seeds import seed_data
-    print("Found seeds.seed_data()")
-    seed_data()
-    print("✅ Seeding complete!")
-except ImportError as e:
-    print(f"⚠️  Could not import seed_data: {e}")
-    print("Skipping seed...")
-except Exception as e:
-    print(f"⚠️  Seed execution failed: {e}")
-    print("Skipping seed...")
-`;
-
-        const tempSeedScriptPath = '/tmp/seed_data.py';
-        fs.writeFileSync(tempSeedScriptPath, seedScript);
-
-        const { stdout: seedOutput } = await execAsync(
-            `python3 ${tempSeedScriptPath}`,
-            { env: { ...process.env, DATABASE_URL: dbUrl } }
-        );
-        console.log('seedOutput ' + seedOutput);
-
-        fs.unlinkSync(tempSeedScriptPath);
-        console.log('seeded tables successfully!\n');
-
-        // creating ohlcv view
         const createViewScript = `
 import os
 import sys
@@ -141,13 +128,72 @@ with Session(engine) as session:
         fs.writeFileSync(tempViewScriptPath, createViewScript);
 
         const { stdout: viewOutput } = await execAsync(
-            `python3 ${tempViewScriptPath}`,
+            `${VENV_PYTHON} ${tempViewScriptPath}`,
             { env: { ...process.env, DATABASE_URL: dbUrl } }
         );
         console.log('viewOutput ' + viewOutput);
 
         fs.unlinkSync(tempViewScriptPath);
         console.log('views successfully!\n');
+
+        // 3. refresh views
+        const refreshViewScript = `
+import sys
+sys.path.insert(0, "backend")
+from app.database import engine
+from sqlmodel import Session, text
+
+with Session(engine) as session:
+    session.execute(text("REFRESH MATERIALIZED VIEW ohlcv_1d;"))
+    session.commit()
+    print("✅ ohlcv_1d view refreshed!")
+    `;
+
+        const refreshViewScriptPath = '/tmp/refresh_view.py';
+        fs.writeFileSync(refreshViewScriptPath, refreshViewScript);
+
+        const { stdout: refreshOutput } = await execAsync(
+            `${VENV_PYTHON} ${refreshViewScriptPath}`,
+            { env: { ...process.env, DATABASE_URL: dbUrl } }
+        );
+        console.log('refreshOutput ' + refreshOutput);
+
+        fs.unlinkSync(refreshViewScriptPath);
+        console.log('refreshed views successfully!\n');
+
+
+        // 4. seeding tables
+        const seedScript = `
+import sys
+import os
+sys.path.insert(0, "backend")
+
+os.environ["DATABASE_URL"] = "${dbUrl}"
+
+try:
+    from seeds import seed_data
+    print("Found seeds.seed_data()")
+    seed_data()
+    print("✅ Seeding complete!")
+except ImportError as e:
+    print(f"⚠️  Could not import seed_data: {e}")
+    print("Skipping seed...")
+except Exception as e:
+    print(f"⚠️  Seed execution failed: {e}")
+    print("Skipping seed...")
+`;
+
+        const tempSeedScriptPath = '/tmp/seed_data.py';
+        fs.writeFileSync(tempSeedScriptPath, seedScript);
+
+        const { stdout: seedOutput } = await execAsync(
+            `${VENV_PYTHON} ${tempSeedScriptPath}`,
+            { env: { ...process.env, DATABASE_URL: dbUrl } }
+        );
+        console.log('seedOutput ' + seedOutput);
+
+        fs.unlinkSync(tempSeedScriptPath);
+        console.log('seeded tables successfully!\n');
 
     } catch (error) {
         console.log(error);
