@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
-const NewsCategoryEnum = z.enum(['RUMOR', 'SENS', 'ARTICLE', 'RULING']);
+const NewsCategoryEnum = z.enum(['Rumor', 'Sens', 'Article', 'Ruling']);
 
 const NewsItemSchema = z.object({
   id: z.number().int(),
-  timestamp: z.string().datetime(),
+  timestamp: z.coerce.date(),
   category: NewsCategoryEnum,
   description: z.string(),
   source: z.string().nullable().optional(),
