@@ -14,8 +14,9 @@ import {
 import { apiClient } from '@/lib/api';
 import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
-import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge } from 'lucide-react';
+import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, RotateCcw } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
+import { Button } from '@/components/ui/button';
 import { map } from 'zod/v4';
 
 import { NewsItem, NewsTicker } from '@/components/news/newsScroll';
@@ -551,12 +552,25 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
 
                         <div className='flex items-center justify-between text-xs bg-gray-800/50 p-1.5 rounded-lg border border-gray-700/50'>
                             <span className='text-gray-400'>Strike Price </span>
-                            <input
-                                type='number'
-                                value={strikePrice}
-                                onChange={(e) => { setStrikePrice(Number.parseFloat(e.target.value) || 0); setStrikeManuallySet(true) }}
-                                className='w-20 bg-gray-900 text-right px-2 py-0.5 rounded text-white text-xs font-mono border border-gray-700'
-                            />
+                            <div className='flex items-center gap-1'>
+                                <input
+                                    type='number'
+                                    value={strikePrice}
+                                    onChange={(e) => { setStrikePrice(Number.parseFloat(e.target.value) || 0); setStrikeManuallySet(true) }}
+                                    className='w-20 bg-gray-900 text-right px-2 py-0.5 rounded text-white text-xs font-mono border border-gray-700'
+                                />
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='icon-xs'
+                                    disabled={!strikeManuallySet}
+                                    onClick={() => setStrikeManuallySet(false)}
+                                    aria-label='Reset to at-the-money'
+                                    title='Reset to at-the-money'
+                                >
+                                    <RotateCcw />
+                                </Button>
+                            </div>
                         </div>
 
                         <div className='grid grid-cols-2 gap-2 text-xs pt-1'>
