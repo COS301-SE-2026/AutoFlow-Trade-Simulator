@@ -4,7 +4,7 @@ from typing import Optional
 
 class BackTestResults(SQLModel, table=True):
     backtest_id:Optional[int]=Field(default=None, primary_key=True)
-    simu_id:int=Field(foreign_key="practice_simulation.simu_id")
+    simu_id:int=Field(foreign_key="praticesimulation.id")
     user_id:int=Field(foreign_key="user.id")
     asset_symbol:str=Field(nullable=False, max_length=10)
     timeframe:str=Field(nullable=False, max_length=10)

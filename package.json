@@ -22,6 +22,8 @@
     "test:stock-poller": "pip install -r stock-poller/requirements-test.txt && pytest stock-poller/tests -v",
     "test:frontend": "npm --prefix frontend run test",
     "test": "npm run test:backend; npm run test:stock-poller; npm run test:frontend; npm run test:playwright",
+    "test:converter": "pip install --require-hashes -r historicalDataConverter/tests/requirements.txt && pytest historicalDataConverter/tests -v",
+    "test": "npm run test:backend; npm run test:stock-poller; npm run test:frontend; test:converter",
     "dev": "npm run backend & npm run frontend",
     "start": "npm run start --prefix backend & npm run start --prefix frontend",
     "test:lhci": "lhci autorun",
