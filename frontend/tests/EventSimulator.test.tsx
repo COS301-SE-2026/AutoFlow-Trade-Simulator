@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import { EventSimulator } from '@/components/EventSimulator';
 import { startSimulation } from '@/lib/api/assets';
 import { apiClient } from '@/lib/api';
+import { useGreeks } from '@/hooks/useGreeks';
 import { ResponsiveContainer } from 'recharts';
 
 
@@ -28,6 +29,15 @@ jest.mock('@/components/news/newsScroll', () => ({
             News Items: {items ? items.length : 0}
         </div>
     )
+}));
+
+const mockCalculateGreeks = jest.fn();
+jest.mock('@/hooks/useGreeks', () => ({
+    useGreeks: () => ({
+        calculateGreeks: mockCalculateGreeks,
+        loading: false,
+        error: null
+    })
 }));
 
 jest.mock('@/components/TradeConfirmModal', () => {
@@ -91,6 +101,16 @@ describe('EventSimulator Component', () => {
         (startSimulation as jest.Mock).mockResolvedValue(mockSimCreateResponse);
     });
 
+    beforeEach(() => {
+        mockCalculateGreeks.mockResolvedValue({
+            delta: 0.5123,
+            gamma: 0.0234,
+            theta: -0.0451,
+            vega: 0.1234,
+            rho: 0.0567
+        })
+    });
+
     afterEach(() => {
         jest.useRealTimers();
     });
@@ -105,12 +125,11 @@ describe('EventSimulator Component', () => {
         render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
 
         await waitFor(() => {
-            expect(screen.getAllByText('AAPL')).toBeInTheDocument();
-            expect(screen.getAllByText('Tech Crash 2008')).toBeInTheDocument();
+            expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0);
+            expect(screen.getAllByText('Tech Crash 2008').length).toBeGreaterThan(0);
+            expect(screen.getByText('R 10000.00')).toBeInTheDocument();
+            expect(screen.getByText('COST: R100.00')).toBeInTheDocument();
         });
-
-        expect(screen.getByText('R 10000.00')).toBeInTheDocument();
-        expect(screen.getByText('COST: R100.00')).toBeInTheDocument();
     });
 
     it('triggers back button handler when clicked', async () => {
@@ -379,5 +398,82 @@ describe('EventSimulator Component', () => {
 
         fireEvent.click(screen.getByText('4x'));
         expect(screen.getByText('4x')).toHaveClass('bg-[var(--background-alt)]');
+    });
+
+    it('calculates and displays Greeks on load', async() => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Call Option Risk')).toBeInTheDocument();
+        });
+
+        expect(mockCalculateGreeks).toHaveBeenCalledWith({
+            current_price: 100,
+            strike_price: 100,
+            time_to_expire: 3 / 365,
+            interest_rate: 0.05,
+            sigma: 0.25,
+            option_type: 'call'
+        });
+
+        expect(screen.getByText('0.512')).toBeInTheDocument();
+        expect(screen.getByText('0.0234')).toBeInTheDocument();
+        expect(screen.getByText('-0.045')).toBeInTheDocument();
+        expect(screen.getByText('0.123')).toBeInTheDocument();
+        expect(screen.getByText('0.057')).toBeInTheDocument();
+    });
+
+    it('Recalculates greeks upon strike price change', async () => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Call Option Risk')).toBeInTheDocument();
+        });
+
+        const strikeInput = screen.getByDisplayValue('100') || screen.getAllByRole('spinbutton')[1];
+       
+        await act(async () => {
+            fireEvent.change(strikeInput, { target: { value: '110'} });
+        });
+
+        await waitFor(() => {
+            expect(mockCalculateGreeks).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    strike_price: 110
+                })
+            );
+        }, {timeout: 3000 });
+        
+    });
+
+    it('Updates Days to Expirations as the simulation progresses', async () => {
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('DTE: 3d')).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByText('Skip Forward'));
+
+        expect(screen.getByText('DTE: 2d')).toBeInTheDocument();
+        expect(mockCalculateGreeks).toHaveBeenCalledWith(
+            expect.objectContaining({
+                current_price: 105,
+                time_to_expire: 2 / 365
+            })
+        );
+    });
+
+    it('falls back to 0.0000 when greeks calculations return null', async () => {
+        mockCalculateGreeks.mockResolvedValue(null);
+        
+        render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
+
+        await waitFor(() => {
+            expect(screen.getByText('Call Option Risk')).toBeInTheDocument();
+        });
+
+        expect(screen.getAllByText('0.000').length).toBeGreaterThanOrEqual(3);
+        expect(screen.getByText('0.0000')).toBeInTheDocument();
     });
 });
