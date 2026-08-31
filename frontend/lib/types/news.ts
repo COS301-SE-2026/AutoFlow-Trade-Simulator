@@ -12,7 +12,7 @@ const NewsItemSchema = z.object({
   full_story: z.string(),
 });
 
-const NewsResponseSchema = z.object({
+export const NewsResponseSchema = z.object({
   news_items: z.array(NewsItemSchema),
 });
 
