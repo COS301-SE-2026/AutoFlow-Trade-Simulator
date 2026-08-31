@@ -147,6 +147,7 @@ npm run dev            # 6. run frontend + backend
 | `npm run lint` | Lints the backend and frontend. |
 | `npm run test` | Runs the backend, stock-poller and frontend test suites. |
 | `npm run perf` | Runs the Lighthouse and k6 performance tests. |
+| `npm run test:e2e` | Runs end to end tests. |
 
 </details>
 
