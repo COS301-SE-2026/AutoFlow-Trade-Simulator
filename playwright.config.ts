@@ -6,7 +6,20 @@ import { defineConfig, devices } from '@playwright/test';
  */
 import dotenv from 'dotenv';
 import path from 'path';
+import os from 'os';
+
 dotenv.config({ path: '.env.test' });
+
+const getVenvPython = () => {
+    const venvPath = path.join(process.cwd(), '.venv');
+    if (os.platform() === 'win32') {
+        return path.join(venvPath, 'Scripts', 'python.exe');
+    }
+    return path.join(venvPath, 'bin', 'python');
+};
+
+const VENV_PYTHON = getVenvPython();
+const VENV_BIN = path.dirname(VENV_PYTHON);
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -77,5 +90,12 @@ export default defineConfig({
     command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
+
+    timeout: 120000,
+    env: {
+      ...process.env,
+      PATH: `${VENV_BIN}:${process.env.PATH}`,
+      VIRTUAL_ENV: path.join(process.cwd(), '.venv'),
+    },
   },
 });
