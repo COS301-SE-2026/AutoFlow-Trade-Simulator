@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import fs from 'fs'
 import path from 'path';
 import os from 'os';
+import { $ZodIssueStringInvalidJWT } from 'zod/v4/core';
 
 const execAsync = promisify(exec);
 
@@ -20,6 +21,10 @@ const getVenvPython = () => {
 
 const VENV_PYTHON = getVenvPython();
 console.log('VENV_PYTHON ' + VENV_PYTHON);
+
+const getTempDir = () => {
+    return fs.mkdtempSync(path.join(os.tmpdir(), 'e2e-setup'));
+}
 
 export default async function globalSetup() {
     const dbUrl = process.env.DATABASE_URL!;
@@ -40,6 +45,9 @@ export default async function globalSetup() {
     console.log('test_db ' + test_db);
     console.log('management_db ' + management_db);
 
+    const tempDir = getTempDir();
+    console.log('tempDir ' + tempDir);
+
     const client = new Client({
         host,
         port: parseInt(port),
@@ -58,9 +66,7 @@ export default async function globalSetup() {
                 `);
 
         await client.query(`DROP DATABASE IF EXISTS ${test_db}`);
-
         await client.query(`CREATE DATABASE ${test_db}`);
-
         await client.end();
 
         // 1. creating tables
@@ -84,7 +90,7 @@ def create_tables():
 create_tables()
 `;
 
-        const tempScriptPath = '/tmp/create_tables.py';
+        const tempScriptPath = path.join(tempDir, 'create_tables.py');
         fs.writeFileSync(tempScriptPath, createTablesScript);
 
         const { stdout: createOutput } = await execAsync(
@@ -124,16 +130,16 @@ with Session(engine) as session:
     print("✅ ohlcv_1d view created!")
     `;
 
-        const tempViewScriptPath = '/tmp/create_view.py';
-        fs.writeFileSync(tempViewScriptPath, createViewScript);
+        const ViewScriptPath = path.join(tempDir, 'create_view.py');
+        fs.writeFileSync(ViewScriptPath, createViewScript);
 
         const { stdout: viewOutput } = await execAsync(
-            `${VENV_PYTHON} ${tempViewScriptPath}`,
+            `${VENV_PYTHON} ${ViewScriptPath}`,
             { env: { ...process.env, DATABASE_URL: dbUrl } }
         );
         console.log('viewOutput ' + viewOutput);
 
-        fs.unlinkSync(tempViewScriptPath);
+        fs.unlinkSync(ViewScriptPath);
         console.log('views successfully!\n');
 
         // 3. refresh views
@@ -149,7 +155,7 @@ with Session(engine) as session:
     print("✅ ohlcv_1d view refreshed!")
     `;
 
-        const refreshViewScriptPath = '/tmp/refresh_view.py';
+        const refreshViewScriptPath = path.join(tempDir, 'refresh_view.py');
         fs.writeFileSync(refreshViewScriptPath, refreshViewScript);
 
         const { stdout: refreshOutput } = await execAsync(
@@ -183,16 +189,16 @@ except Exception as e:
     print("Skipping seed...")
 `;
 
-        const tempSeedScriptPath = '/tmp/seed_data.py';
-        fs.writeFileSync(tempSeedScriptPath, seedScript);
+        const SeedScriptPath = path.join(tempDir, 'seed_data.py');
+        fs.writeFileSync(SeedScriptPath, seedScript);
 
         const { stdout: seedOutput } = await execAsync(
-            `${VENV_PYTHON} ${tempSeedScriptPath}`,
+            `${VENV_PYTHON} ${SeedScriptPath}`,
             { env: { ...process.env, DATABASE_URL: dbUrl } }
         );
         console.log('seedOutput ' + seedOutput);
 
-        fs.unlinkSync(tempSeedScriptPath);
+        fs.unlinkSync(SeedScriptPath);
         console.log('seeded tables successfully!\n');
 
     } catch (error) {
