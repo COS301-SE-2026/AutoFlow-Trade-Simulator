@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { signup } from '../helpers'
 
 test.describe('login', () => {
   test('login with seeded user', async ({ page }) => {
@@ -29,49 +30,19 @@ test.describe('login', () => {
 
 test.describe('register', () => {
   test('register with email', async ({ page }) => {
-    await page.goto('http://localhost:3000/');
-    await page.getByRole('link', { name: 'Sign Up' }).click();
-    await page.getByRole('textbox', { name: 'Full Name' }).click();
-    await page.getByRole('textbox', { name: 'Full Name' }).fill('john autoflow');
-    await page.getByRole('textbox', { name: 'Email' }).click();
-    await page.getByRole('textbox', { name: 'Email' }).fill('john51@email.com');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('Password123!');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('Password123!');
-    await page.getByRole('button', { name: 'Create Account' }).click();
+    await signup(page, 'john autoflow', 'john51@email.com', 'Password123!');
 
     await expect(page).toHaveURL('http://localhost:3000/dashboard');
   });
 
   test('register with email already in use', async ({ page }) => {
-    await page.goto('http://localhost:3000/');
-    await page.getByRole('link', { name: 'Sign Up' }).click();
-    await page.getByRole('textbox', { name: 'Full Name' }).click();
-    await page.getByRole('textbox', { name: 'Full Name' }).fill('john testUser');
-    await page.getByRole('textbox', { name: 'Email' }).click();
-    await page.getByRole('textbox', { name: 'Email' }).fill('testUser@example.com');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('Password123!');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('Password123!');
-    await page.getByRole('button', { name: 'Create Account' }).click();
+    await signup(page, 'john autoflow', 'testUser@example.com', 'Password123!');
 
     await expect(page).toHaveURL('http://localhost:3000/signup');
   });
 
-    test('register with password too short', async ({ page }) => {
-    await page.goto('http://localhost:3000/');
-    await page.getByRole('link', { name: 'Sign Up' }).click();
-    await page.getByRole('textbox', { name: 'Full Name' }).click();
-    await page.getByRole('textbox', { name: 'Full Name' }).fill('john testUser');
-    await page.getByRole('textbox', { name: 'Email' }).click();
-    await page.getByRole('textbox', { name: 'Email' }).fill('testUser@example.com');
-    await page.getByRole('textbox', { name: 'Password', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Password', exact: true }).fill('a');
-    await page.getByRole('textbox', { name: 'Confirm Password' }).click();
-    await page.getByRole('textbox', { name: 'Confirm Password' }).fill('Password123!');
-    await page.getByRole('button', { name: 'Create Account' }).click();
+  test('register with password too short', async ({ page }) => {
+    await signup(page, 'john autoflow', 'john51@email.com', 'a!');
 
     await expect(page).toHaveURL('http://localhost:3000/signup');
   });
