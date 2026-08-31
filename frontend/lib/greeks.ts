@@ -89,6 +89,31 @@ function rho(current_price: number, strike_price: number, time_to_expire: number
     throw new Error(DIRECTION_ERROR);
 }
 
+const TRADING_DAYS_PER_YEAR = 252;
+const MIN_SIGMA = 0.01;
+
+export function calc_realized_volatility(prices: number[], window: number = 20, trading_days_per_year: number = TRADING_DAYS_PER_YEAR): number {
+    const valid_prices = prices.filter((p) => p > 0);
+    const windowed_prices = valid_prices.slice(-(window + 1));
+
+    if (windowed_prices.length < 3) {
+        return MIN_SIGMA;
+    }
+
+    const log_returns: number[] = [];
+    for (let i = 1; i < windowed_prices.length; i++) {
+        log_returns.push(Math.log(windowed_prices[i] / windowed_prices[i - 1]));
+    }
+
+    const mean_return = log_returns.reduce((sum, r) => sum + r, 0) / log_returns.length;
+    const variance = log_returns.reduce((sum, r) => sum + (r - mean_return) ** 2, 0) / (log_returns.length - 1);
+    const daily_sigma = Math.sqrt(variance);
+
+    const annualized_sigma = daily_sigma * Math.sqrt(trading_days_per_year);
+
+    return Math.max(annualized_sigma, MIN_SIGMA);
+}
+
 export interface CalcGreeksParams {
     current_price: number;
     strike_price: number;

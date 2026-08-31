@@ -1,7 +1,7 @@
 'use client';
 
 import {useState, useEffect, useMemo} from 'react';
-import { useGreeks } from '@/hooks/useGreeks';
+import { calc_greeks, calc_realized_volatility } from '@/lib/greeks';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -75,21 +75,11 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinition; onBack: () => void }>) {
 
-    const { calculateGreeks } = useGreeks();
-
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
     const [pendingTrade, setPendingTrade] = useState<{ type: 'buy' | 'sell' } | null>(null);
-
-    const [greeksResult, setGreeksResult] = useState<{
-        delta: number,
-        gamma: number,
-        theta: number,
-        vega: number,
-        rho: number
-    } | null>(null);
 
     const [shares, setShares] = useState(0);
     const [qty, setQty] = useState('1');
@@ -216,27 +206,24 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
 
     }, [allPrices, dayIndex, strikePrice]);
 
-    useEffect(() => {
+    const greeksResult = useMemo(() => {
         const price = Number.parseFloat(currentPrice);
-        if(!price || price <= 0) return;
+        if (!price || price <= 0 || !strikePrice || strikePrice <= 0) return null;
 
-        const fetchGreeks = async () => {
-            const res = await calculateGreeks({
-                current_price: price,
-                strike_price: strikePrice,
-                time_to_expire: daysToExpiration / 365,
-                interest_rate: 0.05,
-                sigma: 0.25,
-                option_type: 'call'
-            });
+        // Realized volatility from the price history the sim has actually
+        // played through so far — never looks ahead past dayIndex.
+        const pricesSoFar = allPrices.slice(0, dayIndex + 1).map(Number.parseFloat);
+        const sigma = calc_realized_volatility(pricesSoFar);
 
-            if (res) {
-                setGreeksResult(res);
-            }
-        };
-
-        fetchGreeks();
-    }, [dayIndex, currentPrice, strikePrice, daysToExpiration, calculateGreeks]);
+        return calc_greeks({
+            current_price: price,
+            strike_price: strikePrice,
+            time_to_expire: daysToExpiration / 365,
+            interest_rate: 0.05,
+            sigma,
+            option_type: 'call',
+        });
+    }, [allPrices, dayIndex, currentPrice, strikePrice, daysToExpiration]);
 
     const currentBarTimestamp = allTimestamps[dayIndex];
     const visibleNews = currentBarTimestamp
@@ -597,7 +584,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                                 </span>
                             </div>
                              <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
-                                <span className='text-gray-400 block text-[10px]'>Rho ()</span>
+                                <span className='text-gray-400 block text-[10px]'>Rho (ρ)</span>
                                 <span className='font-mono font-bold text-sm text-white'>
                                     {greeksResult ? greeksResult.rho.toFixed(3) : '0.000'}
                                 </span>
