@@ -83,6 +83,8 @@ export default defineConfig({
     // },
   ],
 
+  globalSetup: 'e2e/wait-for-backend.js',
+
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'node e2e/global-setup.js && npm run dev',
