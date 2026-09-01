@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 import fs from 'fs'
 import path from 'path';
 import os from 'os';
-import { $ZodIssueStringInvalidJWT } from 'zod/v4/core';
 
 const execAsync = promisify(exec);
 
@@ -27,16 +26,16 @@ const getTempDir = () => {
 }
 
 export default async function globalSetup() {
-    const dbUrl = process.env.DATABASE_URL!;
+    const dbUrl = process.env.DATABASE_URL;
     console.log('dbUrl ' + dbUrl);
 
-    const host = process.env.DB_HOST!;
-    const port = process.env.DB_PORT!;
-    const user = process.env.DB_USER!;
-    const password = process.env.DB_PASSWORD!;
+    const host = process.env.DB_HOST;
+    const port = process.env.DB_PORT;
+    const user = process.env.DB_USER;
+    const password = process.env.DB_PASSWORD;
 
-    const test_db = process.env.TEST_DB!;
-    const management_db = process.env.MANAGEMENT_DB_NAME!;
+    const test_db = process.env.TEST_DB;
+    const management_db = process.env.MANAGEMENT_DB_NAME;
 
     console.log('host ' + host);
     console.log('port ' + port);
@@ -205,4 +204,11 @@ except Exception as e:
         console.log(error);
         throw error;
     }
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+    globalSetup().catch((err) => {
+        console.log(err);
+        process.exit(1);
+    });
 }
