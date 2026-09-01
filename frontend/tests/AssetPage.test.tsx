@@ -21,6 +21,7 @@ jest.mock('@/lib/api', () => ({ apiClient: jest.fn() }))
 jest.mock('@/components/navbar', () => ({ Navbar: () => <nav data-testid="navbar-mock">Navbar</nav> }));
 jest.mock('@/components/AssetSummaryBar', () => ({__esModule: true,default: ({ ticker }: { ticker: string }) => <div data-testid="summary-bar-mock">{ticker}</div>}))
 jest.mock('@/components/liveDataGraph', () => ({ LiveDataGraph: ({ symbol }: { symbol: string }) => <div data-testid="graph-mock">{symbol}</div> }))
+jest.mock('@/components/TickerSearch', () => ({ TickerSearch: () => <div>Mock TickerSearch</div>}));
 
 jest.mock('@/components/BuySellForm', () => ({
     __esModule: true,
@@ -37,6 +38,7 @@ jest.mock('@/components/BuySellForm', () => ({
 
 describe('AssetPage', () => {
     const mockRefetchHoldings = jest.fn();
+    const mockRefetchAccounts = jest.fn();
     const mockUseParams = useParams as jest.Mock;
     const mockUsePrices = usePrices as jest.Mock;
     const mockUseAssetSummary = useAssetSummary as jest.Mock;
@@ -48,7 +50,6 @@ describe('AssetPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.spyOn(window, 'alert').mockImplementation(() => {})
 
         mockUseParams.mockReturnValue({ ticker: 'BTC-USD' })
         mockUsePrices.mockReturnValue({
@@ -61,7 +62,10 @@ describe('AssetPage', () => {
             loading: false,
             error: null
         })
-        mockUseAccount.mockReturnValue({ activeAccount: defaultAccount })
+        mockUseAccount.mockReturnValue({ 
+            activeAccount: defaultAccount,
+            refetchAccounts: mockRefetchAccounts
+        })
         mockUseHoldings.mockReturnValue({
             holdings: [{ ticker: 'BTC/USD', net_quantity: 2.5 }],
             refetch: mockRefetchHoldings
@@ -103,14 +107,14 @@ describe('AssetPage', () => {
 
             fireEvent.click(screen.getByTestId('trigger-buy'))
 
-            await waitFor(() => {
-                expect(mockApiClient).toHaveBeenCalledWith('/portfolio/accounts/acc_123', {
-                    method: 'POST',
-                    body: { ticker: 'BTC/USD', direction: 'buy', quantity: 10}
-                })
-                expect(mockRefetchHoldings).toHaveBeenCalled()
-                expect(window.alert).toHaveBeenCalledWith('Successfully bought 10 units of BTC/USD')
+            expect(await screen.findByText('Successfully bought 10 units of BTC/USD')).toBeInTheDocument();
+
+            expect(mockApiClient).toHaveBeenCalledWith('/portfolio/accounts/acc_123', {
+                method: 'POST',
+                body: { ticker: 'BTC/USD', direction: 'buy', quantity: 10}
             })
+            expect(mockRefetchHoldings).toHaveBeenCalled()
+            expect(mockRefetchAccounts).toHaveBeenCalled()
         })
 
         it('shows error alert if buy order API call fails', async() => {
@@ -119,18 +123,16 @@ describe('AssetPage', () => {
 
             fireEvent.click(screen.getByTestId('trigger-buy'))
 
-            await waitFor(() => {
-                expect(window.alert).toHaveBeenCalledWith('Failed to execute order: Network Error');
-            })
+            expect(await screen.findByText('Failed to execute order: Network Error')).toBeInTheDocument();
         })
 
         it('alerts user if no active account is selected when buying', async () => {
-            mockUseAccount.mockReturnValue({ activeAccount: null })
+            mockUseAccount.mockReturnValue({ activeAccount: null, refetchAccounts: jest.fn() })
             render(<AssetPage/>)
 
             fireEvent.click(screen.getByTestId('trigger-buy'))
 
-            expect(window.alert).toHaveBeenCalledWith('No active account is selected');
+            expect(await screen.findByText('No active account is selected')).toBeInTheDocument();
             expect(mockApiClient).not.toHaveBeenCalled();
         })
     })
@@ -142,14 +144,14 @@ describe('AssetPage', () => {
 
             fireEvent.click(screen.getByTestId('trigger-sell'))
 
-            await waitFor(() => {
-                expect(mockApiClient).toHaveBeenCalledWith('/portfolio/accounts/acc_123', {
-                    method: 'POST',
-                    body: { ticker: 'BTC/USD', direction: 'sell', quantity: 5 },
-                });
-                expect(mockRefetchHoldings).toHaveBeenCalled();
-                expect(window.alert).toHaveBeenCalledWith('Successfully sold 5 units of BTC/USD');
-            })
+            expect(await screen.findByText('Successfully sold 5 units of BTC/USD')).toBeInTheDocument();
+
+            expect(mockApiClient).toHaveBeenCalledWith('/portfolio/accounts/acc_123', {
+                method: 'POST',
+                body: { ticker: 'BTC/USD', direction: 'sell', quantity: 5 },
+            });
+            expect(mockRefetchHoldings).toHaveBeenCalled();
+            expect(mockRefetchAccounts).toHaveBeenCalled();
         })
     })
 })
