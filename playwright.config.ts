@@ -11,11 +11,11 @@ import os from 'os';
 dotenv.config({ path: '.env.test' });
 
 const getVenvPython = () => {
-    const venvPath = path.join(process.cwd(), '.venv');
-    if (os.platform() === 'win32') {
-        return path.join(venvPath, 'Scripts', 'python.exe');
-    }
-    return path.join(venvPath, 'bin', 'python');
+  const venvPath = path.join(process.cwd(), '.venv');
+  if (os.platform() === 'win32') {
+    return path.join(venvPath, 'Scripts', 'python.exe');
+  }
+  return path.join(venvPath, 'bin', 'python');
 };
 
 const VENV_PYTHON = getVenvPython();
@@ -96,6 +96,7 @@ export default defineConfig({
       ...process.env,
       PATH: `${VENV_BIN}:${process.env.PATH}`,
       VIRTUAL_ENV: path.join(process.cwd(), '.venv'),
+      DATABASE_URL: process.env.DATABASE_URL!,
     },
   },
 });
