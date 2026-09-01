@@ -13,7 +13,6 @@ export async function fetchNews(ticker: string, startDate: Date, endDate: Date) 
             ticker: ticker.toUpperCase(),
         },
     });
-    console.log(response);
 
     const parsed = NewsResponseSchema.safeParse(response);
 
