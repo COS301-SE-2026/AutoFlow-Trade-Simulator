@@ -49,6 +49,9 @@ export function useGreeks() {
                 setError(err.message);
             }
         }
+        finally{
+            setLoading(false);
+        }
 
     }, []);
 
