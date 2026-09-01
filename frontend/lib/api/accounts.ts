@@ -51,3 +51,13 @@ export async function login(email:string, password:string): Promise<RegisterLogi
 
     return RegisterLoginResponseSchema.parse(await data);
 }
+
+export async function loginWithGoogle(idToken:string): Promise<RegisterLoginResponse>{
+    const data = await apiClient('/auth/google', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: { id_token: idToken }
+    });
+
+    return RegisterLoginResponseSchema.parse(await data);
+}

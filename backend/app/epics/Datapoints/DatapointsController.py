@@ -25,10 +25,12 @@ ServiceDep = Annotated[DatapointsService, Depends(get_datapoints_service)]
 def health_check(service: ServiceDep) -> EpicStatusDTO:
     return service.get_status()
 
-@router.get("/{asset_id}/chart_custom")
-def get_custom_chart(asset_id: int, params: QueryDep, service: ServiceDep, current_user: UserDep)-> List[DataPoint]:
+@router.get("/{symbol}/chart_custom")
+def get_custom_chart(symbol: str, params: QueryDep, service: ServiceDep, current_user: UserDep)-> List[DataPoint]:
+    asset_id = service.resolve_asset_id(symbol)
     return service.sampled_ohlcv(asset_id=asset_id, params=params)
 
-@router.get("/{asset_id}/chart_predef")
-def get_predef_chart(asset_id: int, params: PredefDep, service: ServiceDep, current_user: UserDep)-> List[DataPoint]:
+@router.get("/{symbol}/chart_predef")
+def get_predef_chart(symbol: str, params: PredefDep, service: ServiceDep, current_user: UserDep)-> List[DataPoint]:
+    asset_id = service.resolve_asset_id(symbol)
     return service.predef_ohlcv(asset_id=asset_id, params=params)

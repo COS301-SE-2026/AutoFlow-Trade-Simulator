@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, UTC
-from sqlmodel import Session, text
+from sqlmodel import Session, select, text
 import pytest
 from fastapi import HTTPException
 from sqlalchemy import event
@@ -7,6 +7,7 @@ from sqlalchemy import event
 from tests.conftest import  client, get_token, test_engine
 from app.epics.Datapoints.DatapointsService import DatapointsService
 from app.epics.Datapoints.DatapointsDTO import QueryParameters
+from app.models.asset import Asset
 
 OHLCV_VIEWS = ["ohlcv_1d", "ohlcv_1w", "ohlcv_1m", "ohlcv_6m", "ohlcv_1y"]
 
@@ -80,6 +81,20 @@ def seed_datapoints():
         setup_sqlite_views(session)
 
         now = datetime.now(UTC)
+
+        for asset_id, symbol in ((1, "AAPL"), (2, "MSFT")):
+            existing = session.exec(select(Asset).where(Asset.asset_id == asset_id)).first()
+            if existing is None:
+                session.add(
+                    Asset(
+                        asset_id=asset_id,
+                        symbol=symbol,
+                        asset_class="equity",
+                        exchange="NASDAQ",
+                        currency="USD",
+                    )
+                )
+        session.commit()
 
         session.execute(
             text("""
@@ -161,7 +176,7 @@ def test_get_predef_chart_success_1d(seed_datapoints) -> None:
     token = get_token()
 
     response = client.get(
-        "/assets/1/chart_predef?interval=1d",
+        "/assets/AAPL/chart_predef?interval=1d",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
@@ -179,7 +194,7 @@ def test_get_predef_chart_success_1w(seed_datapoints) -> None:
     token = get_token()
 
     response = client.get(
-        "/assets/1/chart_predef?interval=1w",
+        "/assets/AAPL/chart_predef?interval=1w",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
@@ -197,7 +212,7 @@ def test_get_predef_chart_success_1m(seed_datapoints) -> None:
     token = get_token()
 
     response = client.get(
-        "/assets/1/chart_predef?interval=1m",
+        "/assets/AAPL/chart_predef?interval=1m",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
@@ -215,7 +230,7 @@ def test_get_predef_chart_success_6m(seed_datapoints) -> None:
     token = get_token()
 
     response = client.get(
-        "/assets/1/chart_predef?interval=6m",
+        "/assets/AAPL/chart_predef?interval=6m",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
@@ -233,7 +248,7 @@ def test_get_predef_chart_success_1y(seed_datapoints) -> None:
     token = get_token()
 
     response = client.get(
-        "/assets/1/chart_predef?interval=1y",
+        "/assets/AAPL/chart_predef?interval=1y",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
@@ -251,7 +266,7 @@ def test_get_predef_chart_no_data(seed_datapoints) -> None:
     token = get_token()
 
     response = client.get(
-        "/assets/999/chart_predef?interval=1d",
+        "/assets/MSFT/chart_predef?interval=1d",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
@@ -259,12 +274,33 @@ def test_get_predef_chart_no_data(seed_datapoints) -> None:
     assert isinstance(data, list)
     assert len(data) == 0
 
+def test_get_predef_chart_unknown_symbol(seed_datapoints) -> None:
+
+    token = get_token()
+
+    response = client.get(
+        "/assets/NOTAREALTICKER/chart_predef?interval=1d",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 404
+
+def test_get_predef_chart_symbol_is_case_insensitive(seed_datapoints) -> None:
+
+    token = get_token()
+
+    response = client.get(
+        "/assets/aapl/chart_predef?interval=1d",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    assert len(response.json()) == 2
+
 def test_get_predef_chart_invalid_interval(seed_datapoints) -> None:
 
     token = get_token()
 
     response = client.get(
-        "/assets/1/chart_predef?interval=invalid_interval",
+        "/assets/AAPL/chart_predef?interval=invalid_interval",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 422

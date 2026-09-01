@@ -1,22 +1,36 @@
 from datetime import datetime, timedelta, UTC
 from typing import List
 from sqlalchemy import text
-from sqlmodel import Session
-from fastapi import HTTPException
+from sqlmodel import Session, select
+from fastapi import HTTPException, status
 
 from .DatapointsDTO import DataPoint, EpicStatusDTO, QueryParameters, IntervalParameters
+from ...models.asset import Asset
 
 class DatapointsService:
     def __init__(self, session: Session):
         self.session = session
-    
-    
+
+
     @staticmethod
     def get_status() -> EpicStatusDTO:
         return EpicStatusDTO(
             epic="Datapoints",
             status="Healthy",
         )
+
+    def resolve_asset_id(self, symbol: str) -> int:
+        asset_id: int | None = self.session.exec(
+            select(Asset.asset_id).where(Asset.symbol == symbol.upper())
+        ).first()
+
+        if asset_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Asset not found for symbol: {symbol}",
+            )
+
+        return asset_id
     def predef_ohlcv(self, asset_id: int, params: IntervalParameters) -> List[DataPoint]:
 
         interval_length = params.interval.value if params.interval else "1d"

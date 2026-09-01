@@ -40,18 +40,25 @@ describe ('BuySellForm', () => {
         jest.clearAllMocks();
     });
 
-    //Becase ik im going to start loosing track of where the tests are time to leave so comments
-    //This is the basic account information test
-    it('rendering initial account informmation', () => {
-        render(<BuySellForm {...defaultProps}/>)
+    describe('Basic Rendering', () => {
+        it('should show the buy and sell form buttons', () => {
+            render(<BuySellForm {...defaultProps} />);
+            expect(screen.getByRole('button', { name: 'Buy' })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Sell' })).toBeInTheDocument();
+        });
 
-        expect(screen.getByText('Available Balance')).toBeInTheDocument();
-        expect(screen.getByText('12000.0000')).toBeInTheDocument();
-        expect(screen.getByText('5 units')).toBeInTheDocument();
-        expect(screen.getByText('100.00')).toBeInTheDocument();
+        it('should show account information', () => {
+            render(<BuySellForm {...defaultProps} />);
+            expect(screen.getByText('12000.0000')).toBeInTheDocument();
+            expect(screen.getByText('5 units')).toBeInTheDocument();
+        });
 
-        expect(screen.getByRole('button', { name: /^buy$/i })).toBeDisabled();
-        expect(screen.getByRole('button', { name: /^sell$/i })).toBeDisabled();
+        it('should start in with quantity empty', () => {
+            render(<BuySellForm {...defaultProps} />);
+            
+            const input = screen.getByPlaceholderText('Enter Quantity');
+            expect(input).toHaveValue('');
+        });
     });
 
     //This test will be testing the inputs

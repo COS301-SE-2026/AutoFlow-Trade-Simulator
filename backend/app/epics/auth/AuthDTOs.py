@@ -12,6 +12,9 @@ class LoginDTO(SQLModel):
     email: EmailStr
     password:str
 
+class GoogleLoginDTO(SQLModel):
+    id_token: str
+
 class EpicStatusDTO(SQLModel):
     epic: str
     status: str

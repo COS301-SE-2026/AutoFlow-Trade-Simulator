@@ -6,12 +6,13 @@ import {
     useMemo,
     createContext,
 } from 'react';
-import {login as apiLogin, register as apiRegister} from "@/lib/api/accounts"
+import {login as apiLogin, loginWithGoogle as apiLoginWithGoogle, register as apiRegister} from "@/lib/api/accounts"
 import {RegisterLoginResponse} from "@/lib/types/accounts";
 
 export interface AuthContextType {
     token: string | null;
     login: (email: string, password:string) => void;
+    loginWithGoogle: (idToken: string) => void;
     logout: () => void;
     register: (fullName:string, email: string, password:string) => void;
     isLoading: boolean;
@@ -43,6 +44,12 @@ export function AuthProvider({ children }: { children: React.ReactNode })
         sessionStorage.setItem('token', data.access_token);
     }
     
+    const loginWithGoogle = async (idToken: string) => {
+        const data:RegisterLoginResponse = await apiLoginWithGoogle(idToken);
+        setToken(data.access_token);
+        sessionStorage.setItem('token', data.access_token);
+    }
+
     const logout = () => {
         setToken(null);
         sessionStorage.removeItem('token');
@@ -57,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode })
     const memoizedValue = useMemo(() => ({
         token,
         login,
+        loginWithGoogle,
         logout,
         register,
         isLoading
