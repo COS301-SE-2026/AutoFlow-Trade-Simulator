@@ -23,6 +23,7 @@
   <strong><a href="https://www.autoflowtradingsimulator.co.za">Live System</a></strong> &nbsp;·&nbsp;
   <a href="https://github.com/COS301-SE-2026/AutoFlow-Trade-Simulator/wiki">Documentation Wiki</a> &nbsp;·&nbsp;
   <a href="https://github.com/orgs/COS301-SE-2026/projects/78">Project Board</a> &nbsp;·&nbsp;
+  <a href="https://cos301-se-2026.github.io/AutoFlow-Trade-Simulator/">Brand Style Guide</a> &nbsp;·&nbsp;
   <a href="https://stats.uptimerobot.com/nQDREp6YF4">Status</a>
 </p>
 
