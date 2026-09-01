@@ -24,8 +24,6 @@ export default function AssetPage() {
   const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
   const ticker = iTicker?.replace('-', '/');
 
-  const [nextTicker, setNextTicker] = useState(ticker);
-
   const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
   const { data: summary, loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
 
