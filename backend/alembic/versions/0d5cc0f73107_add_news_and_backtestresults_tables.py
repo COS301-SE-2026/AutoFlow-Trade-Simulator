@@ -18,7 +18,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("CREATE TYPE IF NOT EXISTS newscategory AS ENUM ('RUMOR', 'SENS', 'ARTICLE', 'RULING')")
+    op.execute("CREATE TYPE newscategory AS ENUM ('RUMOR', 'SENS', 'ARTICLE', 'RULING')")
 
     op.create_table('news',
     sa.Column('id', sa.Integer(), nullable=False),
