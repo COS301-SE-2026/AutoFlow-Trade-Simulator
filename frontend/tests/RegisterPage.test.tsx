@@ -8,7 +8,9 @@ jest.mock('@/components/signup-form', () => ({
 
 jest.mock('next/image', () => ({
     __esModule: true,
-    default: (props: any) => <img {...props} />,
+    default: ({ src, alt, ...rest }: any) => (
+        <div role='img' aria-label={alt} {...rest} />
+    ),
 }));
 
 describe('SignupPage', () => {
