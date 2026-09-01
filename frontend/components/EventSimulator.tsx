@@ -1,23 +1,24 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { calc_greeks, calc_realized_volatility } from '@/lib/greeks';
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
 } from 'recharts';
 import { apiClient } from '@/lib/api';
 import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
-import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge } from 'lucide-react';
+import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, RotateCcw } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
-
-import { NewsTicker } from '@/components/news/newsScroll';
+import { Button } from '@/components/ui/button';
 import { useNews } from '@/hooks/useNews';
+import {NewsTicker} from "@/components/news/newsScroll";
 
 interface EventDefinition {
     id: string;
@@ -85,6 +86,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
     const [cash, setCash] = useState(event.initialBalance);
     const [trades, setTrades] = useState<any[]>([]);
     const [tradeError, setTradeError] = useState<string | null>(null);
+    const [strikeManuallySet, setStrikeManuallySet] = useState(false);
 
     const [speed, setSpeed] = useState(1);
 
@@ -151,12 +153,47 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
         return () => clearInterval(id);
     }, [isPlaying, dayIndex, allPrices.length, speed]);
 
-    const currentPrice = allPrices[dayIndex] ?? 0;
+    const currentPrice = allPrices[dayIndex] ?? "0";
     const portfolioValue = cash + shares * Number.parseFloat(currentPrice);
     const totalProfit = portfolioValue - event.initialBalance;
     const startPrice = allPrices[0];
     const profitPct = ((totalProfit / event.initialBalance) * 100);
     const priceChangePct = startPrice ? (((Number.parseFloat(currentPrice) - Number.parseFloat(startPrice)) / Number.parseFloat(startPrice)) * 100) : 0;
+
+    //State for greeks
+    const [strikePrice, setStrikePrice] = useState<number>(Number.parseFloat(allPrices[0] || '0'));
+    const daysToExpiration = Math.max(1, allPrices.length - dayIndex);
+
+    useEffect(() => {
+        if (allPrices.length === 0) return;
+
+        const current = Number.parseFloat(allPrices[dayIndex] || allPrices[0]);
+        if (!current || current <= 0) return;
+
+        if (!strikeManuallySet) {
+            setStrikePrice(Math.round(current));
+        }
+
+    }, [allPrices, dayIndex, strikeManuallySet]);
+
+    const greeksResult = useMemo(() => {
+        const price = Number.parseFloat(currentPrice);
+        if (!price || price <= 0 || !strikePrice || strikePrice <= 0) return null;
+
+        // Realized volatility from the price history the sim has actually
+        // played through so far — never looks ahead past dayIndex.
+        const pricesSoFar = allPrices.slice(0, dayIndex + 1).map(Number.parseFloat);
+        const sigma = calc_realized_volatility(pricesSoFar);
+
+        return calc_greeks({
+            current_price: price,
+            strike_price: strikePrice,
+            time_to_expire: daysToExpiration / 365,
+            interest_rate: 0.05,
+            sigma,
+            option_type: 'call',
+        });
+    }, [allPrices, dayIndex, currentPrice, strikePrice, daysToExpiration]);
 
     const currentBarTimestamp = allTimestamps[dayIndex];
     const visibleNews = currentBarTimestamp
@@ -247,9 +284,9 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
 
     if (!simData) {
         return (
-        <div className='bg-green-950 p-6 white rounded-xl border border-[var(--border)]'>
-            Loading simulation...
-        </div>
+            <div className='bg-green-950 p-6 white rounded-xl border border-[var(--border)]'>
+                Loading simulation...
+            </div>
         )
     }
 
@@ -273,7 +310,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                         </div>
                         <div className='text-center text-lg'>
                             Max Drawdown:<span className='text-[var(--red)]'>
-                            {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
+                                {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
                         </div>
                         <div className='text-center text-lg'>
                             Trades:<span className='font-bold'> {summary.trades_count}</span>
@@ -323,20 +360,20 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                 </button>
 
                 <div className='flex flex-row gap-1 bg-blue-900 border border-[var(--border)] items-center px-3 rounded-xl font-semibold text-sm'>
-                    <Gauge className='mr-2'/>
+                    <Gauge className='mr-2' />
                     <span className='mr-2'>Speed Controls:</span>
                     {[1, 2, 4].map((s) => {
 
                         return (
                             <button
-                            key={s}
-                            type='button'
-                            onClick={() => {setSpeed(s)}}
-                            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm border-[var(--border)] border-2
+                                key={s}
+                                type='button'
+                                onClick={() => { setSpeed(s) }}
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm border-[var(--border)] border-2
                                 ${speed == s ? 'bg-[var(--background-alt)]' : 'bg-blue-900'}`}
-                        >
-                            {s}x
-                        </button>
+                            >
+                                {s}x
+                            </button>
                         )
                     })}
                 </div>
@@ -477,10 +514,74 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             {pendingTrade && (<TradeConfirmModal side={pendingTrade.type} quantity={Number.parseFloat(qty)} price={Number.parseFloat(currentPrice)} onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }} onCancel={() => { setPendingTrade(null) }} orderType="market" />)}
                         </div>
                     </div>
+
+                    <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)] space-y-2'>
+                        <div className='flex justify-between items-center text-xs font-bold text-blue-400 uppercase tracking-wider'>
+                            <span>Call Option Risk</span>
+                            <span className='text-gray-400 font-normal'>DTE: {daysToExpiration}d</span>
+                        </div>
+
+                        <div className='flex items-center justify-between text-xs bg-gray-800/50 p-1.5 rounded-lg border border-gray-700/50'>
+                            <span className='text-gray-400'>Strike Price </span>
+                            <div className='flex items-center gap-1'>
+                                <input
+                                    type='number'
+                                    value={strikePrice}
+                                    onChange={(e) => { setStrikePrice(Number.parseFloat(e.target.value) || 0); setStrikeManuallySet(true) }}
+                                    className='w-20 bg-gray-900 text-right px-2 py-0.5 rounded text-white text-xs font-mono border border-gray-700'
+                                />
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='icon-xs'
+                                    disabled={!strikeManuallySet}
+                                    onClick={() => setStrikeManuallySet(false)}
+                                    aria-label='Reset to at-the-money'
+                                    title='Reset to at-the-money'
+                                >
+                                    <RotateCcw />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className='grid grid-cols-2 gap-2 text-xs pt-1'>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Delta (Δ)</span>
+                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
+                                    {greeksResult ? greeksResult.delta.toFixed(3) : '—'}
+                                </span>
+                            </div>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Gamma (Γ)</span>
+                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
+                                    {greeksResult ? greeksResult.gamma.toFixed(4) : '—'}
+                                </span>
+                            </div>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Theta (Θ)</span>
+                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
+                                    {greeksResult ? greeksResult.theta.toFixed(3) : '—'}
+                                </span>
+                            </div>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Vega (ν)</span>
+                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
+                                    {greeksResult ? greeksResult.vega.toFixed(3) : '—'}
+                                </span>
+                            </div>
+                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+                                <span className='text-gray-400 block text-[10px]'>Rho (ρ)</span>
+                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
+                                    {greeksResult ? greeksResult.rho.toFixed(3) : '—'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
                         History
                         {trades.length === 0 ? <p>No trades</p> : [...trades].reverse().map((t, i) => (
-                            <div key={"n"+i} className='flex items-center gap-2 mb-1'>
+                            <div key={"n" + i} className='flex items-center gap-2 mb-1'>
                                 <span className={`font-bold ${t.type === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
                                 <span className='text-xs'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
                             </div>
