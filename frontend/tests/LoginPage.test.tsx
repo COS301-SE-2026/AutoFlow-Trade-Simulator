@@ -6,12 +6,16 @@ jest.mock('@/components/login-form', () => ({
     LoginForm: () => <div data-testid="login-form-mock">Login Form Mock</div>,
 }))
 
+jest.mock('next/image', () => ({
+    __esModule: true,
+    default: (props: any) => <img {...props} />,
+}));
+
 describe('LoginPage', () => {
     it('renders the page layout and includes the LoginForm', () => {
         render(<LoginPage/>)
 
-        const mainElement = screen.getByRole('main')
-        expect(mainElement).toBeInTheDocument()
+        expect(screen.getByText('Autoflow')).toBeInTheDocument();
 
         const loginForm = screen.getByTestId('login-form-mock')
         expect(loginForm).toBeInTheDocument()
