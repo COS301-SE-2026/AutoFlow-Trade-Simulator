@@ -22,7 +22,7 @@ class NewsService:
         self.session.refresh(added)
         if added.id is None:
             raise ValueError("Failed to create news")
-        return added;
+        return added
 
     def find_news(self,news:NewsRequest)->NewsRepsonse:
         results=self.session.exec(select(News).where(News.ticker==news.ticker.upper()).where(News.timestamp<=news.end_date).where(News.timestamp>=news.start_date)).all()
