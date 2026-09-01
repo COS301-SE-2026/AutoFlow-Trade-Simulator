@@ -65,7 +65,7 @@ export default function AssetPage() {
         }
       })
 
-      console.log('Buy order executed:', response);
+      //console.log('Buy order executed:', response);
 
       await refreshAccountData();
       setToast({ message:`Successfully bought ${quantity} units of ${ticker}`, type:'success' });
@@ -90,7 +90,7 @@ export default function AssetPage() {
         }
       })
 
-      console.log('Sell order executed:', response);
+      //console.log('Sell order executed:', response);
 
       await refreshAccountData();
       setToast({ message:`Successfully sold ${quantity} units of ${ticker}`, type: 'success'});
