@@ -33,7 +33,7 @@ describe('SplashPage', () => {
         
         expect(navSignUp).toBeInTheDocument();
         expect(navSignIn).toBeInTheDocument();
-        expect(navSignUp).toHaveAttribute('href', '/register');
+        expect(navSignUp).toHaveAttribute('href', '/signup');
         expect(navSignIn).toHaveAttribute('href', '/login')
     });
 
@@ -41,7 +41,7 @@ describe('SplashPage', () => {
         render(<SplashPage />);
         const cta = screen.getByRole('link', { name: /Start Learning For Free/i });
         expect(cta).toBeInTheDocument();
-        expect(cta).toHaveAttribute('href', '/register');
+        expect(cta).toHaveAttribute('href', '/signup');
     });
 
     it('renders the "View Features" button', () => {
@@ -96,7 +96,7 @@ describe('SplashPage', () => {
         const signInLink = withinCta.getByRole('link', { name: /Sign In/i });
 
         expect(createAccountLink).toBeInTheDocument();
-        expect(createAccountLink).toHaveAttribute('href', '/register');
+        expect(createAccountLink).toHaveAttribute('href', '/signup');
         expect(signInLink).toBeInTheDocument();
         expect(signInLink).toHaveAttribute('href', '/login');
     });
