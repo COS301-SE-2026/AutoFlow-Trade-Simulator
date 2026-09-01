@@ -48,8 +48,9 @@ export function GoogleSignInButton({ onCredential, text = 'signin_with' }: Googl
         });
 
         window.google.accounts.id.renderButton(buttonRef.current, {
-          theme: 'outline',
+          theme: 'filled_black',
           size: 'large',
+          shape: 'pill',
           width: 336,
           text,
         });
