@@ -23,7 +23,8 @@
             --panel: rgba(38, 34, 98, 0.4);
             --text: #ffffff;
             --text-secondary: #e5e5e5;
-            --muted: #9ca3af;
+            /* Increased lightness to improve contrast margin */
+            --muted: #b0b8c4;
             --accent: #262262;
             --accent-strong: #1a1844;
             --accent-light: rgba(38, 34, 98, 0.2);
@@ -40,18 +41,18 @@
         }
 
         body {
-            background: var(--background);
+            /* Single declaration: layered gradients + fallback */
+            background:
+                radial-gradient(circle at top left, rgba(38, 34, 98, 0.25), transparent 35%),
+                radial-gradient(circle at top right, rgba(105, 80, 161, 0.18), transparent 30%),
+                radial-gradient(circle at bottom left, rgba(28, 117, 188, 0.12), transparent 35%),
+                linear-gradient(180deg, var(--background), var(--background-alt));
             color: var(--text);
             font-family: 'Inter', 'Helvetica Neue', sans-serif;
             padding: 2rem 1.5rem;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
             min-height: 100vh;
-            background:
-                radial-gradient(circle at top left, rgba(38, 34, 98, 0.25), transparent 35%),
-                radial-gradient(circle at top right, rgba(105, 80, 161, 0.18), transparent 30%),
-                radial-gradient(circle at bottom left, rgba(28, 117, 188, 0.12), transparent 35%),
-                linear-gradient(180deg, var(--background), var(--background-alt));
         }
 
         .app {
@@ -441,7 +442,7 @@
         <div class="swatch-item"><div class="swatch-color" style="background:#141420;"></div><div class="swatch-label">Background Alt <span class="hex">#141420</span></div></div>
         <div class="swatch-item"><div class="swatch-color" style="background:#17171a;"></div><div class="swatch-label">Background Light <span class="hex">#17171a</span></div></div>
         <div class="swatch-item"><div class="swatch-color" style="background:#ffffff; border-color:#555;"></div><div class="swatch-label">Pure White <span class="hex">#ffffff</span></div></div>
-        <div class="swatch-item"><div class="swatch-color" style="background:#9ca3af;"></div><div class="swatch-label">Muted <span class="hex">#9ca3af</span></div></div>
+        <div class="swatch-item"><div class="swatch-color" style="background:#b0b8c4;"></div><div class="swatch-label">Muted <span class="hex">#b0b8c4</span></div></div>
     </div>
 
     <h3 class="section-sub">Brand &amp; Semantic Colours</h3>
@@ -515,7 +516,7 @@
     <h2 class="section-title">5. Accessibility (WCAG 2.2 AA)</h2>
     <div class="card-grid">
         <div class="card-dark plain"><span style="font-family:'JetBrains Mono',monospace;">#0b0b12 / #ffffff</span> <span style="color:var(--blue);">17.5:1</span> (AAA)</div>
-        <div class="card-dark plain"><span style="font-family:'JetBrains Mono',monospace;">#0b0b12 / #9ca3af</span> <span style="color:var(--blue);">6.1:1</span> (AA)</div>
+        <div class="card-dark plain"><span style="font-family:'JetBrains Mono',monospace;">#0b0b12 / #b0b8c4</span> <span style="color:var(--blue);">6.9:1</span> (AA)</div>
         <div class="card-dark plain"><span style="font-family:'JetBrains Mono',monospace;">#ffffff / #ed1c24</span> <span style="color:var(--blue);">4.6:1</span> (AA)</div>
         <div class="card-dark plain">✅ Tab navigation · focus ring</div>
         <div class="card-dark plain">✅ <span style="font-family:'JetBrains Mono',monospace;">aria-hidden</span> · <span style="font-family:'JetBrains Mono',monospace;">aria-label</span></div>
