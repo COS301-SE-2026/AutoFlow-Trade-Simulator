@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useMemo} from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -15,9 +15,9 @@ import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
-import { map } from 'zod/v4';
 
-import {NewsItem, NewsTicker} from '@/components/news/newsScroll';
+import { NewsTicker } from '@/components/news/newsScroll';
+import { useNews } from '@/hooks/useNews';
 
 interface EventDefinition {
     id: string;
@@ -87,10 +87,18 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
     const [tradeError, setTradeError] = useState<string | null>(null);
 
     const [speed, setSpeed] = useState(1);
-    const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
 
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
     const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
+
+    const startDateObj = useMemo(() => new Date(startDate), [startDate]);
+    const endDateObj = useMemo(() => new Date(endDate), [endDate]);
+
+    const { newsItems, error: newsError } = useNews(
+        event.ticker,
+        startDateObj,
+        endDateObj,
+    );
 
     useEffect(() => {
         const initialize = async () => {
@@ -131,45 +139,6 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
     }))
 
     useEffect(() => {
-        if (allTimestamps.length === 0) return;
-        const fetchNews = async () => {
-            try {
-                // TODO: Replace with database call when ready
-
-                const mockNews: NewsItem[] = [
-                    {
-                        id: 'n1',
-                        timestamp: allTimestamps[0],
-                        category: 'Article',
-                        description: `Analysts review target prices for ${event.company} ahead of earnings guidance.`,
-                        source: 'Financial Times',
-                        author: 'Jane Doe',
-                        fullStory: `${event.company} (${event.ticker}) guidance suggests positive momentum following quarterly growth metrics.`,
-                    },
-                    {
-                        id: 'n2',
-                        timestamp: allTimestamps[Math.floor(allTimestamps.length * 0.4)],
-                        category: 'SENS',
-                        description: `Cautionary SENS announcement released regarding pending trading halt and EPS updates.`,
-                        source: 'JSE SENS',
-                        fullStory: `Shareholders are advised to exercise caution when dealing in ${event.ticker} securities.`,
-                    },
-                    {
-                        id: 'n3',
-                        timestamp: allTimestamps[Math.floor(allTimestamps.length * 0.8)],
-                        category: 'Rumor',
-                        description: `Market rumors suggest strategic restructuring within the ${event.sector} sector.`,
-                    },
-                ];
-                setNewsItems(mockNews);
-            } catch (error) {
-                console.error('Failed to fetch news items:', error);
-            }
-        };
-        fetchNews();
-    }, [event, allTimestamps]);
-
-    useEffect(() => {
         if (!isPlaying || dayIndex >= allPrices.length - 1) {
             setIsPlaying(false);
             return;
@@ -201,7 +170,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
         let quantity = Number.parseFloat(qty);
         if (!quantity || quantity < 1) quantity = 1;
         let qtyToTrade = quantity;
-        
+
         if (type === 'sell') {
             if (shares <= 0) {
                 setTradeError('You have no shares to sell.');
@@ -398,6 +367,9 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                 items={visibleNews}
                 currentDate={currentBarTimestamp ?? startDate}
             />
+            {newsError && (
+                <p className='text-xs text-[var(--red)]'>Couldn&apos;t load news for {event.ticker}.</p>
+            )}
             <div className='flex gap-4 flex-1 min-h-0'>
                 <div className='flex-1 rounded-xl border border-[var(--border)] p-4'>
                     <div className='flex justify-between'>
