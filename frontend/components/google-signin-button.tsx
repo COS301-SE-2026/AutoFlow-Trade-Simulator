@@ -42,7 +42,7 @@ export function GoogleSignInButton({ onCredential, text = 'signin_with' }: Googl
       window.google.accounts.id.renderButton(buttonRef.current, {
         theme: 'outline',
         size: 'large',
-        width: '100%',
+        width: 336,
         text,
       });
     };
