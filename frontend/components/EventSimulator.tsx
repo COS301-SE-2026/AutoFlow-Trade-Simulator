@@ -548,31 +548,31 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
                                 <span className='text-gray-400 block text-[10px]'>Delta (Δ)</span>
                                 <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.delta.toFixed(3) : '—'}
+                                    {greeksResult ? greeksResult.delta.toFixed(3) : '0.000'}
                                 </span>
                             </div>
                             <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
                                 <span className='text-gray-400 block text-[10px]'>Gamma (Γ)</span>
                                 <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.gamma.toFixed(4) : '—'}
+                                    {greeksResult ? greeksResult.gamma.toFixed(4) : '0.0000'}
                                 </span>
                             </div>
                             <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
                                 <span className='text-gray-400 block text-[10px]'>Theta (Θ)</span>
                                 <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.theta.toFixed(3) : '—'}
+                                    {greeksResult ? greeksResult.theta.toFixed(3) : '0.000'}
                                 </span>
                             </div>
                             <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
                                 <span className='text-gray-400 block text-[10px]'>Vega (ν)</span>
                                 <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.vega.toFixed(3) : '—'}
+                                    {greeksResult ? greeksResult.vega.toFixed(3) : '0.000'}
                                 </span>
                             </div>
                             <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
                                 <span className='text-gray-400 block text-[10px]'>Rho (ρ)</span>
                                 <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.rho.toFixed(3) : '—'}
+                                    {greeksResult ? greeksResult.rho.toFixed(3) : '0.000'}
                                 </span>
                             </div>
                         </div>

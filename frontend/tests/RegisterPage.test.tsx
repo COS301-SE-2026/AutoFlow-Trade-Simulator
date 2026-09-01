@@ -1,19 +1,25 @@
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom';
-import RegisterPage from '@/app/register/page';
+import SignupPage from '@/app/signup/page';
 
-jest.mock('@/components/register-form', () => ({
-    RegisterForm: () => <div data-testid="register-form-mock">Register Form Mock</div>,
-}))
+jest.mock('@/components/signup-form', () => ({
+    SignupForm: () => <div data-testid="signup-form-mock">Signup Form Mock</div>,
+}));
 
-describe('RegisterPage', () => {
-    it('renders the page layout and includes the RegisterForm', () => {
-        render(<RegisterPage/>)
+jest.mock('next/image', () => ({
+    __esModule: true,
+    default: ({ src, alt, ...rest }: any) => (
+        <div role='img' aria-label={alt} {...rest} />
+    ),
+}));
 
-        const mainElement = screen.getByRole('main')
-        expect(mainElement).toBeInTheDocument()
+describe('SignupPage', () => {
+    it('renders the page layout and includes the SignupForm', () => {
+        render(<SignupPage/>)
 
-        const registerForm = screen.getByTestId('register-form-mock')
-        expect(registerForm).toBeInTheDocument()
-    })
-})
+        expect(screen.getByText('Autoflow')).toBeInTheDocument();
+
+        const signupForm = screen.getByTestId('signup-form-mock');
+        expect(signupForm).toBeInTheDocument();
+    });
+});

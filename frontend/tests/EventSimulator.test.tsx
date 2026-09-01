@@ -3,9 +3,13 @@ import '@testing-library/jest-dom';
 import { EventSimulator } from '@/components/EventSimulator';
 import { startSimulation } from '@/lib/api/assets';
 import { apiClient } from '@/lib/api';
-import { useGreeks } from '@/hooks/useGreeks';
 import { ResponsiveContainer } from 'recharts';
+import { calc_greeks, calc_realized_volatility } from '@/lib/greeks';
 
+jest.mock('@/lib/greeks', () => ({
+    calc_greeks: jest.fn(),
+    calc_realized_volatility: jest.fn()
+}));
 
 beforeAll(() => {
     global.ResizeObserver = class {
@@ -31,13 +35,12 @@ jest.mock('@/components/news/newsScroll', () => ({
     )
 }));
 
-const mockCalculateGreeks = jest.fn();
-jest.mock('@/hooks/useGreeks', () => ({
-    useGreeks: () => ({
-        calculateGreeks: mockCalculateGreeks,
-        loading: false,
-        error: null
-    })
+jest.mock('@/hooks/useNews', () => ({
+    useNews: () => ({
+        newsItems: [],
+        error: null,
+        isLoading: false
+    }),
 }));
 
 jest.mock('@/components/TradeConfirmModal', () => {
@@ -99,16 +102,14 @@ describe('EventSimulator Component', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (startSimulation as jest.Mock).mockResolvedValue(mockSimCreateResponse);
-    });
-
-    beforeEach(() => {
-        mockCalculateGreeks.mockResolvedValue({
-            delta: 0.5123,
+        (calc_greeks as jest.Mock).mockReturnValue({ 
+            delta: 0.5123, 
             gamma: 0.0234,
             theta: -0.0451,
             vega: 0.1234,
             rho: 0.0567
-        })
+        });
+        (calc_realized_volatility as jest.Mock).mockReturnValue(0.25);
     });
 
     afterEach(() => {
@@ -127,7 +128,7 @@ describe('EventSimulator Component', () => {
         await waitFor(() => {
             expect(screen.getAllByText('AAPL').length).toBeGreaterThan(0);
             expect(screen.getAllByText('Tech Crash 2008').length).toBeGreaterThan(0);
-            expect(screen.getByText('R 10000.00')).toBeInTheDocument();
+            expect(screen.getAllByText('R 10000.00').length).toBe(2);
             expect(screen.getByText('COST: R100.00')).toBeInTheDocument();
         });
     });
@@ -356,7 +357,9 @@ describe('EventSimulator Component', () => {
             fireEvent.click(screen.getByText('Confirm Trade'));
         });
 
-        expect(screen.getByText('Trade failed. Please try again.')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Trade failed. Please try again.')).toBeInTheDocument();
+        });
 
         (apiClient as jest.Mock).mockRejectedValueOnce(new Error('Finish API Error'));
 
@@ -407,7 +410,7 @@ describe('EventSimulator Component', () => {
             expect(screen.getByText('Call Option Risk')).toBeInTheDocument();
         });
 
-        expect(mockCalculateGreeks).toHaveBeenCalledWith({
+        expect(calc_greeks).toHaveBeenCalledWith({
             current_price: 100,
             strike_price: 100,
             time_to_expire: 3 / 365,
@@ -437,7 +440,7 @@ describe('EventSimulator Component', () => {
         });
 
         await waitFor(() => {
-            expect(mockCalculateGreeks).toHaveBeenCalledWith(
+            expect(calc_greeks).toHaveBeenCalledWith(
                 expect.objectContaining({
                     strike_price: 110
                 })
@@ -456,7 +459,7 @@ describe('EventSimulator Component', () => {
         fireEvent.click(screen.getByText('Skip Forward'));
 
         expect(screen.getByText('DTE: 2d')).toBeInTheDocument();
-        expect(mockCalculateGreeks).toHaveBeenCalledWith(
+        expect(calc_greeks).toHaveBeenCalledWith(
             expect.objectContaining({
                 current_price: 105,
                 time_to_expire: 2 / 365
@@ -465,7 +468,7 @@ describe('EventSimulator Component', () => {
     });
 
     it('falls back to 0.0000 when greeks calculations return null', async () => {
-        mockCalculateGreeks.mockResolvedValue(null);
+        (calc_greeks as jest.Mock).mockReturnValue(null);
         
         render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
 
