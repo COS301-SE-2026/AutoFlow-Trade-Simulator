@@ -63,17 +63,6 @@ export default function BuySellForm({
             }
         }
 
-        const isValid = () => {
-            const qty = Number.parseFloat(quantity);
-            if (!(qty) || qty <= 0) { return false; }
-
-            if (mode === 'buy') {
-                return qty <= maxBuyable && qty * currentPrice <= accountBalance;
-            } else {
-                return qty <= maxSellable && qty > 0;
-            }
-        };
-
         const handleConfirmTrade = () => {
             setShowConfirm(false);
             handleConfirm();

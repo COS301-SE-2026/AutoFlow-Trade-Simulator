@@ -14,7 +14,10 @@ export async function fetchNews(ticker: string, startDate: Date, endDate: Date) 
         },
     });
 
-    const parsed = NewsResponseSchema.safeParse(response);
+    //Orginal code was
+    //const parsed = NewsResponseSchema.safeParse(response);
+    //Doing this to fix smth else can easily be undone later if this causes issues
+    const parsed = NewsResponseSchema.safeParse(response ?? { news_items: []} );
 
     if (!parsed.success) {
         console.error('News API response validation failed:');

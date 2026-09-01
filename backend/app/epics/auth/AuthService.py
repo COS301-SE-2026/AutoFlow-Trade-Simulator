@@ -10,6 +10,9 @@ from .AuthDTOs import LoginResponseDTO, RegistrationDTO,LoginDTO,GoogleLoginDTO,
 
 
 class AuthService:
+
+    ERROR_MESSAGE: str = "User ID was not generated"
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -32,7 +35,7 @@ class AuthService:
             self.session.flush()
 
             if user.id is None:
-                raise ValueError("User ID was not generated")
+                raise ValueError(ERROR_MESSAGE)
 
         # Create portfolio
             portfolio = Portfolio(
@@ -90,7 +93,7 @@ class AuthService:
                 self.session.flush()
 
                 if user.id is None:
-                    raise ValueError("User ID was not generated")
+                    raise ValueError(ERROR_MESSAGE)
 
                 portfolio = Portfolio(
                     user_id=user.id,
@@ -104,7 +107,7 @@ class AuthService:
             self.session.commit()
 
             if user.id is None:
-                raise ValueError("User ID was not generated")
+                raise ValueError(ERROR_MESSAGE)
 
             token: str = create_access_token(user.id)
             return LoginResponseDTO(access_token=token)

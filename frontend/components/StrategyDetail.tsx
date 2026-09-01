@@ -105,7 +105,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                     <div className='font-bold text-sm mb-2'>Steps</div>
                     <div className='space-y-1'>
                         {strategy.steps.map((step: string, index: number) => (
-                            <div key={`step-${index}`} className='text-sm text-gray-300 leading-relaxed'>
+                            <div key={step} className='text-sm text-gray-300 leading-relaxed'>
                                 {index + 1}. {step}
                             </div>
                         ))}
@@ -121,7 +121,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                         <div className='font-bold text-sm mb-2 text-green-400'>Pros</div>
                         <div className='space-y-1'>
                             {strategy.pros.map((pro: string, index: number) => (
-                                <div key={`pro-${index}`} className='text-sm text-gray-300 leading-relaxed'>
+                                <div key={pro} className='text-sm text-gray-300 leading-relaxed'>
                                     {index + 1}. {pro}
                                 </div>
                             ))}
@@ -131,7 +131,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                         <div className='font-bold text-sm mb-2 text-red-400'>Cons</div>
                         <div className='space-y-1'>
                             {strategy.cons.map((con: string, index: number) => (
-                                <div key={`con-${index}`} className='text-sm text-gray-300 leading-relaxed'>
+                                <div key={con} className='text-sm text-gray-300 leading-relaxed'>
                                     {index + 1}. {con}
                                 </div>
                             ))}

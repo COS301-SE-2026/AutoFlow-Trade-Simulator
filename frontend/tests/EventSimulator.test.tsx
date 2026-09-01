@@ -116,7 +116,7 @@ describe('EventSimulator Component', () => {
         jest.useRealTimers();
     });
 
-    it('renders loading state whilst API resolves', () => {
+    it('renders loading state whilst API resolves', async () => {
         (startSimulation as jest.Mock).mockReturnValue(new Promise(() => {}));
         render(<EventSimulator event={mockEvent} onBack={mockOnBack}/>);
         expect(screen.getByText(/Loading simulation.../i)).toBeInTheDocument();

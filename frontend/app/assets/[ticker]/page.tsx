@@ -24,8 +24,6 @@ export default function AssetPage() {
   const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
   const ticker = iTicker?.replace('-', '/');
 
-  const [nextTicker, setNextTicker] = useState(ticker);
-
   const { data: prices, loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
   const { data: summary, loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
 
@@ -65,7 +63,7 @@ export default function AssetPage() {
         }
       })
 
-      console.log('Buy order executed:', response);
+      //console.log('Buy order executed:', response);
 
       await refreshAccountData();
       setToast({ message:`Successfully bought ${quantity} units of ${ticker}`, type:'success' });
@@ -90,7 +88,7 @@ export default function AssetPage() {
         }
       })
 
-      console.log('Sell order executed:', response);
+      //console.log('Sell order executed:', response);
 
       await refreshAccountData();
       setToast({ message:`Successfully sold ${quantity} units of ${ticker}`, type: 'success'});
