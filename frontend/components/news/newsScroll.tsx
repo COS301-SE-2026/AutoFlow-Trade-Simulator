@@ -1,26 +1,10 @@
 'use client';
 
 import {useEffect, useMemo, useRef, useState, useCallback} from 'react';
-import {Newspaper, Play, Pause} from 'lucide-react';
+import {Newspaper, Play, Pause, ArrowUpRight} from 'lucide-react';
 import {NewsModal} from "@/components/news/newsModal";
 import {TooltipText} from "@/components/news/TooltipText";
-
-export interface NewsItem {
-    id: string;
-    timestamp: string;
-    category: 'Rumor' | 'SENS' | 'Article' | 'Ruling';
-    description: string;
-    source?: string;
-    author?: string;
-    fullStory?: string;
-}
-
-export const CATEGORY_STYLES: Record<NewsItem['category'], string> = {
-    Rumor: 'bg-[var(--orange)]/15 text-[var(--orange)] border-[var(--orange)]/40',
-    SENS: 'bg-[var(--blue)]/15 text-blue-400 border-[var(--blue)]/40',
-    Article: 'bg-gray-700/30 text-gray-300 border-gray-600/40',
-    Ruling: 'bg-[var(--green)]/15 text-[var(--green)] border-[var(--green)]/40',
-};
+import {CATEGORY_STYLES, type NewsItem} from "@/components/news/types";
 
 const FADE_MS = 500;
 const BREAKING_HOLD = 1100;
@@ -76,10 +60,14 @@ export function NewsTicker({
         [items]
     );
 
-    const track = useMemo(() => [...sorted, ...sorted], [sorted]);
+    const track = useMemo(
+        () => (sorted.length > 0 ? [...sorted, ...sorted] : []),
+        [sorted]
+    );
+
     const duration = Math.max(20, sorted.length * 6);
 
-    const isEffectivelyPlaying = userPlaying && stage === 'none' && !isHovered;
+    const isEffectivelyPlaying = userPlaying && stage === 'none' && !isHovered && sorted.length > 0;
 
     const triggerBreaking = useCallback((item: NewsItem) => {
         timeoutsRef.current.forEach(clearTimeout);
@@ -165,7 +153,7 @@ export function NewsTicker({
 
     useEffect(() => {
         const el = scrollAreaRef.current;
-        if (!el) return;
+        if (!el || sorted.length === 0) return;
 
         const onWheel = (e: WheelEvent) => {
             e.preventDefault();
@@ -182,12 +170,10 @@ export function NewsTicker({
 
         el.addEventListener('wheel', onWheel, {passive: false});
         return () => el.removeEventListener('wheel', onWheel);
-    }, []);
+    }, [sorted.length]);
 
     const togglePlay = useCallback(() => setUserPlaying(p => !p), []);
     const handleCloseModal = useCallback(() => setSelectedItem(null), []);
-
-    if (sorted.length === 0 && stage === 'none') return null;
 
     const overlayActive = stage !== 'none';
 
@@ -204,16 +190,18 @@ export function NewsTicker({
                         </span>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={togglePlay}
-                        aria-label={userPlaying ? 'Pause news ticker' : 'Play news ticker'}
-                        aria-pressed={!userPlaying}
-                        className="bg-blue-900/40 border border-[var(--border)] hover:bg-blue-900/80 text-blue-400 flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-blue-400"
-                    >
-                        {userPlaying ? <Pause className="w-3 h-3"/> : <Play className="w-3 h-3"/>}
-                        {userPlaying ? 'Pause' : 'Play'}
-                    </button>
+                    {sorted.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={togglePlay}
+                            aria-label={userPlaying ? 'Pause news ticker' : 'Play news ticker'}
+                            aria-pressed={!userPlaying}
+                            className="bg-blue-900/40 border border-[var(--border)] hover:bg-blue-900/80 text-blue-400 flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-blue-400"
+                        >
+                            {userPlaying ? <Pause className="w-3 h-3"/> : <Play className="w-3 h-3"/>}
+                            {userPlaying ? 'Pause' : 'Play'}
+                        </button>
+                    )}
                 </div>
 
                 <div
@@ -224,6 +212,9 @@ export function NewsTicker({
                 >
                     {overlayActive && (
                         <div
+                            role="status"
+                            aria-live="assertive"
+                            aria-atomic="true"
                             className="absolute inset-0 flex items-center justify-center gap-2 z-20 px-4 transition-opacity"
                             style={{
                                 backgroundColor: 'var(--background, #111827)',
@@ -251,34 +242,47 @@ export function NewsTicker({
                         </div>
                     )}
 
-                    <div
-                        ref={trackRef}
-                        className="flex items-center gap-8 whitespace-nowrap w-max"
-                        style={{transform: `translateX(-${offsetRef.current}px)`}}
-                    >
-                        {track.map((item, i) => (
-                            <div key={`${item.id}-dup-${i}`} className="flex items-center gap-2 text-sm pl-4">
-                                <span
-                                    className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wide ${CATEGORY_STYLES[item.category]}`}>
-                                    {item.category}
-                                </span>
-                                <span className="text-xs font-mono text-gray-400">
-                                    {daysAgoLabel(item.timestamp, resolvedCurrentDate)}
-                                </span>
-                                <button
-                                    tabIndex={0}
-                                    onClick={() => setSelectedItem(item)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter' || e.key === ' ') setSelectedItem(item);
-                                    }}
-                                    className="font-bold text-white cursor-pointer hover:text-blue-400 hover:underline decoration-1 underline-offset-2 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-sm transition-colors"
-                                >
-                                    <TooltipText text={item.description}/>
-                                </button>
-                                <span className="text-gray-600 px-2">•</span>
-                            </div>
-                        ))}
-                    </div>
+                    {sorted.length === 0 ? (
+                        <div className="flex items-center justify-center text-xs text-gray-500">
+                            No news available
+                        </div>
+                    ) : (
+                        <div
+                            ref={trackRef}
+                            className="flex items-center gap-8 whitespace-nowrap w-max"
+                            style={{transform: `translateX(-${offsetRef.current}px)`}}
+                        >
+                            {track.map((item, i) => {
+                                const isDuplicate = i >= sorted.length;
+                                return (
+                                    <button
+                                        type="button"
+                                        key={`${item.id}-dup-${i}`}
+                                        tabIndex={isDuplicate ? -1 : 0}
+                                        onClick={() => setSelectedItem(item)}
+                                        aria-hidden={isDuplicate || undefined}
+                                        aria-label={`Read story: ${item.description}`}
+                                        className="flex items-center gap-2 text-sm pl-4 cursor-pointer text-left border-none bg-transparent p-0 focus:outline-none focus:ring-1 focus:ring-blue-400 rounded-sm"
+                                    >
+                                        <span
+                                            className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wide ${CATEGORY_STYLES[item.category]}`}>
+                                            {item.category}
+                                        </span>
+                                        <span className="text-xs font-mono text-gray-400">
+                                            {daysAgoLabel(item.timestamp, resolvedCurrentDate)}
+                                        </span>
+                                        <span className="font-bold text-white">
+                                            <TooltipText text={item.description}/>
+                                        </span>
+                                        <span className="text-blue-400 hover:text-blue-300 transition-colors shrink-0">
+                                            <ArrowUpRight className="w-3.5 h-3.5"/>
+                                        </span>
+                                        <span className="text-gray-600 px-2" aria-hidden="true">•</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
 

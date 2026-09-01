@@ -1,0 +1,299 @@
+<html xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head>
+<!--[if gte mso 9]>
+                        <?xml version="1.0"?>
+                        <Workbook 
+	                       xmlns:o="urn:schemas-microsoft-com:office:office" 
+	                       xmlns:x="urn:schemas-microsoft-com:office:excel" 
+                           xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" >
+                        </Workbook>
+                        </xml>
+                        <![endif]-->
+<style>
+	                    @page {margin:.2in .1in .2in .1in; mso-header-margin:.1in;}
+	                    .PD_Heading_Two {color:#1A1F4D;	background:#C0C0C0;	font-size:8.0pt;	font-weight:700;	font-family:Verdana, sans-serif;	mso-font-charset:0;	vertical-align:middle;	mso-pattern:auto none;	white-space:normal;}
+	                    .Section1	{margin:.98in 0in .98in 0in; mso-header-margin:.51in;}
+                        </style>
+</head>
+<body bottommargin="0" leftmargin="0" marginheight="0" marginwidth="0" rightmargin="0" topmargin="0">
+<div class="Section1">
+<table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td>
+<table border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td align="left" valign="top">
+</td>
+</tr>
+<tr>
+<td align="left" valign="top">
+<table border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td align="left" height="10" valign="top" width="10"><img border="0" height="10" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="10"/></td>
+<td align="left" height="10" valign="top" width="100%"><img border="0" height="10" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="10"/></td>
+<td align="left" height="10" valign="top" width="10"><img border="0" height="10" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="10"/></td>
+</tr>
+<tr>
+<td align="left" valign="top" width="10"><img border="0" height="10" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="10"/></td>
+<td align="left" valign="top" width="100%">
+<!--## CONTENT START ##-->
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left" valign="top">
+<table border="0" cellpadding="0" id="LogoTbl" width="100%">
+<tr>
+<td><table border="0" cellpadding="0" width="100%">
+<tr>
+<td colspan="2"><table border="0" width="100%">
+<tr>
+<td colspan="2"><table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td class="ci_SubHeading">PRICE DATA REPORT</td></tr></table></td>
+</tr>
+<tr>
+<td colspan="2"><b>ABSA GROUP LTD (ABG)</b></td>
+</tr>
+<tr>
+<td colspan="2"><b>Report Date: 23 Aug 2026 10:38:37 pm</b></td>
+</tr>
+</table>
+</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<a name="Price Data &amp; Yields"></a>
+<a name="Shares And Indices"></a>
+<table border="0" cellpadding="0" cellspacing="0" id="someOtherTableId" width="99.7%">
+<tr>
+<td class="ci_MainSearchHeading">
+<a name="Price Data"></a>Price Data
+        </td>
+</tr>
+<tr>
+<td height="10">
+</td>
+</tr>
+<tr class="hiddenIfDisabled" id="SharesAndIndices1_trGraphics">
+<td>
+<table cellspacing="2">
+<tr>
+<td>
+<table>
+<tr>
+<td colspan="2">
+<table border="0" cellpadding="0" cellspacing="0" id="tblTinySharesGraph">
+<tr>
+<td align="left">
+</td>
+</tr>
+<tr class="hiddenIfDisabled" height="250">
+<td>
+<a disabled="disabled" id="SharesAndIndices1_oneMonthGraph_hlink"><img alt="" id="SharesAndIndices1_oneMonthGraph_sharePriceChart" src="https://researchdomain.iress.co.za/ChartAxd.axd?i=dcp_e55d6801A.jpeg&amp;_guid_=fa8e3e96-1dfb-4f58-861b-f389efcb9c5b" style="border-width:0px;"/></a>
+</td>
+</tr>
+<tr class="hiddenIfDisabled">
+<td align="center">
+</td>
+</tr>
+<tr class="shownIfDisabled">
+<td>
+<table>
+<tr>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+<td colspan="4">
+<table border="0" cellpadding="0" cellspacing="0" id="tblTinySharesGraph">
+<tr>
+<td align="left">
+</td>
+</tr>
+<tr class="hiddenIfDisabled" height="250">
+<td>
+<a disabled="disabled" id="SharesAndIndices1_oneYearGraph_hlink"><img alt="" id="SharesAndIndices1_oneYearGraph_sharePriceChart" src="https://researchdomain.iress.co.za/ChartAxd.axd?i=dcp_e55d6801B.jpeg&amp;_guid_=07fe23d6-ee85-4b4c-85c8-5b613c505b0c" style="border-width:0px;"/></a>
+</td>
+</tr>
+<tr class="hiddenIfDisabled">
+<td align="center">
+</td>
+</tr>
+<tr class="shownIfDisabled">
+<td>
+<table>
+<tr>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+<td>
+<table border="0" cellpadding="0" cellspacing="0" id="tblTinySharesGraph">
+<tr>
+<td align="left">
+</td>
+</tr>
+<tr class="hiddenIfDisabled" height="250">
+<td>
+<a disabled="disabled" id="SharesAndIndices1_fiveYearGraph_hlink"><img alt="" id="SharesAndIndices1_fiveYearGraph_sharePriceChart" src="https://researchdomain.iress.co.za/ChartAxd.axd?i=dcp_e55d6801C.jpeg&amp;_guid_=aab2d1da-35ae-416b-881e-84ac5943ce57" style="border-width:0px;"/></a>
+</td>
+</tr>
+<tr class="hiddenIfDisabled">
+<td align="center">
+</td>
+</tr>
+<tr class="shownIfDisabled">
+<td>
+<table>
+<tr>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="hiddenIfDisabled">
+<td class="ci_SubHeading">
+<span id="SharesAndIndices1_LabelTitle">Price History - ABSA GROUP LTD (ABG)</span>
+</td>
+</tr>
+<tr class="hiddenIfDisabled">
+<!-- Data -->
+<td>
+<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%">
+<tr>
+<td>
+<div class="GridArea">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr class="HeadingRow">
+<td class="HeadingCell HeadingCellText" width="100">Date</td><td class="HeadingCell HeadingCellText" width="80">High</td><td class="HeadingCell HeadingCellText" width="80">Low</td><td class="HeadingCell HeadingCellText" width="80">Open</td><td class="HeadingCell HeadingCellText" width="80">Close</td><td class="HeadingCell HeadingCellText" width="100">Volume</td><td class="HeadingCell HeadingCellText" width="50">Interest<br/>Yield</td><td class="HeadingCell HeadingCellText" width="50">Capital<br/>Payment<br/>Yield</td><td class="HeadingCell HeadingCellText" width="70">Total<br/>Distribution<br/>Yield</td><td class="HeadingCell HeadingCellText" width="50">EY</td><td class="HeadingCell HeadingCellText" width="50">P/E</td><td class="HeadingCell HeadingCellText" width="50">DY</td>
+</tr><tr class="Row">
+<td class="DataCell">21 Aug 2026</td><td class="DataCell">22777</td><td class="DataCell">22422</td><td class="DataCell">22422</td><td class="DataCell">22700</td><td class="DataCell">3644523</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,99</td><td class="DataCell">13,66</td><td class="DataCell">7,32</td><td class="DataCell">5,99</td>
+</tr><tr class="Row">
+<td class="DataCell">20 Aug 2026</td><td class="DataCell">22610</td><td class="DataCell">22100</td><td class="DataCell">22450</td><td class="DataCell">22477</td><td class="DataCell">2541419</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">6,05</td><td class="DataCell">13,80</td><td class="DataCell">7,25</td><td class="DataCell">6,05</td>
+</tr><tr class="Row">
+<td class="DataCell">19 Aug 2026</td><td class="DataCell">22731</td><td class="DataCell">22200</td><td class="DataCell">22200</td><td class="DataCell">22561</td><td class="DataCell">3002858</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">6,03</td><td class="DataCell">13,74</td><td class="DataCell">7,28</td><td class="DataCell">6,03</td>
+</tr><tr class="Row">
+<td class="DataCell">18 Aug 2026</td><td class="DataCell">22922</td><td class="DataCell">21825</td><td class="DataCell">22700</td><td class="DataCell">22260</td><td class="DataCell">2083422</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,88</td><td class="DataCell">13,42</td><td class="DataCell">7,45</td><td class="DataCell">5,88</td>
+</tr><tr class="Row">
+<td class="DataCell">17 Aug 2026</td><td class="DataCell">22683</td><td class="DataCell">22282</td><td class="DataCell">22500</td><td class="DataCell">22310</td><td class="DataCell">905765</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,86</td><td class="DataCell">13,39</td><td class="DataCell">7,47</td><td class="DataCell">5,86</td>
+</tr><tr class="Row">
+<td class="DataCell">14 Aug 2026</td><td class="DataCell">23289</td><td class="DataCell">22266</td><td class="DataCell">23289</td><td class="DataCell">22428</td><td class="DataCell">1990379</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,83</td><td class="DataCell">13,32</td><td class="DataCell">7,51</td><td class="DataCell">5,83</td>
+</tr><tr class="Row">
+<td class="DataCell">13 Aug 2026</td><td class="DataCell">23340</td><td class="DataCell">22911</td><td class="DataCell">22911</td><td class="DataCell">23070</td><td class="DataCell">2905775</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,67</td><td class="DataCell">12,95</td><td class="DataCell">7,72</td><td class="DataCell">5,67</td>
+</tr><tr class="Row">
+<td class="DataCell">12 Aug 2026</td><td class="DataCell">23302</td><td class="DataCell">22832</td><td class="DataCell">23302</td><td class="DataCell">23000</td><td class="DataCell">4204704</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,69</td><td class="DataCell">12,99</td><td class="DataCell">7,70</td><td class="DataCell">5,69</td>
+</tr><tr class="Row">
+<td class="DataCell">11 Aug 2026</td><td class="DataCell">23510</td><td class="DataCell">22791</td><td class="DataCell">23433</td><td class="DataCell">23000</td><td class="DataCell">3219662</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,69</td><td class="DataCell">12,99</td><td class="DataCell">7,70</td><td class="DataCell">5,69</td>
+</tr><tr class="Row">
+<td class="DataCell">07 Aug 2026</td><td class="DataCell">23248</td><td class="DataCell">22934</td><td class="DataCell">23050</td><td class="DataCell">23102</td><td class="DataCell">1928392</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,66</td><td class="DataCell">12,93</td><td class="DataCell">7,73</td><td class="DataCell">5,66</td>
+</tr><tr class="Row">
+<td class="DataCell">06 Aug 2026</td><td class="DataCell">23273</td><td class="DataCell">22858</td><td class="DataCell">23139</td><td class="DataCell">23114</td><td class="DataCell">1731821</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,66</td><td class="DataCell">12,92</td><td class="DataCell">7,74</td><td class="DataCell">5,66</td>
+</tr><tr class="Row">
+<td class="DataCell">05 Aug 2026</td><td class="DataCell">23440</td><td class="DataCell">22688</td><td class="DataCell">23144</td><td class="DataCell">22858</td><td class="DataCell">1329483</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,72</td><td class="DataCell">13,07</td><td class="DataCell">7,65</td><td class="DataCell">5,72</td>
+</tr><tr class="Row">
+<td class="DataCell">04 Aug 2026</td><td class="DataCell">23164</td><td class="DataCell">22800</td><td class="DataCell">22800</td><td class="DataCell">23143</td><td class="DataCell">1640381</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,65</td><td class="DataCell">12,91</td><td class="DataCell">7,75</td><td class="DataCell">5,65</td>
+</tr><tr class="Row">
+<td class="DataCell">03 Aug 2026</td><td class="DataCell">23018</td><td class="DataCell">22600</td><td class="DataCell">23018</td><td class="DataCell">22810</td><td class="DataCell">1548720</td><td class="DataCell">0,00</td><td class="DataCell">0,00</td><td class="DataCell">5,73</td><td class="DataCell">13,10</td><td class="DataCell">7,64</td><td class="DataCell">5,73</td>
+</tr>
+</table>
+</div>
+<table border="0" cellpadding="2" cellspacing="4" width="100%">
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr class="shownIfDisabled">
+<td>
+<table>
+<tr>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<br/>
+<a name="Yields Analysis"></a>
+<a name="Historical Yields"></a><!-- -->
+<a name="Broker Consensus"></a>
+<a name="Dividend History"></a>
+<a name="Dividend LDR"></a>
+<a name="Trades &amp; Transactions"></a>
+<a name="Transactions Analysis"></a>
+<a name="Daily Analysis"></a>
+<a name="Volatility Report"></a>
+<a name="Market Capitalisation"></a>
+<a name="Detail MarketCaps"></a>
+<a name="Market View"></a>
+<a name="Historical Market Caps"></a>
+</td>
+</tr>
+<tr>
+<td align="left">
+</td>
+</tr>
+</table>
+<!--## CONTENT END ##-->
+</td>
+<td align="left" valign="top" width="10"><img border="0" height="10" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="10"/></td>
+</tr>
+<tr>
+<td align="left" height="10" valign="top" width="10"><img border="0" height="10" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="10"/></td>
+<td align="left" height="10" valign="top" width="100%"><img border="0" height="10" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="10"/></td>
+<td align="left" height="10" valign="top" width="10"><img border="0" height="10" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="10"/></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td align="left" valign="top"><table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td align="left">
+<!--## FOOTER START ##-->
+<!--##REPORT ENDS HERE.NET-->
+<div style="display: none">
+		                                    Served by ZA2-iNET-RD.prod.iress.com.au on Production environment&gt;<br/>
+<textarea cols="20" disabled="disabled" id="FooterControl_devTextBox" name="FooterControl$devTextBox" rows="2" style="width:100%;">
+</textarea>
+</div>
+<!-- Pendo Initialization -->
+<!--## FOOTER END ##-->
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+<td align="left" valign="top" width="12"><img border="0" height="12" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="12"/></td>
+</tr>
+<tr>
+<td align="left" height="12" valign="top" width="12"><img border="0" height="12" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="12"/></td>
+<td align="left" height="12" valign="top"><img border="0" height="12" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="12"/></td>
+<td align="left" height="12" valign="top" width="12"><img border="0" height="12" src="https://researchdomain.iress.co.za/images/ci/ci_1x1trans.gif" width="12"/>
+<table bgcolor="#c0c0c0" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr bgcolor="#b2c1e0" height="25"><td align="center" class="PD_Heading_Two" colspan="2" style="TEXT-ALIGN: center">Supplied by IRESS. Tel: 010 492 1111</td></tr>
+</table>
+</td></tr></tbody></table>
+</div>
+</body></html>

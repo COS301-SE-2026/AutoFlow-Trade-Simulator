@@ -14,6 +14,8 @@ from .market_condition import MarketCondition
 from .strategies import Strategies
 from .practice_simulation import PraticeSimulation
 from .options import Options
+from .news import News
+from .back_test_results import BackTestResults
 
 __all__ = [
     "User",
@@ -33,5 +35,7 @@ __all__ = [
 	"MarketCondition",
 	"Strategies",
 	"PraticeSimulation",
-	"Options"
+	"Options",
+	"News",
+	"BackTestResults"
 ]

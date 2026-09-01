@@ -14,8 +14,12 @@ import { LiveDataGraph } from '@/components/liveDataGraph';
 import { useState } from 'react';
 import { TickerSearch } from '@/components/TickerSearch';
 import Link from 'next/link';
+import Toast from '@/components/Toast';
+
 
 export default function AssetPage() {
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
+  
   const params = useParams();
   const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
   const ticker = iTicker?.replace('-', '/');
@@ -27,7 +31,7 @@ export default function AssetPage() {
 
   const { activeAccount, refetchAccounts } = useAccount();
   const { holdings, refetch: refetchHoldings } = useHoldings(activeAccount?.id ?? null);
-
+  
   if (!ticker) return <div>Invalid ticker</div>;
   if (pricesLoading || summaryLoading) return <div>Loading...</div>;
   if (pricesError || summaryError) return <div>Error: {pricesError || summaryError}</div>;
@@ -47,7 +51,7 @@ export default function AssetPage() {
 
   const handleBuy = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss' = 'market', limitPrice?: number) => {
     if (!activeAccount) {
-      alert('No active account is selected');
+      setToast({ message:'No active account is selected', type:'warning' });
       return;
     }
 
@@ -64,15 +68,15 @@ export default function AssetPage() {
       console.log('Buy order executed:', response);
 
       await refreshAccountData();
-      alert(`Successfully bought ${quantity} units of ${ticker}`);
+      setToast({ message:`Successfully bought ${quantity} units of ${ticker}`, type:'success' });
     } catch (e: any) {
-      alert(`Failed to execute order: ${e.message}`);
+      setToast({ message:`Failed to execute order: ${e.message}`, type:'error' });
     }
   }
 
   const handleSell = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss' = 'market', limitPrice?: number) => {
     if (!activeAccount) {
-      alert('No active account is selected');
+      setToast({ message:'No active account is selected', type:'warning' });
       return;
     }
 
@@ -89,9 +93,9 @@ export default function AssetPage() {
       console.log('Sell order executed:', response);
 
       await refreshAccountData();
-      alert(`Successfully sold ${quantity} units of ${ticker}`);
+      setToast({ message:`Successfully sold ${quantity} units of ${ticker}`, type: 'success'});
     } catch (e: any) {
-      alert(`Failed to execute order: ${e.message}`);
+      setToast({ message:`Failed to execute order: ${e.message}`, type: 'error'});
     }
   }
 
@@ -99,6 +103,15 @@ export default function AssetPage() {
     <div>
       <Navbar />
       <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className='flex justify-evenly'>
+          {toast && (
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              onClose={() => setToast(null)}
+            />
+          )}
+        </div>
         <div style={{ marginBottom: '24px' }}>
           <h1 style={{ textAlign: 'center' }}>{ticker}</h1>
         </div>

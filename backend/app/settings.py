@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     database_url: str
     secret_key: str
     algorithm: str = "HS256"
+    google_client_id: str = ""
     access_token_expire_minutes: int = 30
     redis_url: str = "redis://localhost:6379/0"
     # When true, the app will call SQLModel.metadata.create_all(engine)

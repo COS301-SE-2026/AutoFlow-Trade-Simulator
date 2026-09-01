@@ -1,9 +1,12 @@
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 import string
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 from ...core.security import create_access_token, create_password_hash, verify_password_hash
 from ...models import User,Portfolio
-from .AuthDTOs import LoginResponseDTO, RegistrationDTO,LoginDTO,EpicStatusDTO, RegistrationResponseDTO
+from ...settings import settings
+from .AuthDTOs import LoginResponseDTO, RegistrationDTO,LoginDTO,GoogleLoginDTO,EpicStatusDTO, RegistrationResponseDTO
 
 
 class AuthService:
@@ -62,6 +65,53 @@ class AuthService:
         token:str =create_access_token(user.id)
         login_response:LoginResponseDTO= LoginResponseDTO(access_token=token)
         return login_response
+
+    def login_with_google(self, data: GoogleLoginDTO) -> LoginResponseDTO:
+        try:
+            claims = google_id_token.verify_oauth2_token(
+                data.id_token, google_requests.Request(), settings.google_client_id
+            )
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token")
+
+        google_sub: str = claims["sub"]
+        email: str = claims["email"]
+        full_name: str = claims.get("name", email)
+
+        try:
+            user = self.session.exec(select(User).where(User.google_sub == google_sub)).first()
+
+            if user is None:
+                user = self.session.exec(select(User).where(User.email == email)).first()
+
+            if user is None:
+                user = User(email=email, full_name=full_name, google_sub=google_sub)
+                self.session.add(user)
+                self.session.flush()
+
+                if user.id is None:
+                    raise ValueError("User ID was not generated")
+
+                portfolio = Portfolio(
+                    user_id=user.id,
+                    name=f"{user.full_name}'s portfolio",
+                )
+                self.session.add(portfolio)
+            elif user.google_sub is None:
+                user.google_sub = google_sub
+                self.session.add(user)
+
+            self.session.commit()
+
+            if user.id is None:
+                raise ValueError("User ID was not generated")
+
+            token: str = create_access_token(user.id)
+            return LoginResponseDTO(access_token=token)
+
+        except Exception:
+            self.session.rollback()
+            raise
 
     @staticmethod
     def get_status() -> EpicStatusDTO:
