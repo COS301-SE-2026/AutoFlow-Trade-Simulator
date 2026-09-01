@@ -108,20 +108,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             .finally(() => setIsLoading(false));
     }, [token]);
 
-    async function create(currencyCode: Currency, initialBalance: number) {
-        const newAccount = await createAccount(currencyCode, initialBalance);
-        setAccounts((prev) => (prev ? [...prev, newAccount] : [newAccount]));
-        update(newAccount);
-    }
-
-    function update(updated: InternationalAccount) {
+    const update = useCallback((updated: InternationalAccount) => {
         setAccounts((prev) =>
             prev ? prev.map((a) => (a.id === updated.id ? updated : a)) : [updated]
         );
         setActiveAccount(updated);
         sessionStorage.setItem(activeAccountKey, String(updated.id));
         window.location.reload();
-    }
+    }, []);
+    
+    const create = useCallback(async (currencyCode: Currency, initialBalance: number) => {
+        const newAccount = await createAccount(currencyCode, initialBalance);
+        setAccounts((prev) => (prev ? [...prev, newAccount] : [newAccount]));
+        update(newAccount);
+    }, [update]);
+
 
     const value = useMemo(() => ({
         accounts,

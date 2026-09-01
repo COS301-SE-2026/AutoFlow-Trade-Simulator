@@ -43,8 +43,11 @@ export function useNews(
 
     const refetch = useCallback(() => setRefetchToken(t => t + 1), []);
 
+    const startTime = startDate?.getTime() ?? null;
+    const endTime = endDate?.getTime() ?? null;
+
     useEffect(() => {
-        if (!ticker || !startDate || !endDate) {
+        if (!ticker || !startTime || !endTime) {
             setNewsItems([]);
             return;
         }
@@ -53,7 +56,10 @@ export function useNews(
         setIsLoading(true);
         setError(null);
 
-        fetchNews(ticker, startDate, endDate)
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+
+        fetchNews(ticker, start, end)
             .then(res => {
                 if (cancelled) return;
                 setNewsItems(res.news_items.map(toUiNewsItem));
@@ -72,7 +78,7 @@ export function useNews(
         return () => {
             cancelled = true;
         };
-    }, [ticker, startDate?.getTime(), endDate?.getTime(), refetchToken]);
+    }, [ticker, startTime, endTime, refetchToken]);
 
     return { newsItems, isLoading, error, refetch };
 }
