@@ -28,7 +28,7 @@ interface GoogleSignInButtonProps {
   text?: 'signin_with' | 'signup_with';
 }
 
-export function GoogleSignInButton({ onCredential, text = 'signin_with' }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({ onCredential, text = 'signin_with' }: Readonly<GoogleSignInButtonProps>) {
   const buttonRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<Status>(GOOGLE_CLIENT_ID ? 'loading' : 'error');
 

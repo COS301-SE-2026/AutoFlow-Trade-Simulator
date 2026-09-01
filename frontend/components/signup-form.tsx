@@ -34,7 +34,7 @@ export function SignupForm({
   const handleGoogleCredential = async (idToken: string) => {
     setError('');
     try {
-      await loginWithGoogle(idToken);
+      loginWithGoogle(idToken);
       router.push('/dashboard');
     }
     catch (err: any) {

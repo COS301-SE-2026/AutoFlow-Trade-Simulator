@@ -28,7 +28,7 @@ def login_swagger(
 ):
     return service.login(LoginDTO(email=form_data.username, password=form_data.password))
 
-@router.post("/google",response_model=LoginResponseDTO)
+@router.post("/google")
 def login_with_google(data:GoogleLoginDTO, service:AuthService=Depends(get_auth_service)) -> LoginResponseDTO:
     return service.login_with_google(data=data)
 
