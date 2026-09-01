@@ -35,7 +35,7 @@ class AuthService:
             self.session.flush()
 
             if user.id is None:
-                raise ValueError(ERROR_MESSAGE)
+                raise ValueError(self.ERROR_MESSAGE)
 
         # Create portfolio
             portfolio = Portfolio(
@@ -93,7 +93,7 @@ class AuthService:
                 self.session.flush()
 
                 if user.id is None:
-                    raise ValueError(ERROR_MESSAGE)
+                    raise ValueError(self.ERROR_MESSAGE)
 
                 portfolio = Portfolio(
                     user_id=user.id,
@@ -107,7 +107,7 @@ class AuthService:
             self.session.commit()
 
             if user.id is None:
-                raise ValueError(ERROR_MESSAGE)
+                raise ValueError(self.ERROR_MESSAGE)
 
             token: str = create_access_token(user.id)
             return LoginResponseDTO(access_token=token)
