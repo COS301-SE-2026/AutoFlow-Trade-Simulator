@@ -17,10 +17,8 @@ import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
 import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, RotateCcw } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
 import { Button } from '@/components/ui/button';
-import { map } from 'zod/v4';
-
-import { NewsItem, NewsTicker } from '@/components/news/newsScroll';
 import { useNews } from '@/hooks/useNews';
+import {NewsTicker} from "@/components/news/newsScroll";
 
 interface EventDefinition {
     id: string;
