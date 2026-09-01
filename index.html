@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AutoFlow · Brand Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            color-scheme: dark;
+            --background: #0b0b12;
+            --background-alt: #141420;
+            --background-light: #17171a;
+            --background-glass: rgba(20, 20, 32, 0.5);
+            --panel: rgba(38, 34, 98, 0.4);
+            --text: #ffffff;
+            --text-secondary: #e5e5e5;
+            /* Increased lightness to improve contrast margin */
+            --muted: #b0b8c4;
+            --accent: #262262;
+            --accent-strong: #1a1844;
+            --accent-light: rgba(38, 34, 98, 0.2);
+            --gray: #414042;
+            --purple: #6950a1;
+            --blue: #1c75bc;
+            --seafoam: #00a79d;
+            --green: #009444;
+            --green-light: #8dc63f;
+            --yellow: #fff200;
+            --orange: #f7941d;
+            --red: #ed1c24;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            /* Single declaration: layered gradients + fallback */
+            background:
+                radial-gradient(circle at top left, rgba(38, 34, 98, 0.25), transparent 35%),
+                radial-gradient(circle at top right, rgba(105, 80, 161, 0.18), transparent 30%),
+                radial-gradient(circle at bottom left, rgba(28, 117, 188, 0.12), transparent 35%),
+                linear-gradient(180deg, var(--background), var(--background-alt));
+            color: var(--text);
+            font-family: 'Inter', 'Helvetica Neue', sans-serif;
+            padding: 2rem 1.5rem;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .navbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--background);
+            padding: 0.75rem 0.5rem 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.3rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 32px;
+            width: auto;
+            display: block;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-links .active {
+            color: var(--text);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .user-badge {
+            background: var(--background-light);
+            padding: 0.3rem 1.2rem 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .user-badge .caret {
+            color: var(--muted);
+            font-size: 0.6rem;
+        }
+
+        .btn-outline-light {
+            background: transparent;
+            border: 1px solid var(--blue);
+            color: var(--blue);
+            padding: 0.25rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: default;
+            transition: 0.1s;
+        }
+
+        .btn-outline-light.logout {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+
+        .page-header .sub {
+            color: var(--muted);
+            font-size: 1.05rem;
+            margin-top: 0.2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 2.5rem 0 1rem 0;
+            border-bottom: 2px solid var(--blue);
+            display: inline-block;
+            padding-bottom: 0.2rem;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .section-sub {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 1.5rem 0 0.5rem;
+            color: var(--text);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
+            margin: 1.2rem 0;
+        }
+
+        .card-dark {
+            background: var(--background-light);
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            border-left: 4px solid var(--blue);
+        }
+
+        .card-dark.plain {
+            border-left-color: transparent;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 2rem;
+            align-items: center;
+        }
+
+        .swatch-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .swatch-item {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            background: var(--background-light);
+            padding: 0.4rem 1rem 0.4rem 0.7rem;
+            border-radius: 40px;
+        }
+
+        .swatch-color {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.06);
+            flex-shrink: 0;
+        }
+
+        .swatch-label {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .swatch-label .hex {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 400;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-left: 0.3rem;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            background: var(--background-light);
+            border-radius: 16px;
+            padding: 0.1rem 0;
+            margin: 1rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 480px;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.9rem 1rem 0.5rem 1.2rem;
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 0.6rem 1rem 0.6rem 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .pill {
+            display: inline-block;
+            background: var(--blue);
+            color: var(--text);
+            font-weight: 700;
+            padding: 0.15rem 1.1rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+        }
+
+        .pill-outline {
+            background: transparent;
+            border: 1.5px solid var(--blue);
+            color: var(--blue);
+            padding: 0.15rem 1.1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .pill-danger {
+            background: var(--red);
+            color: var(--text);
+        }
+
+        .pill-seafoam {
+            background: var(--seafoam);
+            color: var(--text);
+        }
+
+        .micro-box {
+            background: var(--background-light);
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            border-left: 4px solid var(--orange);
+            margin: 0.5rem 0;
+        }
+
+        .micro-box .label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+        }
+
+        .changelog-item {
+            background: var(--background-light);
+            border-radius: 12px;
+            padding: 0.8rem 1.4rem;
+            border-left: 4px solid var(--blue);
+            margin-bottom: 0.6rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .changelog-item strong {
+            color: var(--blue);
+        }
+
+        .divider {
+            border: 0;
+            height: 1px;
+            background: var(--border);
+            margin: 2.5rem 0;
+        }
+
+        .tag {
+            background: var(--background-light);
+            padding: 0.15rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--muted);
+            border: 1px solid var(--blue);
+        }
+
+        p {
+            color: var(--text-secondary);
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, var(--seafoam), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (max-width: 700px) {
+            .navbar { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+            .nav-left { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+            .nav-links { justify-content: space-between; }
+            .nav-right { justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <nav class="navbar" style="border-radius: 16px; padding:0.5rem 1rem; margin-bottom:2rem;">
+        <div class="nav-left">
+            <a href="#" class="logo">
+                <img src="https://github.com/user-attachments/assets/7e29d6f6-9cbf-45c0-936a-aa374730e7de" alt="AutoFlow logo">
+                AutoFlow
+            </a>
+            <div class="nav-links">
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">Portfolio</a>
+                <a href="#">Markets</a>
+                <a href="#">AI Assistant</a>
+                <a href="#">Learning</a>
+                <a href="#">Help</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="user-badge">
+                User_account_123 <span style="font-weight:400;color:var(--muted);">R847 320.50</span>
+                <span class="caret">▼</span>
+            </div>
+            <span class="btn-outline-light">+ Add account</span>
+            <span class="btn-outline-light logout">Log out</span>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <h1>AutoFlow · Brand Style Guide</h1>
+        <div class="sub">Design system · WCAG 2.2 AA · dark theme · 4px grid</div>
+        <div style="display:flex; gap:0.6rem; margin-top:0.5rem; flex-wrap:wrap;">
+            <span class="tag">v2.0</span>
+            <span class="tag" style="border-color:var(--muted);">#0b0b12 · #1c75bc</span>
+        </div>
+    </div>
+
+    <h2 class="section-title">1. Design Principles</h2>
+    <div class="card-grid">
+        <div class="card-dark plain"><strong>Consistency</strong><br><span style="color:var(--muted);">4px base unit · predictable system</span></div>
+        <div class="card-dark plain"><strong>Simplicity</strong><br><span style="color:var(--muted);">functional, minimal visual noise</span></div>
+        <div class="card-dark plain"><strong>Responsiveness</strong><br><span style="color:var(--muted);">1024px+ 12‑col · tablet 768px+</span></div>
+        <div class="card-dark plain"><strong>Accessibility</strong><br><span style="color:var(--muted);">WCAG 2.2 AA · keyboard + contrast</span></div>
+    </div>
+
+    <h2 class="section-title">2. Colour Palette</h2>
+    <p style="color:var(--muted); margin-bottom:0.5rem;">Dark theme optimized for low eyestrain, high readability &amp; sharp hierarchy.</p>
+
+    <h3 class="section-sub">Primary Surface &amp; Core</h3>
+    <div class="swatch-group">
+        <div class="swatch-item"><div class="swatch-color" style="background:#0b0b12;"></div><div class="swatch-label">Canvas Dark <span class="hex">#0b0b12</span></div></div>
+        <div class="swatch-item"><div class="swatch-color" style="background:#141420;"></div><div class="swatch-label">Background Alt <span class="hex">#141420</span></div></div>
+        <div class="swatch-item"><div class="swatch-color" style="background:#17171a;"></div><div class="swatch-label">Background Light <span class="hex">#17171a</span></div></div>
+        <div class="swatch-item"><div class="swatch-color" style="background:#ffffff; border-color:#555;"></div><div class="swatch-label">Pure White <span class="hex">#ffffff</span></div></div>
+        <div class="swatch-item"><div class="swatch-color" style="background:#b0b8c4;"></div><div class="swatch-label">Muted <span class="hex">#b0b8c4</span></div></div>
+    </div>
+
+    <h3 class="section-sub">Brand &amp; Semantic Colours</h3>
+    <div class="swatch-group">
+        <div class="swatch-item" style="border-left:3px solid #1c75bc;"><div class="swatch-color" style="background:#1c75bc;"></div><div class="swatch-label">Blue <span class="hex">#1c75bc</span></div></div>
+        <div class="swatch-item" style="border-left:3px solid #00a79d;"><div class="swatch-color" style="background:#00a79d;"></div><div class="swatch-label">Seafoam <span class="hex">#00a79d</span></div></div>
+        <div class="swatch-item" style="border-left:3px solid #6950a1;"><div class="swatch-color" style="background:#6950a1;"></div><div class="swatch-label">Purple <span class="hex">#6950a1</span></div></div>
+        <div class="swatch-item" style="border-left:3px solid #009444;"><div class="swatch-color" style="background:#009444;"></div><div class="swatch-label">Green <span class="hex">#009444</span></div></div>
+        <div class="swatch-item" style="border-left:3px solid #ed1c24;"><div class="swatch-color" style="background:#ed1c24;"></div><div class="swatch-label">Red <span class="hex">#ed1c24</span></div></div>
+        <div class="swatch-item" style="border-left:3px solid #f7941d;"><div class="swatch-color" style="background:#f7941d;"></div><div class="swatch-label">Orange <span class="hex">#f7941d</span></div></div>
+        <div class="swatch-item" style="border-left:3px solid #fff200;"><div class="swatch-color" style="background:#fff200;"></div><div class="swatch-label">Yellow <span class="hex">#fff200</span></div></div>
+    </div>
+
+    <div style="background:var(--background-light); border-radius:16px; padding:1rem 1.5rem; margin:1.5rem 0; display:flex; flex-wrap:wrap; align-items:center; gap:1.2rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+            <img src="https://github.com/user-attachments/assets/7e29d6f6-9cbf-45c0-936a-aa374730e7de" alt="AutoFlow logo" style="height:40px; width:auto;">
+            <span style="font-weight:700; font-size:1.2rem; color:var(--text);">AutoFlow</span>
+        </div>
+        <span class="pill" style="background:var(--blue);color:var(--text);">minimal · financial growth</span>
+        <p style="margin:0; color:var(--muted); font-size:0.95rem; max-width:450px;">"Minimalistic, professional, visually communicates financial growth. Coerces users into exploring free, hands‑off AI trading."</p>
+    </div>
+
+    <h2 class="section-title">3. Typography</h2>
+    <p><span style="font-weight:600; color:var(--text);">Inter</span> (interface) · <span style="font-family:'JetBrains Mono',monospace; color:var(--text);">JetBrains Mono</span> (financial data)</p>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Style</th><th>Typeface</th><th>Size</th><th>Weight</th><th>Used For</th></tr></thead>
+            <tbody>
+                <tr><td>Display</td><td>Inter</td><td>36px</td><td>700</td><td>Landing hero, splash</td></tr>
+                <tr><td>Heading 1</td><td>Inter</td><td>28px</td><td>700</td><td>Section headers</td></tr>
+                <tr><td>Heading 2</td><td>Inter</td><td>22px</td><td>700</td><td>Panel / modal titles</td></tr>
+                <tr><td>Heading 3</td><td>Inter</td><td>18px</td><td>600</td><td>Card / widget headers</td></tr>
+                <tr><td>Body</td><td>Inter</td><td>16px</td><td>500</td><td>Standard copy</td></tr>
+                <tr><td>Caption</td><td>Inter</td><td>12px</td><td>500</td><td>Labels, metadata, legend</td></tr>
+                <tr><td>Overline</td><td>Inter</td><td>11px</td><td>600</td><td>Status tags, table headers</td></tr>
+                <tr><td>Code / Financial</td><td>JetBrains Mono</td><td>13px</td><td>400</td><td>Tickers, prices, hashes, IDs</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="section-title">4. UI Component Specifications</h2>
+
+    <h3 class="section-sub">Buttons &amp; Interactive Controls</h3>
+    <div style="background:var(--background-light); border-radius:16px; padding:1rem 1.5rem; display:flex; flex-wrap:wrap; gap:0.8rem 1.5rem;">
+        <span class="pill">Default</span>
+        <span class="pill" style="background:var(--seafoam);">Seafoam</span>
+        <span class="pill" style="background:var(--purple);">Purple</span>
+        <span class="pill" style="background:transparent; border:2px solid var(--blue); color:var(--blue);">Focused</span>
+        <span class="pill" style="background:#2a2a2a; color:#666; border:1px solid #444;">Disabled</span>
+        <span class="pill pill-danger">Danger</span>
+        <span class="pill-outline">Ghost</span>
+    </div>
+
+    <h3 class="section-sub">Form Inputs</h3>
+    <div style="background:var(--background-light); border-radius:16px; padding:1rem 1.5rem; display:flex; flex-wrap:wrap; gap:1rem 2rem;">
+        <div><span style="color:var(--muted);">Default:</span> dark bg · 1px border · placeholder 60%</div>
+        <div><span style="color:var(--muted);">Focus:</span> 2px <span style="color:var(--blue);">var(--blue)</span></div>
+        <div><span style="color:var(--muted);">Validation error:</span> 2px <span style="color:var(--red);">var(--red)</span> + feedback within 200ms</div>
+        <div><span style="color:var(--muted);">Success:</span> 1px var(--green)</div>
+    </div>
+
+    <h3 class="section-sub">Sidebar Navigation</h3>
+    <div style="background:var(--background); border:1px solid var(--border); border-radius:16px; padding:1rem 1.5rem; display:inline-flex; gap:2rem; flex-wrap:wrap;">
+        <div><span class="pill" style="background:var(--blue);color:var(--text);">Dashboard</span> <span style="color:var(--muted);">active</span></div>
+        <div style="color:var(--text);">Markets</div>
+        <div style="color:var(--text);">Portfolio</div>
+        <div style="color:var(--text);">Flow AI</div>
+    </div>
+
+    <br/>
+    <h2 class="section-title">5. Accessibility (WCAG 2.2 AA)</h2>
+    <div class="card-grid">
+        <div class="card-dark plain"><span style="font-family:'JetBrains Mono',monospace;">#0b0b12 / #ffffff</span> <span style="color:var(--blue);">17.5:1</span> (AAA)</div>
+        <div class="card-dark plain"><span style="font-family:'JetBrains Mono',monospace;">#0b0b12 / #b0b8c4</span> <span style="color:var(--blue);">6.9:1</span> (AA)</div>
+        <div class="card-dark plain"><span style="font-family:'JetBrains Mono',monospace;">#ffffff / #ed1c24</span> <span style="color:var(--blue);">4.6:1</span> (AA)</div>
+        <div class="card-dark plain">✅ Tab navigation · focus ring</div>
+        <div class="card-dark plain">✅ <span style="font-family:'JetBrains Mono',monospace;">aria-hidden</span> · <span style="font-family:'JetBrains Mono',monospace;">aria-label</span></div>
+    </div>
+
+    <h2 class="section-title">6. UI Voice &amp; Tone</h2>
+    <p><strong style="color:var(--text);">Direct · Action-Oriented · Encouraging · Security-Conscious</strong></p>
+
+    <h3 class="section-sub">Button Labels</h3>
+    <div class="flex-row">
+        <span class="pill">Execute Buy Order</span>
+        <span class="pill-outline">View Interactive Demo</span>
+        <span class="pill" style="background:transparent; border:1.5px solid var(--muted); color:var(--muted);">← Back to Events</span>
+    </div>
+
+    <h3 class="section-sub">Error Messages</h3>
+    <div class="micro-box"><div class="label">auth failure</div>"Invalid email or password. Please try again or reset your password."</div>
+    <div class="micro-box"><div class="label">insufficient funds</div>"Order cost (R15,400.00) exceeds your available buying power (R10,000.00). Lower your quantity or add funds."</div>
+
+    <h3 class="section-sub">Empty States</h3>
+    <div style="background:var(--background-light); border-radius:16px; padding:1rem 1.5rem; border-left:4px solid var(--blue);">
+        <strong style="font-size:1.1rem; color:var(--text);">No active positions</strong>
+        <p style="margin:0.2rem 0 0.5rem; color:var(--muted);">You haven't placed any trades yet. Select an asset from the Markets tab or run a strategy from Flow AI to open your first paper trade.</p>
+        <span class="pill-outline">Explore Markets</span>
+    </div>
+
+    <h2 class="section-title">7. Changelog <span style="font-weight:400;font-size:1rem;color:var(--muted);">Demo 1 → Demo 2</span></h2>
+    <div class="changelog-item"><strong>Information Architecture</strong> · Structural Split · Separated Learning Center from Help Center. <span style="color:var(--muted);">Clarifies system hierarchy.</span></div>
+    <div class="changelog-item"><strong>Learning Hub Sub-Tabs</strong> · Feature Addition · Expanded into Strategies, Options Greeks, Historical Events. <span style="color:var(--muted);">Dedicated layout for complex data.</span></div>
+    <div class="changelog-item"><strong>Historical Event Simulator</strong> · Feature Addition · Playback controls (1x,2x,4x), step timeline, real‑time P&amp;L. <span style="color:var(--muted);">Core COS 301 capstone.</span></div>
+    <div class="changelog-item"><strong>Navigation Flows</strong> · Architecture Update · Sub‑tab navigation and simulation state entry/exit routines. <span style="color:var(--muted);">Clear routing logic.</span></div>
+    <div class="changelog-item"><strong>UI Copy &amp; Microcopy</strong> · Standard Added · Voice &amp; Tone guidelines for buttons, empty states, errors. <span style="color:var(--muted);">Standardizes design system.</span></div>
+
+    <hr class="divider">
+    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; color:var(--muted); font-size:0.9rem;">
+        <span>AutoFlow · Brand Style Guide v2.0</span>
+        <span style="font-family:'JetBrains Mono',monospace;">#0b0b12 · #1c75bc · 4px grid</span>
+    </div>
+
+</div>
+</body>
+</html>
