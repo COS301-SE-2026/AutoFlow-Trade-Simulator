@@ -5,8 +5,6 @@ from app.models.currency import Currency
 from app.models.asset import Asset
 from app.models.real_time_ticks import RealTimeTicks
 from tests.conftest import test_engine, client, get_token
-
-from tests.conftest import client, get_token
         
 def seed_currency(code: str = "ZAR") -> None:
     with Session(test_engine) as session:

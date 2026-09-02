@@ -1,8 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from app.models.asset import Asset
 from app.models.daily_OHLCV import DailyOHLCV
-from app.models.real_time_ticks import RealTimeTicks
-
 from decimal import Decimal
 
 import os
