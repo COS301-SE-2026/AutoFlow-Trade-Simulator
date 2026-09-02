@@ -21,14 +21,9 @@ import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headl
 import { Search } from 'lucide-react';
 import Fuse from 'fuse.js';
 
-import { TickerSearchProps } from '@/components/TickerSearch';
-
 import PriceChart from '@/components/charts/priceChart';
 
-export default function PortfolioPage({
-  onSelect,
-  placeholder = "Ticker Search..."
-}: TickerSearchProps) {
+export default function PortfolioPage() {
   const { activeAccount } = useAccount();
   const { realTimeTicksList, loading, error } = useRealTimeTicksList();
 
@@ -54,10 +49,6 @@ export default function PortfolioPage({
 
     setTicker(value);
     setQuery('');
-
-    if (onSelect) {
-      onSelect(value);
-    }
   }
 
   if (loading) return <div>Loading...</div>;
@@ -71,7 +62,7 @@ export default function PortfolioPage({
           <div className='flex gap-2'>
             <Search />
             <ComboboxInput
-              placeholder={placeholder}
+              placeholder={'Ticker Search...'}
               onChange={(e) => setQuery(e.target.value.toUpperCase())}
             />
           </div>
