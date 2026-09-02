@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 export async function signup(page: Page, fullName: string, email: string, password: string) {
     await page.goto('http://localhost:3000/');

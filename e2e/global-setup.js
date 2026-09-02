@@ -1,10 +1,10 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { exec } from 'node:child_process';
+import { promisify } from 'utilnode:';
 import { Client } from 'pg';
 import dotenv from 'dotenv';
-import fs from 'fs'
-import path from 'path';
-import os from 'os';
+import fs from 'node:fs'
+import path from 'node:path';
+import os from 'node:os';
 
 const execAsync = promisify(exec);
 
@@ -27,7 +27,6 @@ const getTempDir = () => {
 
 export default async function globalSetup() {
     const dbUrl = process.env.DATABASE_URL;
-    console.log('dbUrl ' + dbUrl);
 
     const host = process.env.DB_HOST;
     const port = process.env.DB_PORT;
@@ -40,7 +39,6 @@ export default async function globalSetup() {
     console.log('host ' + host);
     console.log('port ' + port);
     console.log('user ' + user);
-    console.log('password ' + password);
     console.log('test_db ' + test_db);
     console.log('management_db ' + management_db);
 
@@ -49,7 +47,7 @@ export default async function globalSetup() {
 
     const client = new Client({
         host,
-        port: parseInt(port),
+        port: Number.parseInt(port),
         database: management_db,
         user,
         password,
