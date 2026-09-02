@@ -11,14 +11,23 @@ jest.mock('@/lib/api', () => ({
     }
 }))
 
-const mockHoldings = [{
+const mockHoldingsRaw = [{
     asset_id: 1,
-    ticker: 'AAPL',
+    ticker: 'ABG',
     net_quantity: 10,
     average_cost: 150,
 
+    current_price: null,
+    unrealised_pnl: null
+}]
+
+const mockHoldingsEnriched = [{
+    asset_id: 1,
+    ticker: 'ABG',
+    net_quantity: 10,
+    average_cost: 150,
     current_price: 175,
-    unrealised_pnl: 250
+    unrealised_pnl: 250,
 }]
 
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>
@@ -39,12 +48,11 @@ describe('useHoldings', () => {
     });
 
     it('returns details of holdings', async () => {
+        mockApiClient.mockResolvedValueOnce({ holdings: mockHoldingsRaw });
         mockApiClient.mockResolvedValueOnce({
-            holdings: mockHoldings,
-            loading: false,
-            error: null
-        }).mockResolvedValueOnce({
-            current_price: 175,
+            points: [
+                { timestamp: '2023-01-01T00:00:00Z', price: 175, volume: 1000 },
+            ],
         });
 
         const { result } = renderHook(() => useHoldings(1));
@@ -54,7 +62,8 @@ describe('useHoldings', () => {
         })
 
         expect(result.current.error).toBeNull();
-        expect(result.current.holdings).toEqual(mockHoldings);
+        expect(result.current.holdings).toEqual(mockHoldingsEnriched);
         expect(mockApiClient).toHaveBeenCalledWith(`/portfolio/accounts/${1}/holdings`);
+        expect(mockApiClient).toHaveBeenCalledWith(`/real_time/points/ABG`);
     });
 })
