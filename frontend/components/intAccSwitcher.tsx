@@ -28,11 +28,14 @@ const actionStyle = {
 } as const;
 
 export function AccountSelector({ placeholder = "Select account", label, onChange, required }: AccountSelectorProps) {
-    const { accounts, activeAccount, isLoading, update } = useAccount();
+    const { accounts, activeAccount, isLoading, update, refetchAccounts } = useAccount();
 
     function handleChange(id: string) {
-        const account = accounts?.find((a) => a.id === Number(id));
-        if (account) { update(account); onChange?.(account); }
+        const selected = accounts?.find((a) => a.id === Number(id));
+        if (selected) {
+            update(selected);
+            onChange?.(selected)
+        }
     }
 
     return (
@@ -42,7 +45,14 @@ export function AccountSelector({ placeholder = "Select account", label, onChang
                     {label}
                 </label>
             )}
-            <Select value={activeAccount?.id.toString()} onValueChange={handleChange} required={required} disabled={isLoading || !accounts?.length}>
+            <Select value={activeAccount?.id.toString()}
+            key={activeAccount?.balance} 
+            onValueChange={handleChange} 
+            onOpenChange={(open) => {
+                if (open) refetchAccounts();
+            }}
+            required={required} 
+            disabled={isLoading || !accounts?.length}>
                 <SelectTrigger style={{ ...actionStyle, padding: '9px 14px', height: 'auto', minWidth: '160px' }} className="hover:border-purple-500/60">
                     <SelectValue placeholder={isLoading ? "Loading..." : placeholder} />
                 </SelectTrigger>
@@ -54,18 +64,23 @@ export function AccountSelector({ placeholder = "Select account", label, onChang
                     borderRadius: '12px',
                 }}>
                     <SelectGroup>
-                        {accounts?.map((account) => (
+                        {accounts?.map((account) => {
+                            const formattedBalance = Number.parseFloat(account.balance).toFixed(2);
+                            const flag = account.currency_code.substring(0, 2).toLocaleLowerCase();
+
+                            return(
                             <SelectItem key={account.id} value={account.id.toString()} className="py-3 text-base">
                                 <Image
-                                    src={`https://flagcdn.com/w20/${account.currency_code.substring(0, 2).toLowerCase()}.png`}
+                                    src={`https://flagcdn.com/w20/${flag}.png`}
                                     className="flag inline-block mr-2 w-5 h-auto"
                                     alt=""
                                     width={20}
                                     height={15}
                                 />
-                                {account.currency_code} {account.balance}
+                                {account.currency_code} {formattedBalance}
                             </SelectItem>
-                        ))}
+                            );
+                    })}
                     </SelectGroup>
                 </SelectContent>
             </Select>

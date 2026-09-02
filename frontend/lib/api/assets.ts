@@ -1,4 +1,4 @@
-import { AssetSummary, AssetSummarySchema, AssetPricesResponseSchema, OHLCV, SimCreateResponse, SimCreateResponseSchema } from '../types/assets';
+import { AssetSummary, AssetSummarySchema, AssetPricesResponseSchema, OHLCV, SimCreateResponse, SimCreateResponseSchema, RealTimeTick, RealTimeDataResponseSchema, RealTimeSymbolsResponseSchema, ChartBar, ChartInterval, ChartBarsResponseSchema } from '../types/assets';
 import { apiClient } from '@/lib/api'
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -19,6 +19,33 @@ export async function fetchAssetPrices(
   if (!res.ok) throw new Error(`Failed to fetch prices: ${res.status}`);
   const data = await res.json();
   return AssetPricesResponseSchema.parse(data);
+}
+
+export async function fetchRealTimeTicks(ticker: string): Promise<RealTimeTick[]>
+{
+  const symbol = ticker.toUpperCase();
+  const res = await fetch(`${apiUrl}/real_time/points/${encodeURIComponent(symbol)}`);
+  if (!res.ok) throw new Error(`Failed to fetch real time data: ${res.status}`);
+  const data = await res.json();
+  return RealTimeDataResponseSchema.parse(data).points;
+}
+
+export async function fetchChartBars(
+  ticker: string,
+  interval: ChartInterval,
+): Promise<ChartBar[]>
+{
+  const symbol = encodeURIComponent(ticker.toUpperCase());
+  const res = await apiClient(`/assets/${symbol}/chart_predef?interval=${interval}`);
+  return ChartBarsResponseSchema.parse(res);
+}
+
+export async function fetchRealTimeSymbols(): Promise<string[]>
+{
+  const res = await fetch(`${apiUrl}/real_time/list`);
+  if (!res.ok) throw new Error(`Failed to fetch real time symbols: ${res.status}`);
+  const data = await res.json();
+  return RealTimeSymbolsResponseSchema.parse(data).symbols;
 }
 
 export async function startSimulation(

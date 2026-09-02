@@ -1,7 +1,6 @@
 'use client';
 
 import { useAssetSummary } from '../hooks/useAssetSummary';
-import { usePrices } from '@/hooks/usePrices';
 
 interface SummaryBarProps {
   ticker: string;
@@ -9,7 +8,6 @@ interface SummaryBarProps {
 
 export default function AssetSummaryBar({ ticker }: SummaryBarProps) {
   const { data, loading } = useAssetSummary(ticker);
-  const { data: prices } = usePrices(ticker, '1d');
 
   if (loading)
   {
@@ -21,7 +19,7 @@ export default function AssetSummaryBar({ ticker }: SummaryBarProps) {
     return <div className="card">No summary data available</div>;
   }
 
-  const openPrice = prices && prices.length > 0 ? prices[0].open : null;
+  const openPrice = data.open_price ?? null;
   const priceColor = openPrice && data.current_price > openPrice ? 'text-green-600' : 'text-red-600';
 
   return (

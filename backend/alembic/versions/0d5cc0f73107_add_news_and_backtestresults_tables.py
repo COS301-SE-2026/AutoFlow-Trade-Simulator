@@ -1,0 +1,50 @@
+"""add news and backtestresults tables
+
+Revision ID: 0d5cc0f73107
+Revises: 56b7a22b33b4
+Create Date: 2026-08-31 09:20:28.159368
+"""
+from alembic import op
+import sqlalchemy as sa
+import sqlmodel
+
+from sqlalchemy.dialects import postgresql
+
+# revision identifiers, used by Alembic.
+revision = '0d5cc0f73107'
+down_revision = '56b7a22b33b4'
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    op.create_table('news',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(), nullable=False),
+    sa.Column('category',
+    sa.Enum('RUMOR', 'SENS', 'ARTICLE', 'RULING', name='newscategory', create_type=True, checkfirst=True), nullable=False),
+    sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('source', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('author', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('full_story', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('ticker', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('backtestresults',
+    sa.Column('backtest_id', sa.Integer(), nullable=False),
+    sa.Column('simu_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('asset_symbol', sqlmodel.sql.sqltypes.AutoString(length=10), nullable=False),
+    sa.Column('timeframe', sqlmodel.sql.sqltypes.AutoString(length=10), nullable=False),
+    sa.Column('total_trade', sa.Integer(), nullable=True),
+    sa.Column('win_rate_percentage', sa.Numeric(precision=18, scale=4), nullable=True),
+    sa.ForeignKeyConstraint(['simu_id'], ['praticesimulation.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('backtest_id')
+    )
+
+
+def downgrade() -> None:
+    op.drop_table('backtestresults')
+    op.drop_table('news')
+    op.execute("DROP TYPE IF EXISTS newscategory")

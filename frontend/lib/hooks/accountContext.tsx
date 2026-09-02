@@ -6,6 +6,8 @@ import {
     useState,
     useEffect,
     type ReactNode,
+    useCallback,
+    useMemo
 } from "react";
 import { fetchAllInternationalAccounts, createAccount } from "../api/accounts";
 import type { InternationalAccount } from "../types/accounts";
@@ -20,6 +22,7 @@ type AccountContextType = {
     error: string | null;
     create: (currencyCode: Currency, initialBalance: number) => Promise<void>;
     update: (updated: InternationalAccount) => void;
+    refetchAccounts: () => Promise<void>;
 };
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
@@ -32,6 +35,44 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     const [activeAccount, setActiveAccount] = useState<InternationalAccount | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const refetchAccounts = useCallback(async () => {
+        const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
+
+        if(!token) {
+            setAccounts(null);
+            setActiveAccount(null);
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const fetchedAccounts = await fetchAllInternationalAccounts();
+            setAccounts(fetchedAccounts);
+
+            if(fetchedAccounts.length > 0){
+                const savedId = typeof window !== 'undefined' ? sessionStorage.getItem(activeAccountKey) : null;
+
+                const savedAccount = savedId
+                    ? fetchedAccounts.find((a) => a.id === Number(savedId))
+                    : null;
+
+                    setActiveAccount(savedAccount ?? fetchedAccounts[0]);
+            }
+        } catch (err: any) {
+            if (err instanceof ApiError && err.status === 401) {
+                setAccounts(null);
+                setActiveAccount(null);
+            } else {
+                setError(err.message);
+            } 
+        } finally {
+                setIsLoading(false);
+            }
+    }, []);
 
     useEffect(() => {
         const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
@@ -67,23 +108,34 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             .finally(() => setIsLoading(false));
     }, [token]);
 
-    async function create(currencyCode: Currency, initialBalance: number) {
-        const newAccount = await createAccount(currencyCode, initialBalance);
-        setAccounts((prev) => (prev ? [...prev, newAccount] : [newAccount]));
-        update(newAccount);
-    }
-
-    function update(updated: InternationalAccount) {
+    const update = useCallback((updated: InternationalAccount) => {
         setAccounts((prev) =>
             prev ? prev.map((a) => (a.id === updated.id ? updated : a)) : [updated]
         );
         setActiveAccount(updated);
         sessionStorage.setItem(activeAccountKey, String(updated.id));
         window.location.reload();
-    }
+    }, []);
+    
+    const create = useCallback(async (currencyCode: Currency, initialBalance: number) => {
+        const newAccount = await createAccount(currencyCode, initialBalance);
+        setAccounts((prev) => (prev ? [...prev, newAccount] : [newAccount]));
+        update(newAccount);
+    }, [update]);
+
+
+    const value = useMemo(() => ({
+        accounts,
+        activeAccount,
+        isLoading,
+        error,
+        create,
+        update,
+        refetchAccounts
+    }), [accounts, activeAccount, isLoading, error, create, update, refetchAccounts]);
 
     return (
-        <AccountContext.Provider value={{ accounts, activeAccount, isLoading, error, create, update }}>
+        <AccountContext.Provider value={value}>
     {children}
     </AccountContext.Provider>
     );

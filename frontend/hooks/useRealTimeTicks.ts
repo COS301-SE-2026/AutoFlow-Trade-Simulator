@@ -41,3 +41,30 @@ export function useRealTimeTicks(symbol: string | null) {
 
     return { realTimeTicks, loading, error, refetch: fetch }
 }
+
+export function useRealTimeTicksList() {
+    const [realTimeTicksList, setRealTimeTicksList] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetch = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await apiClient(`/real_time/list`);
+            setRealTimeTicksList(response.symbols);
+        } catch (error: any) {
+            if (error instanceof ApiError && error.status === 401) {
+                setRealTimeTicksList([]);
+            }
+            else {
+                setError(error.message);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+    useEffect(() => { fetch(); }, [fetch]);
+
+    return { realTimeTicksList, loading, error, refetch: fetch }
+}
