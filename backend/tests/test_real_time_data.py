@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from sqlmodel import Session
+from sqlmodel import Session, select
 from app.models.currency import Currency
 from tests.conftest import test_engine,client
 from app.models.asset import Asset
@@ -9,13 +9,18 @@ from app.models.real_time_ticks import RealTimeTicks
 
 def seed_asset(ticker: str = "AAPL") -> int:
     with Session(test_engine) as session:
-        asset = Asset(symbol=ticker, asset_class="STOCK", exchange="NASDAQ", currency="ZAR")
-        session.add(asset)
-        session.commit()
-        session.refresh(asset)
-        assert asset.asset_id is not None
-        return asset.asset_id
+        existing = session.exec(select(Asset).where(Asset.symbol == ticker)).first()
+        if existing is not None:
+            assert existing.asset_id is not None
+            return existing.asset_id
         
+    asset = Asset(symbol=ticker, asset_class="STOCK", exchange="NASDAQ", currency="ZAR")
+    session.add(asset)
+    session.commit()
+    session.refresh(asset)
+    assert asset.asset_id is not None
+    return asset.asset_id
+                
 def seed_currency(code: str = "ZAR") -> None:
     with Session(test_engine) as session:
         currency = Currency(code=code, name="South African rand")

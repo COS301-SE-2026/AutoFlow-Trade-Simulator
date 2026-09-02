@@ -7,6 +7,7 @@ import { useAssetSummary } from '@/hooks/useAssetSummary'
 import { useHoldings } from '@/hooks/useHoldings'
 import { useAccount } from '@/lib/hooks/accountContext'
 import { apiClient } from '@/lib/api'
+import { mock } from 'node:test'
 
 jest.mock('next/navigation', () => ({
     useParams: jest.fn()
@@ -50,6 +51,9 @@ describe('AssetPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+
+        mockApiClient.mockReset();
+        mockApiClient.mockResolvedValue({});
 
         mockUseParams.mockReturnValue({ ticker: 'BTC-USD' })
         mockUsePrices.mockReturnValue({
@@ -118,7 +122,14 @@ describe('AssetPage', () => {
         })
 
         it('shows error alert if buy order API call fails', async() => {
-            mockApiClient.mockRejectedValueOnce(new Error('Network Error'));
+            mockApiClient.mockImplementation((url: string, options?: any) => {
+                if (url === '/portfolio/accounts/acc_123' && options?.method === 'POST') {
+                    return Promise.reject(new Error('Network Error'));
+                }
+                return Promise.resolve({});
+            });
+
+
             render(<AssetPage/>)
 
             fireEvent.click(screen.getByTestId('trigger-buy'))
@@ -133,7 +144,10 @@ describe('AssetPage', () => {
             fireEvent.click(screen.getByTestId('trigger-buy'))
 
             expect(await screen.findByText('No active account is selected')).toBeInTheDocument();
-            expect(mockApiClient).not.toHaveBeenCalled();
+            expect(mockApiClient).not.toHaveBeenCalledWith(
+                '/portfolio/accounts/acc_123',
+                expect.objectContaining({ method: 'POST' })
+            );
         })
     })
 

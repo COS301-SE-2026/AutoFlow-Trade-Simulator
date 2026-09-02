@@ -106,7 +106,7 @@ jobs:
 
       - name: Lint frontend
         working-directory: frontend
-        run: npm run lint:frontend
+        run: npm run lint
 
       - name: Run frontend tests
         working-directory: frontend
