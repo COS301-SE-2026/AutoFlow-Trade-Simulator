@@ -10,13 +10,17 @@ import { PortfolioCashBalance } from "@/components/portfolioCashBalance"
 import { PortfolioInvested } from "@/components/portfolioInvested"
 import { PortfolioTotalValue } from "@/components/portfolioTotalValue"
 
+import { HoldingsSummary } from "@/components/HoldingsSummary";
+
+import AssetSummaryBar from '@/components/AssetSummaryBar';
+
 export default function PortfolioPage() {
   const { activeAccount } = useAccount();
 
   return (
     <>
       <Navbar />
-      <div className="flex w-full gap-6">
+      <div className="flex w-full gap-6 p-4">
         {activeAccount ? (
           <>
             <PortfolioCashBalance accountId={activeAccount.id} />
@@ -27,6 +31,8 @@ export default function PortfolioPage() {
           <TradingAuthPrompt />
         }
       </div>
+      {activeAccount ? <HoldingsSummary accountId={activeAccount.id} /> : <TradingAuthPrompt />}
+      <AssetSummaryBar ticker={'AAPL'} />
     </>
   )
 }
