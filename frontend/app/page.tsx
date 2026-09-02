@@ -8,9 +8,6 @@ import Toast from '@/components/Toast';
 import { useState } from 'react';
 
 export default function SplashPage() {
-
-    const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
-
     return (
         <div className='blurred-animated-bg relative'>
             <div className='size-full bg-[var(--background-glass)] backdrop-blur-md overflow-auto'>
@@ -46,44 +43,6 @@ export default function SplashPage() {
                         </div>
                     </div>
                 </nav>
-
-                <div className='flex justify-evenly'>
-                    <button
-                        type='button'
-                        onClick={() => {setToast({ message: 'This is a success toast!', type: 'success' })}}
-                    >
-                        show the success toast
-                    </button>
-
-                    <button
-                        type='button'
-                        onClick={() => {setToast({ message: 'This is an error toast!', type: 'error' })}}
-                    >
-                        show the error toast
-                    </button>
-
-                    <button
-                        type='button'
-                        onClick={() => {setToast({ message: 'This is an info toast!', type: 'info' })}}
-                    >
-                        show the info toast
-                    </button>
-
-                    <button
-                        type='button'
-                        onClick={() => {setToast({ message: 'This is a warning toast!', type: 'warning' })}}
-                    >
-                        show the warning toast
-                    </button>
-                    
-                    {toast && (
-                        <Toast
-                            message={toast.message}
-                            type={toast.type}
-                            onClose={() => setToast(null)}
-                        />
-                    )}
-                </div>
 
                 <div className='mx-auto px-6 py-24'>
                     <div className='text-center mx-auto'>
