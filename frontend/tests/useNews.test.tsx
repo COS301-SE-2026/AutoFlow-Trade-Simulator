@@ -36,16 +36,18 @@ describe("useNews Hook", () => {
             ]
         };
 
-        mockFetchNews.mockResolvedValueOnce(mockBackendResponse);
+       mockFetchNews.mockResolvedValueOnce(mockBackendResponse);
 
-        const startDate = new Date("2026-01-01");
-        const endDate = new Date("2026-01-02");
+       const startDate = new Date("2026-01-01");
+       const endDate = new Date("2026-01-02");
 
-        const { result } = renderHook(() => useNews("AAPL", startDate, endDate));
+       const { result } = renderHook(() => useNews("AAPL", startDate, endDate));
+       
+       await waitFor(() => {
+            expect(result.current.isLoading).toBe(false);
+       });
 
-        expect(result.current.isLoading).toBe(false);
-
-        expect(result.current.newsItems).toEqual([
+       expect(result.current.newsItems).toEqual([
             {
                 id: "1",
                 timestamp: mockBackendResponse.news_items[0].timestamp.toDateString(),
@@ -55,8 +57,9 @@ describe("useNews Hook", () => {
                 author: "John Doe",
                 fullStory: "Full story text",
             }
-        ]);
-        expect(mockFetchNews).toHaveBeenCalledTimes(1);
+       ]);
+
+       expect(mockFetchNews).toHaveBeenCalledTimes(1);
     });
 
     it("should handle fetch errors gracefully by returning empty items and null error", async () => {
