@@ -103,7 +103,7 @@ export default function AssetPage() {
 
       <div className='flex min-h-screen bg-background'>
         <aside className='hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 overflow-y-auto'>
-          <div className='mb-3 items-center'>
+          <div className='mb-3 flex justify-center'>
             <TickerSearch />
           </div>
 
