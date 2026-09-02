@@ -16,8 +16,18 @@ export interface HoldingsWithCurrPrice {
     net_quantity: number,
     average_cost: number,
 
-    current_price: number,
-    unrealised_pnl: number
+    current_price: number | null,
+    unrealised_pnl: number | null
+}
+
+export interface RealTimeDataPoint {
+    timestamp: string
+    price: number
+    volume: number
+}
+
+export interface RealTimeDataResponse {
+    points: RealTimeDataPoint[]
 }
 
 export function useHoldings(account_id: number | null) {
@@ -36,23 +46,32 @@ export function useHoldings(account_id: number | null) {
 
             const holdingsWithPrice = await Promise.all(
                 response.holdings.map(async (h: Holdings) => {
-                    const summary = await apiClient(`/market-data/assets/${h.ticker}/summary`);
-                    return {
-                        ...h,
-                        current_price: summary.current_price,
-                        unrealised_pnl: (summary.current_price - h.average_cost) * h.net_quantity,
-                    };
+                    try {
+                        const summary: RealTimeDataResponse = await apiClient(`/real_time/points/${h.ticker}`);
+                        const latest = summary.points.reduce<RealTimeDataPoint | null>((max, p) =>
+                            !max || p.timestamp > max.timestamp ? p : max, null);
+
+                        if (!latest) {
+                            return { ...h, current_price: null, unrealised_pnl: null };
+                        }
+
+                        return {
+                            ...h,
+                            current_price: latest.price,
+                            unrealised_pnl: (latest.price - h.average_cost) * h.net_quantity,
+                        };
+                    } catch {
+                        return { ...h, current_price: null, unrealised_pnl: null };
+                    }
                 })
             );
 
             setHoldings(holdingsWithPrice);
         } catch (error: any) {
-            if (error instanceof ApiError && error.status === 401) 
-            {
+            if (error instanceof ApiError && error.status === 401) {
                 setHoldings([]);
-            } 
-            else 
-            {
+            }
+            else {
                 setError(error.message);
             }
         } finally {

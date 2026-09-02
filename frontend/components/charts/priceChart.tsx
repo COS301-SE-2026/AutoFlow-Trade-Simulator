@@ -91,7 +91,7 @@ export default function PriceChart({ ticker }: PriceChartProps) {
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
                 <XAxis dataKey="name" stroke="#ffffff" />
-                <YAxis stroke="#ffffff" tickFormatter={(v) => `R${v}`} width={70} />
+                <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => `R${v}`} width={70} />
                 <Tooltip
                   cursor={{ stroke: '#9ca3af' }}
                   content={<CustomTooltip />}

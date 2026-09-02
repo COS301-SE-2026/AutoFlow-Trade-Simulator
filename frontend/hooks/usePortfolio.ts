@@ -15,7 +15,10 @@ export function usePortfolio(accountId: number | null) {
         let temp = 0;
         for (let index = 0; index < holdings.length; index++) {
             const holding = holdings[index];
-            temp += holding.current_price * holding.net_quantity;
+            if (holding.current_price === null) {
+                console.error(`No live price data available for ${holding.ticker}`)
+            }
+            temp += holding.current_price! * holding.net_quantity;
         }
         return temp;
     }, [holdings]);

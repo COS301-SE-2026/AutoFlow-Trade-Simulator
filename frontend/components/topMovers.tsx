@@ -3,11 +3,10 @@
 import {useEffect, useState} from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
-import {fetchAssetPrices} from '@/lib/api/assets';
-import type {OHLCV} from '@/lib/types/assets';
+import {fetchChartBars} from '@/lib/api/assets';
+import type {ChartBar} from '@/lib/types/assets';
 
 const TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'BTC/USDT'] as const;
-const TIMEFRAME = '1d';
 
 type MoverData = {
     ticker: string;
@@ -18,20 +17,24 @@ type MoverData = {
     timestamp: string;
 };
 
-function buildMoverData(ticker: string, candles: OHLCV[]): MoverData | null {
+function buildMoverData(ticker: string, bars: ChartBar[]): MoverData | null {
+    // chart_predef returns newest-first; walk oldest-to-newest like the old OHLCV data did.
+    const candles = [...bars].reverse().filter((b) => b.close !== null);
     if (candles.length === 0) return null;
 
     const today = candles[candles.length - 1];
+    if (today.close === null || today.high === null || today.low === null) return null;
 
-    const prevClose = candles.length >= 2 ? candles[candles.length - 2].close : today.open;
+    const prevBar = candles.length >= 2 ? candles[candles.length - 2] : null;
+    const prevClose = prevBar?.close ?? today.open ?? today.close;
 
     return {
         ticker,
         current_price: today.close,
         daily_high: today.high,
         daily_low: today.low,
-        pct_change: ((today.close - prevClose) / prevClose) * 100,
-        timestamp: today.timestamp,
+        pct_change: prevClose ? ((today.close - prevClose) / prevClose) * 100 : 0,
+        timestamp: today.time,
     };
 }
 
@@ -176,8 +179,8 @@ export function TopMovers() {
             try {
                 const results = await Promise.all(
                     TICKERS.map((ticker) =>
-                        fetchAssetPrices(ticker, TIMEFRAME)
-                            .then((candles) => buildMoverData(ticker, candles))
+                        fetchChartBars(ticker, '1d')
+                            .then((bars) => buildMoverData(ticker, bars))
                             .catch(() => null),
                     ),
                 );
