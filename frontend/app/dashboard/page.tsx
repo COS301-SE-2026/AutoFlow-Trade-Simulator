@@ -16,7 +16,7 @@ import {ReportView} from "@/components/ReportView";
 
 function PageSkeleton() {
     return (
-        <div className="flex min-h-screen bg-background">
+        <div className="flex min-h-screen ">
             <aside className="hidden lg:flex flex-col w-72 shrink-0 border-r border-border/60 p-4 gap-3">
                 <Skeleton className="h-6 w-32 mb-2" />
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -35,7 +35,7 @@ function PageSkeleton() {
 
 function PageError({ message }: { message: string }) {
     return (
-        <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex items-center justify-center min-h-screen ">
             <div className="flex flex-col items-center gap-3 text-center px-6">
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-destructive">
@@ -77,7 +77,7 @@ export default function Dashboard() {
     return (
         <div>
             <Navbar />
-            <div className="flex min-h-screen bg-background">
+            <div className="flex min-h-screen ">
                 <aside
                     className="hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">
                     <TopMovers/>

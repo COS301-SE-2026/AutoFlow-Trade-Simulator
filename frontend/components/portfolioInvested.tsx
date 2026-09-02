@@ -6,7 +6,7 @@ export function PortfolioInvested({ accountId }: { accountId: number | null }) {
     const { investedValue, currencyCode, numHoldings } = usePortfolio(accountId);
 
     return (
-        <div className='rounded-xl p-6 border border-border/60' style={{ background: 'var(--panel)' }}>
+        <div className='rounded-xl w-96 p-6' style={{ background: 'var(--panel)' }}>
             <div className='flex items-center gap-3 mb-3'>
                 <div className='p-2 rounded-lg'>
                     <Activity className="w-5 h-5 text-green-400" />
