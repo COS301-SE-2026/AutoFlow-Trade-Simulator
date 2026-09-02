@@ -1,5 +1,5 @@
 import { exec } from 'node:child_process';
-import { promisify } from 'utilnode:';
+import { promisify } from 'node:util';
 import { Client } from 'pg';
 import dotenv from 'dotenv';
 import fs from 'node:fs'
