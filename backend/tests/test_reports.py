@@ -1,6 +1,6 @@
 from tests.conftest import client, get_token
         
-def test_execute_buy_trade() -> None:
+def test_create_report_daily() -> None:
     token = get_token()    
     response = client.post("reports", json={
         "period": "daily"

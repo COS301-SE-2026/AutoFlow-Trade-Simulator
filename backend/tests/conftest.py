@@ -38,10 +38,6 @@ def setup_database():
     with Session(test_engine) as session:
         assets = [
             Asset(symbol="AAPL", asset_class="Stock", exchange="NASDAQ", currency="USD"),
-            Asset(symbol="GOOGL", asset_class="Stock", exchange="NASDAQ", currency="USD"),
-            Asset(symbol="MSFT", asset_class="Stock", exchange="NASDAQ", currency="USD"),
-            Asset(symbol="TSLA", asset_class="Stock", exchange="NASDAQ", currency="USD"),
-            Asset(symbol="AMZN", asset_class="Stock", exchange="NASDAQ", currency="USD"),
         ]
         for asset in assets:
             session.add(asset)
