@@ -1,3 +1,10 @@
+from datetime import datetime, timezone, timedelta
+from app.models.asset import Asset
+from app.models.daily_OHLCV import DailyOHLCV
+from app.models.real_time_ticks import RealTimeTicks
+
+from decimal import Decimal
+
 import os
 import sys
 from pathlib import Path
@@ -21,7 +28,10 @@ from sqlmodel import SQLModel, Session, create_engine  # noqa: E402
 from app.database import get_session  # noqa: E402
 from app.main import app  # noqa: E402
 
-from app.models import User, Portfolio, Asset, Transaction  # <--- ADD THIS LINE
+TEST_DB_PATH = ROOT / "test.db"
+
+if TEST_DB_PATH.exists():
+    TEST_DB_PATH.unlink()
 
 test_engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
 
@@ -36,14 +46,28 @@ def setup_database():
     SQLModel.metadata.create_all(test_engine)
     
     with Session(test_engine) as session:
-        assets = [
-            Asset(symbol="AAPL", asset_class="Stock", exchange="NASDAQ", currency="USD"),
-        ]
-        for asset in assets:
-            session.add(asset)
+        asset = Asset(symbol="AAPL", asset_class="Stock", exchange="NASDAQ", currency="ZAR")
+        session.add(asset)
         session.flush()
-
+        assert asset.asset_id is not None, "Asset ID should not be none after flush"
+        
+        base_time = datetime.now(timezone.utc)
+        for i in range(7):
+            session.add(DailyOHLCV(
+                asset_id=asset.asset_id,
+                timestamp=base_time - timedelta(days=6 - i),
+                open=Decimal(str(150.0 + i)),
+                high=Decimal(str(152.0 + i)),
+                low=Decimal(str(149.0 + i)),
+                close=Decimal(str(151.0 + i)),
+                volume=Decimal("1000000"),
+            ))
+        
+        session.commit()
+        
     yield
+    SQLModel.metadata.drop_all(test_engine)
+
 client = TestClient(app)
 
 def get_token(email: str = "test@example.com") -> str:
@@ -57,3 +81,7 @@ def get_token(email: str = "test@example.com") -> str:
         "password": "Password123!"
     })
     return response.json()["access_token"]
+
+def pytest_sessionfinish(session, exitstatus):
+    if TEST_DB_PATH.exists():
+        TEST_DB_PATH.unlink()
