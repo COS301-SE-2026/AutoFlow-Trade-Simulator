@@ -9,6 +9,7 @@ import { TradingAuthPrompt } from "@/components/tradingAuthPrompt";
 import { PortfolioCashBalance } from "@/components/portfolioCashBalance"
 import { PortfolioInvested } from "@/components/portfolioInvested"
 import { PortfolioTotalValue } from "@/components/portfolioTotalValue"
+import { HoldingsSummary } from "@/components/HoldingsSummary"
 
 export default function PortfolioPage() {
   const { activeAccount } = useAccount();
@@ -26,6 +27,7 @@ export default function PortfolioPage() {
                     <PortfolioCashBalance accountId={activeAccount.id} />
                     <PortfolioInvested accountId={activeAccount.id} />
                     <PortfolioTotalValue accountId={activeAccount.id} />
+                    <HoldingsSummary accountId={activeAccount.id} />
                   </>
                 ) :
                   <TradingAuthPrompt />
