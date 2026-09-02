@@ -18,13 +18,11 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("CREATE TYPE IF NOT EXISTS newscategory AS ENUM ('RUMOR', 'SENS', 'ARTICLE', 'RULING')")
-
     op.create_table('news',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('timestamp', sa.DateTime(), nullable=False),
     sa.Column('category',
-    sa.Enum('RUMOR', 'SENS', 'ARTICLE', 'RULING', name='newscategory', create_type=False), nullable=False),
+    sa.Enum('RUMOR', 'SENS', 'ARTICLE', 'RULING', name='newscategory', create_type=True, checkfirst=True), nullable=False),
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('source', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('author', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
@@ -44,7 +42,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('backtest_id')
     )
-    # ### end Alembic commands ###
 
 
 def downgrade() -> None:

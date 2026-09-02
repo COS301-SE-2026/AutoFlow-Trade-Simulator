@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session
 
-from .AuthDTOs import EpicStatusDTO, LoginDTO, LoginResponseDTO, RegistrationDTO, RegistrationResponseDTO
+from .AuthDTOs import EpicStatusDTO, GoogleLoginDTO, LoginDTO, LoginResponseDTO, RegistrationDTO, RegistrationResponseDTO
 from .AuthService import AuthService
 from ...database import get_session
 
@@ -27,6 +27,10 @@ def login_swagger(
     service: AuthService = Depends(get_auth_service)
 ):
     return service.login(LoginDTO(email=form_data.username, password=form_data.password))
+
+@router.post("/google")
+def login_with_google(data:GoogleLoginDTO, service:AuthService=Depends(get_auth_service)) -> LoginResponseDTO:
+    return service.login_with_google(data=data)
 
 @router.post("/register",response_model=RegistrationResponseDTO)
 def register(data:RegistrationDTO, service:AuthService=Depends(get_auth_service)) -> RegistrationResponseDTO:

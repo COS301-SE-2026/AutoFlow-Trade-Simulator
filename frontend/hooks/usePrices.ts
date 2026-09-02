@@ -32,7 +32,7 @@ function aggregateTicks(
 
   const bars: OHLCV[] = [];
   let current: OHLCV | null = null;
-  let currentBucket = NaN;
+  let currentBucket = Number.NaN;
 
   for (const tick of sorted) {
     const time = new Date(tick.timestamp).getTime();
