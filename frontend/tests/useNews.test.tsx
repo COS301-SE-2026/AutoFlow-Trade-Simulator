@@ -77,5 +77,26 @@ describe("useNews Hook", () => {
         consoleError.mockRestore();
     });
 
-    it("should trigger a refetch when refetch is called")
+    it("should trigger a refetch when refetch is called", async () => {
+        mockFetchNews.mockResolvedValue({ news_items: [] });
+        
+        const startDate = new Date("2026-01-01");
+        const endDate = new Date("2026-01-02");
+
+        const { result } = renderHook(() => useNews("AAPL", startDate, endDate));
+
+        await waitFor(() => (
+            expect(result.current.isLoading).toBe(false)
+        ));
+
+        expect(mockFetchNews).toHaveBeenCalledTimes(1);
+
+        act(() => {
+            result.current.refetch();
+        });
+
+        await waitFor(() => {
+            expect(mockFetchNews).toHaveBeenCalledTimes(2);
+        });
+    });
 });
