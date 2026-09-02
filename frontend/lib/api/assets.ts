@@ -1,4 +1,4 @@
-import { AssetSummary, AssetSummarySchema, AssetPricesResponseSchema, OHLCV, SimCreateResponse, SimCreateResponseSchema, RealTimeTick, RealTimeDataResponseSchema, RealTimeSymbolsResponseSchema, ChartBar, ChartInterval, ChartBarsResponseSchema } from '../types/assets';
+import { AssetSummary, AssetSummarySchema, AssetPricesResponseSchema, OHLCV, SimCreateResponse, SimCreateResponseSchema, RealTimeTick, RealTimeDataResponseSchema, RealTimeSymbolsResponseSchema, ChartBar, ChartInterval, ChartBarsResponseSchema, Mover, MoversResponseSchema } from '../types/assets';
 import { apiClient } from '@/lib/api'
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -38,6 +38,14 @@ export async function fetchChartBars(
   const symbol = encodeURIComponent(ticker.toUpperCase());
   const res = await apiClient(`/assets/${symbol}/chart_predef?interval=${interval}`);
   return ChartBarsResponseSchema.parse(res);
+}
+
+export async function fetchTopMovers(limit: number = 10): Promise<Mover[]>
+{
+  const res = await fetch(`${apiUrl}/real_time/movers?limit=${limit}`);
+  if (!res.ok) throw new Error(`Failed to fetch top movers: ${res.status}`);
+  const data = await res.json();
+  return MoversResponseSchema.parse(data).movers;
 }
 
 export async function fetchRealTimeSymbols(): Promise<string[]>
