@@ -4,9 +4,8 @@ from sqlmodel import Session, select
 from typing import List, Dict
 from collections import defaultdict
 
-from ..market_data.MarketDataService import MarketDataService
-from ..market_data.MarketDataDTOs import AssetSummary
 from ...models.transaction import Direction
+from ...models.real_time_ticks import RealTimeTicks
 from ...models import Asset,InternationalAccount,User,Portfolio,Transaction,Currency
 from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, TransactionResponse, HoldingResponse, Holding
 
@@ -38,6 +37,18 @@ class PortfolioService:
 
         return quantity
 
+    def _get_current_price(self, asset_id: int) -> Decimal:
+        latest_tick = self.session.exec(
+            select(RealTimeTicks)
+            .where(RealTimeTicks.asset_id == asset_id)
+            .order_by(RealTimeTicks.timestamp.desc())
+        ).first()
+
+        if latest_tick is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No live price available for this asset")
+
+        return Decimal(str(latest_tick.price))
+
     def execute_trade(self,data:ExecuteTradeDTO,account_id:int,current_user:User)->ExecuteTradeResponseDTO:
         account = self.session.get(InternationalAccount,account_id)
         if account is None:
@@ -55,20 +66,17 @@ class PortfolioService:
 
         #get account balance
         balance:Decimal =account.balance
-        
-        # get asset price   
-        
-        market_service:MarketDataService= MarketDataService()
-        asset_summary:AssetSummary= market_service.get_asset_summary_data(data.ticker)
-        asset_price:Decimal=Decimal(asset_summary.current_price)
-        total_cost = asset_price * Decimal(str(data.quantity))
 
-         # get asset based on ticker
+        # get asset based on ticker
         asset=self.session.exec(select(Asset).where(Asset.symbol==data.ticker)).first()
         if asset is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no asset with specified ticker")
-        
+
         assert asset.asset_id is not None,"Asset ID should not be none"
+
+        # get asset price from the latest real-time tick
+        asset_price:Decimal = self._get_current_price(asset.asset_id)
+        total_cost = asset_price * Decimal(str(data.quantity))
 
 
         if data.direction== Direction.Buy:
