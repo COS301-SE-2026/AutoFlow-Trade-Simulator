@@ -21,6 +21,12 @@ interface EventDefinition {
     initialBalance: number;
 }
 
+const DEFAULT_3M_EVENT = {
+    timeframe: '3m',
+    tradingDays: 65,
+    initialBalance: 200000,
+} as const;
+
 const eventDefs: EventDefinition[] = [
     {
         id: 'aapl-iphone12',
@@ -63,12 +69,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Nov 2017 – Jan 2018',
         narrative: `Steinhoff, the global furniture giant, collapses overnight as "accounting irregularities" surface. CEO Markus Jooste resigns and the company restates years of financials, wiping out over R100bn in market cap in a single week. It becomes South Africa's largest corporate fraud case.`,
         context: `It's November 1, 2017. SNH trades near R61.00. Whispers of misconduct are circulating, but no one expects a near-total wipeout. You have R200,000 to manage over the next three months as the storm hits.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2017,
         startMonth: 11,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'sab-takeover',
@@ -79,12 +83,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Sep – Nov 2015',
         narrative: `Anheuser-Busch InBev launches a £68 billion hostile takeover bid for SABMiller, offering a 50% premium. The merger creates the world's largest brewer. SABMiller shares surge dramatically as the deal progresses toward completion.`,
         context: `It's September 1, 2015. SAB trades near R620 as rumours intensify. You have R200,000 to manage over the next three months as the M&A drama unfolds.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2015,
         startMonth: 9,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'lbh-cyberattack',
@@ -95,12 +97,10 @@ const eventDefs: EventDefinition[] = [
         period: 'May – Jul 2018',
         narrative: `Liberty suffers a massive cyber breach where hackers access client emails and demand a ransom. The insurer refuses to pay, leading to regulatory scrutiny and a 5% single-day share price drop, highlighting the growing threat of digital crime to financial institutions.`,
         context: `It's May 1, 2018. LBH trades near R130. Cyber risks are suddenly front-of-mind for investors. You have R200,000 to manage over the next three months.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2018,
         startMonth: 5,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'mtm-ceo-exit',
@@ -111,12 +111,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Oct – Dec 2008',
         narrative: `In the depths of the 2008 global financial crisis, Momentum CEO EB Nieuwoudt unexpectedly resigns "to pursue his own interests". The sudden departure spooks investors already panicking about the market meltdown, adding leadership uncertainty to a volatile stock.`,
         context: `It's October 1, 2008. MTM trades near R11.50, battered by the crisis. You have R200,000 to manage over the next three months.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2008,
         startMonth: 10,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'snh-jse-fine',
@@ -127,12 +125,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Jul – Sep 2018',
         narrative: `The JSE publicly censures Steinhoff and imposes a R1 million fine for failing to disclose a Moody's credit rating downgrade to shareholders for 20 days. Already reeling from the fraud scandal, the stock continues its painful decline as governance failures mount.`,
         context: `It's July 1, 2018. SNH trades near R1.30. The market has lost all trust in management. You have R200,000 to manage over the next three months.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2018,
         startMonth: 7,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'slm-earnings-crash',
@@ -143,12 +139,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Jul – Sep 2008',
         narrative: `Sanlam reports a staggering 57% drop in normalised headline EPS, driven by massive market volatility and investment write-downs. The earnings miss confirms that the financial crisis is tearing through the insurance sector's balance sheets.`,
         context: `It's July 1, 2008. SLM trades near R16.50. You have R200,000 to manage over the next three months as insurance profits evaporate.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2008,
         startMonth: 7,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'pik-dividend-suspension',
@@ -159,12 +153,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Mar – May 2020',
         narrative: `Pick n Pay forfeits its 173.06 cents per share final dividend to preserve cash during South Africa's first hard COVID-19 lockdown. The market punishes the stock with a 14% drop, as even defensive retailers feel the pandemic's squeeze.`,
         context: `It's March 1, 2020. PIK trades near R60, right as global markets crash. You have R200,000 to manage over the next three months.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2020,
         startMonth: 3,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'ael-bytes-spinoff',
@@ -175,12 +167,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Oct – Dec 2020',
         narrative: `Altron demerges Bytes Technology Group, listing it on both the LSE and JSE. The spin-off creates R7–R10.9 billion in shareholder value, with Altron's share price hitting an all-time high ahead of the listing as investors favour focused strategies.`,
         context: `It's October 1, 2020. AEL trades near R23.00. The market is excited about the upcoming demerger. You have R200,000 to manage over the next three months.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2020,
         startMonth: 10,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'ssk-eskom-contract',
@@ -191,12 +181,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Oct – Dec 2008',
         narrative: `Stefanutti Stocks leads a consortium to secure a R2.9 billion civil works contract for Eskom's Kusile power station. This counter-cyclical boost provides a rare bright spot during the 2008 crisis, sending the stock on a strong rally from R7.00 to R11.00.`,
         context: `It's October 1, 2008. SSK trades near R18.00 but is highly volatile due to the crisis. You have R200,000 to manage over the next three months.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2008,
         startMonth: 10,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     },
     {
         id: 'brt-dividend-boost',
@@ -207,12 +195,10 @@ const eventDefs: EventDefinition[] = [
         period: 'Jan – Mar 2008',
         narrative: `Brimstone doubles its annual dividend to 32 cents per share, driven by proceeds from the sale of its Lenco stake. The move signals confidence and strong NAV growth just as the global financial crisis begins to unfold, attracting income-hungry investors.`,
         context: `It's January 1, 2008. BRT trades near R8.65. The dividend increase is a major talking point. You have R200,000 to manage over the next three months.`,
-        timeframe: '3m',
+        ...DEFAULT_3M_EVENT,
         startYear: 2008,
         startMonth: 1,
         startDay: 1,
-        tradingDays: 65,
-        initialBalance: 200000,
     }
 ];
 
@@ -250,7 +236,7 @@ export function HistoricalEventsTab() {
                                 <BookOpen className='w-5 h-5 text-[var(--blue)]' />
                             </div>
                         </div>
-                
+
                         <p className='text-sm leading-relaxed'>{event.narrative}</p>
                         <div className='mt-4 flex flex-row flex-items-center gap-2 text-xs font-semibold text-[var(--blue)]'>
                             <span>
@@ -258,7 +244,7 @@ export function HistoricalEventsTab() {
                             </span>
                             <span>
                                 Start simulation
-                            </span> 
+                            </span>
                             <span>
                                 <ChevronRight className='w-3.5 h-3.5' />
                             </span>
