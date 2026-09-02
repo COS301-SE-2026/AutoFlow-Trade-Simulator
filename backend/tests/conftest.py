@@ -21,6 +21,8 @@ from sqlmodel import SQLModel, Session, create_engine  # noqa: E402
 from app.database import get_session  # noqa: E402
 from app.main import app  # noqa: E402
 
+from app.models import User, Portfolio, Asset, Transaction  # <--- ADD THIS LINE
+
 test_engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
 
 def get_test_session():
@@ -32,9 +34,20 @@ app.dependency_overrides[get_session] = get_test_session
 @pytest.fixture(autouse=True)
 def setup_database():
     SQLModel.metadata.create_all(test_engine)
-    yield
-    SQLModel.metadata.drop_all(test_engine)
+    
+    with Session(test_engine) as session:
+        assets = [
+            Asset(symbol="AAPL", asset_class="Stock", exchange="NASDAQ", currency="USD"),
+            Asset(symbol="GOOGL", asset_class="Stock", exchange="NASDAQ", currency="USD"),
+            Asset(symbol="MSFT", asset_class="Stock", exchange="NASDAQ", currency="USD"),
+            Asset(symbol="TSLA", asset_class="Stock", exchange="NASDAQ", currency="USD"),
+            Asset(symbol="AMZN", asset_class="Stock", exchange="NASDAQ", currency="USD"),
+        ]
+        for asset in assets:
+            session.add(asset)
+        session.flush()
 
+    yield
 client = TestClient(app)
 
 def get_token(email: str = "test@example.com") -> str:
