@@ -10,15 +10,16 @@ const ACCOUNT_ID = 6;
 
 export const options = {
     stages: [
-        { duration: '30s', target: 5 },
-        { duration: '1m', target: 10 },
-        { duration: '30s', target: 20 },
-        { duration: '1m', target: 20 },
-        { duration: '30s', target: 0 }
+        { duration: '1m', target: 50 },
+        { duration: '1m', target: 200 },
+        { duration: '5m', target: 200 },
+        { duration: '1m', target: 0 }
     ],
     thresholds: {
         http_req_duration: ['p(95)<500'],
-        http_req_failed: ['rate<0.01']
+        http_req_failed: ['rate<0.01'],
+        'http_req_duration{endpoint:marketAssets}': ['p(95)<400'],
+        'http_req_duration{endpoint:portfolioTrade}': ['p(95)<500']
     }
 };
 
@@ -50,10 +51,11 @@ export default function performanceTest() {
     http.get(`${BASE_URL}/demo`, { headers: authHeaders });
 
     // Market Data
+    const ticker = 'AAPL';
     http.get(`${BASE_URL}/market-data/status`, { headers: authHeaders });
     http.get(`${BASE_URL}/market-data/assets`, { headers: authHeaders });
-    http.get(`${BASE_URL}/market-data/assets/{ticker}/prices`, { headers: authHeaders });
-    http.get(`${BASE_URL}/market-data/assets/{ticker}/summary`, { headers: authHeaders });
+    http.get(`${BASE_URL}/market-data/assets/${ticker}/prices`, { headers: authHeaders });
+    http.get(`${BASE_URL}/market-data/assets/${ticker}/summary`, { headers: authHeaders });
 
     // UI
     http.get(`${BASE_URL}/ui/status`, { headers: authHeaders });
@@ -88,8 +90,9 @@ export default function performanceTest() {
 
     // Auth
     http.get(`${BASE_URL}/auth/status`, { headers: authHeaders });
-    // http.post(`${BASE_URL}/auth/login`,, { headers: authHeaders });
+    http.post(`${BASE_URL}/auth/login`, loginPayload, { headers: authHeaders });
     // http.post(`${BASE_URL}/auth/register`,, { headers: authHeaders });
+    // http.post(`${BASE_URL}/auth/google`,, { headers: authHeaders });
 
     // Accounts
     http.get(`${BASE_URL}/accounts/status`, { headers: authHeaders });
@@ -104,6 +107,29 @@ export default function performanceTest() {
 
     http.get(`${BASE_URL}/reports/`, { headers: authHeaders });
     http.post(`${BASE_URL}/reports/`, reportPayload, { headers: authHeaders });
+
+    // Simulation
+    const strategy_id = 1;
+    const simulation_id = 1;
+
+    http.get(`${BASE_URL}/simulation/status`, { headers: authHeaders });
+    http.get(`${BASE_URL}/simulation/strategies`, { headers: authHeaders });
+    http.get(`${BASE_URL}/simulation/strategies/${strategy_id}`, { headers: authHeaders });
+    http.post(`${BASE_URL}/simulation/practice/simulate`, reportPayload, { headers: authHeaders });
+    http.post(`${BASE_URL}/simulation/practice/simulate/actions`, reportPayload, { headers: authHeaders });
+    http.post(`${BASE_URL}/simulation/practice/simulate/${simulation_id}/finish`, reportPayload, { headers: authHeaders });
+
+    // Real Time Data
+    const symbol = 'AAPL';
+
+    http.get(`${BASE_URL}/real_time/status`, { headers: authHeaders });
+    http.get(`${BASE_URL}/real_time/points/${symbol}`, { headers: authHeaders });
+    http.get(`${BASE_URL}/real_time/list`, { headers: authHeaders });
+
+    // News
+    http.get(`${BASE_URL}/news/status`, { headers: authHeaders });
+    http.post(`${BASE_URL}/news/create`, reportPayload, { headers: authHeaders });
+    http.post(`${BASE_URL}/news`, reportPayload, { headers: authHeaders });
 
     sleep(1);
 }
