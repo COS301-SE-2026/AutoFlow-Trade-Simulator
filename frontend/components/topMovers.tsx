@@ -3,10 +3,9 @@
 import {useEffect, useState} from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
-import {fetchChartBars} from '@/lib/api/assets';
-import type {ChartBar} from '@/lib/types/assets';
+import {fetchTopMovers} from '@/lib/api/assets';
 
-const TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'BTC/USDT'] as const;
+const MOVERS_LIMIT = 8;
 
 type MoverData = {
     ticker: string;
@@ -16,27 +15,6 @@ type MoverData = {
     pct_change: number;
     timestamp: string;
 };
-
-function buildMoverData(ticker: string, bars: ChartBar[]): MoverData | null {
-    // chart_predef returns newest-first; walk oldest-to-newest like the old OHLCV data did.
-    const candles = [...bars].reverse().filter((b) => b.close !== null);
-    if (candles.length === 0) return null;
-
-    const today = candles[candles.length - 1];
-    if (today.close === null || today.high === null || today.low === null) return null;
-
-    const prevBar = candles.length >= 2 ? candles[candles.length - 2] : null;
-    const prevClose = prevBar?.close ?? today.open ?? today.close;
-
-    return {
-        ticker,
-        current_price: today.close,
-        daily_high: today.high,
-        daily_low: today.low,
-        pct_change: prevClose ? ((today.close - prevClose) / prevClose) * 100 : 0,
-        timestamp: today.time,
-    };
-}
 
 function fmt(n: number, decimals = 2): string {
     return n.toLocaleString('en-US', {
@@ -177,21 +155,11 @@ export function TopMovers() {
 
         async function load() {
             try {
-                const results = await Promise.all(
-                    TICKERS.map((ticker) =>
-                        fetchChartBars(ticker, '1d')
-                            .then((bars) => buildMoverData(ticker, bars))
-                            .catch(() => null),
-                    ),
-                );
+                const movers = await fetchTopMovers(MOVERS_LIMIT);
 
                 if (cancelled) return;
 
-                const valid = results.filter((r): r is MoverData => r !== null);
-
-                valid.sort((a, b) => Math.abs(b.pct_change) - Math.abs(a.pct_change));
-
-                setMovers(valid);
+                setMovers(movers);
             } catch (e) {
                 if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load movers');
             }
@@ -222,7 +190,7 @@ export function TopMovers() {
                     <p className="text-sm text-destructive font-mono">{error}</p>
                 ) : movers === null ? (
                     <ul className="flex flex-col gap-2">
-                        {Array.from({length: TICKERS.length}).map((_, i) => (
+                        {Array.from({length: MOVERS_LIMIT}).map((_, i) => (
                             <li
                                 key={i}
                                 className="h-[62px] rounded-xl border border-border/40 bg-muted/40 animate-pulse"
