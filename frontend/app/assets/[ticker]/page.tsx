@@ -104,6 +104,10 @@ export default function AssetPage() {
       <div className='flex min-h-screen bg-background'>
         <aside className='hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 overflow-y-auto'>
           <TopMovers />
+
+          <div>
+            <TickerSearch />
+          </div>
         </aside>
 
       <main className='flex-1 flex flex-col gap-5 p-6 min-w-0'>
@@ -119,10 +123,6 @@ export default function AssetPage() {
 
         <div>
           <h1 className='text-2xl font-bold uppercase'>{ticker}</h1>
-        </div>
-
-        <div>
-          <TickerSearch />
         </div>
 
         <div>
