@@ -92,7 +92,6 @@ export default function Dashboard() {
                     </div>
 
                     <div className="h-[500px] rounded-xl border border-border/60 bg-card overflow-hidden">
-                        <PriceChart ticker={ticker}/>
                     </div>
 
                     <div className="lg:hidden">

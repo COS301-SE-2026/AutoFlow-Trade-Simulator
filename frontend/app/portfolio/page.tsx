@@ -23,6 +23,8 @@ import Fuse from 'fuse.js';
 
 import { TickerSearchProps } from '@/components/TickerSearch';
 
+import PriceChart from '@/components/charts/priceChart';
+
 export default function PortfolioPage({
   onSelect,
   placeholder = "Ticker Search..."
@@ -102,6 +104,14 @@ export default function PortfolioPage({
       <div className="flex w-full gap-6 p-4">
         {activeAccount ? <HoldingsSummary accountId={activeAccount.id} /> : <TradingAuthPrompt />}
         <AssetSummaryBar ticker={ticker || 'AAPL'} />
+      </div>
+      <div className='gap-6'>
+
+      </div>
+      <div className="overflow-hidden p-3">
+        <div className='bg-card rounded-xl border-border/60 p-3'>
+          <PriceChart ticker={ticker || 'AAPL'} />
+        </div>
       </div>
     </>
   )
