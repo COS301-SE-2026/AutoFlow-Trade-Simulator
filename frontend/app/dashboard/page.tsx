@@ -65,12 +65,11 @@ function TickerHeader({ ticker }: { ticker: string }) {
 }
 
 export default function Dashboard() {
-    const ticker = 'AAPL';
+    const ticker = 'BTC';
 
     const { loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
     const { loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
     const {activeAccount} = useAccount();
-    const { holdings, loading: holdingsLoading, error: holdingsError } = useHoldings(activeAccount?.id ?? null);
 
     if (!ticker) return <PageError message="Invalid ticker" />;
     if (pricesLoading || summaryLoading) return <PageSkeleton />;
@@ -103,7 +102,7 @@ export default function Dashboard() {
                 <Tabs defaultValue="Transactions" className="w-full flex flex-col">   {/* ← added flex flex-col */}
                     <div className="border-b border-border/60">
                         <TabsList className="inline-flex h-9 items-center gap-0 bg-transparent p-0 rounded-none">
-                            {(['Transactions', 'Holdings', 'Report'] as const).map((tab) => (
+                            {(['Transactions', 'Report'] as const).map((tab) => (
                                 <TabsTrigger
                                     key={tab}
                                     value={tab}
@@ -118,12 +117,6 @@ export default function Dashboard() {
 
                     <TabsContent value="Transactions" className="w-full mt-4">
                         {activeAccount ? <TransactionLog accountId={activeAccount.id} /> : <TradingAuthPrompt />}
-                    </TabsContent>
-
-                    <TabsContent value="Holdings" className="w-full mt-4">
-                        {activeAccount ? (
-                            <HoldingsSummary holdings={holdings} loading={holdingsLoading} error={holdingsError} />
-                        ) : <TradingAuthPrompt />}
                     </TabsContent>
 
                     <TabsContent value="Report" className="w-full mt-4">

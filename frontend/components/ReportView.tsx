@@ -1,14 +1,7 @@
 'use client';
 import { useReports } from '@/hooks/useReports';
 
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+import { ReportCard } from './ReportCard';
 import { useState } from 'react';
 import { Button } from './ui/button';
 
@@ -21,37 +14,22 @@ export function ReportView({ }: {}) {
 
     return (
         <>
-            <div>
-                <Button onClick={() => setPeriod("daily")}>Daily</Button>
-                <Button onClick={() => setPeriod("weekly")}>Weekly</Button>
-                <Button onClick={() => createReport(period)}>Generate Report</Button>
+            <div className='flex flex-row gap-4 m-2'>
+                <Button className='bg-transparent border border-[var(--border)]' onClick={() => setPeriod("daily")}>Daily</Button>
+                <Button className='bg-transparent border border-[var(--border)]' onClick={() => setPeriod("weekly")}>Weekly</Button>
+                <Button className='bg-transparent border border-[var(--border)]' onClick={() => createReport(period)}>Generate Report</Button>
             </div>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Report ID</TableHead>
-                        <TableHead>Ticker</TableHead>
-                        <TableHead>Open Price</TableHead>
-                        <TableHead>Close Price</TableHead>
-                        <TableHead>PCT Change</TableHead>
-                        <TableHead>Period High</TableHead>
-                        <TableHead>Period Low</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {reports.map((r) => (
-                        <TableRow key={r.id}>
-                            <TableCell>{r.report_id}</TableCell>
-                            <TableCell>{r.ticker}</TableCell>
-                            <TableCell>{r.open_price}</TableCell>
-                            <TableCell>{r.close_price}</TableCell>
-                            <TableCell>{r.pct_change}</TableCell>
-                            <TableCell>{r.period_high}</TableCell>
-                            <TableCell>{r.period_low}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            <div className='m-2'>
+                {reports.length === 0 ? (
+                    <p className='text-sm'>No reports generated yet.</p>
+                ) : (
+                    <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
+                        {reports.map((report) => (
+                            <ReportCard key={report.id} report={report} />
+                        ))}
+                    </div>
+                )}
+            </div>
         </>
     );
 }

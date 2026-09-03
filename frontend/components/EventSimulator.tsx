@@ -309,7 +309,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             > {Number.parseFloat(summary.returns_pct)}%</span>
                         </div>
                         <div className='text-center text-lg'>
-                            Max Drawdown:<span className='text-[var(--red)]'>
+                            Max Drawdown: <span className='text-[var(--red)]'>
                                 {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
                         </div>
                         <div className='text-center text-lg'>
