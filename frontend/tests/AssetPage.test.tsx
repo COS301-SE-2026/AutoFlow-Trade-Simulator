@@ -37,6 +37,10 @@ jest.mock('@/components/BuySellForm', () => ({
     )
 }))
 
+jest.mock('@/components/topMovers', () => ({
+    TopMovers: () => <div data-testid='top-movers-mock'>TopMovers</div>
+}))
+
 describe('AssetPage', () => {
     const mockRefetchHoldings = jest.fn();
     const mockRefetchAccounts = jest.fn();
