@@ -65,6 +65,19 @@ export const RealTimeSymbolsResponseSchema = z.object({
   count: z.number().nonnegative(),
 });
 
+export const MoverSchema = z.object({
+  ticker: z.string(),
+  current_price: z.coerce.number(),
+  daily_high: z.coerce.number(),
+  daily_low: z.coerce.number(),
+  pct_change: z.number(),
+  timestamp: z.string(),
+});
+
+export const MoversResponseSchema = z.object({
+  movers: z.array(MoverSchema),
+});
+
 export type SimCreateResponse = z.infer<typeof SimCreateResponseSchema>;
 export type OHLCVBar = z.infer<typeof OHLCVBarSchema>;
 export type OHLCV = z.infer<typeof OHLCVSchema>;
@@ -75,3 +88,5 @@ export type RealTimeDataResponse = z.infer<typeof RealTimeDataResponseSchema>;
 export type RealTimeSymbolsResponse = z.infer<typeof RealTimeSymbolsResponseSchema>;
 export type ChartBar = z.infer<typeof ChartBarSchema>;
 export type ChartInterval = '1d' | '1w' | '1m' | '6m' | '1y';
+export type Mover = z.infer<typeof MoverSchema>;
+export type MoversResponse = z.infer<typeof MoversResponseSchema>;

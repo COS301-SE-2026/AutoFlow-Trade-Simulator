@@ -1,17 +1,17 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import {useRouter} from 'next/navigation';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {Input} from '@/components/ui/input';
 import {Search} from 'lucide-react';
-import {fetchChartBars} from '@/lib/api/assets';
+import {fetchChartBars, fetchTopMovers} from '@/lib/api/assets';
 import type {ChartBar} from '@/lib/types/assets';
-import {useRealTimeTicksList} from '@/hooks/useRealTimeTicks';
-import Fuse from 'fuse.js';
+import {useRouter} from "next/navigation";
+import {useRealTimeTicksList} from "@/hooks/useRealTimeTicks";
+import Fuse from "fuse.js";
 
-const TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'BTC/USDT'] as const;
+const MOVERS_LIMIT = 8;
 const MAX_SEARCH_RESULTS = 5;
 
 type MoverData = {
@@ -209,21 +209,11 @@ export function TopMovers() {
 
         async function load() {
             try {
-                const results = await Promise.all(
-                    TICKERS.map((ticker) =>
-                        fetchChartBars(ticker, '1d')
-                            .then((bars) => buildMoverData(ticker, bars))
-                            .catch(() => null),
-                    ),
-                );
+                const movers = await fetchTopMovers(MOVERS_LIMIT);
 
                 if (cancelled) return;
 
-                const valid = results.filter((r): r is MoverData => r !== null);
-
-                valid.sort((a, b) => Math.abs(b.pct_change) - Math.abs(a.pct_change));
-
-                setMovers(valid);
+                setMovers(movers);
             } catch (e) {
                 if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load movers');
             }
@@ -307,7 +297,7 @@ export function TopMovers() {
                     <p className="text-sm text-destructive font-mono">{error}</p>
                 ) : displayedLoading ? (
                     <ul className="flex flex-col gap-2">
-                        {Array.from({length: isSearching ? matchedTickers.length : TICKERS.length}).map((_, i) => (
+                        {Array.from({length: isSearching ? matchedTickers.length : MOVERS_LIMIT}).map((_, i) => (
                             <li
                                 key={i}
                                 className="h-[62px] rounded-xl border border-border/40 bg-muted/40 animate-pulse"
