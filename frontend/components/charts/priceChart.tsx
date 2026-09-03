@@ -22,21 +22,16 @@ interface PriceChartProps {
 }
  
 const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) 
+  if (active && payload && payload.length)
   {
     const data = payload[0].payload;
     return (
-      <div style={{
-        backgroundColor: '#414042',
-        border: '1px solid #ffffff4b',
-        padding: '8px',
-        borderRadius: '4px',
-      }}>
-        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>{data.name}</p>
-        <p style={{ margin: '2px 0', fontSize: '12px' }}>OPEN: R{data.open.toFixed(2)}</p>
-        <p style={{ margin: '2px 0', fontSize: '12px' }}>HIGH: R{data.high.toFixed(2)}</p>
-        <p style={{ margin: '2px 0', fontSize: '12px' }}>LOW: R{data.low.toFixed(2)}</p>
-        <p style={{ margin: '2px 0', fontSize: '12px' }}>CLOSE: R{data.close.toFixed(2)}</p>
+      <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+        <p className="mb-1">{data.name}</p>
+        <p className="text-muted-foreground">OPEN: R{data.open.toFixed(2)}</p>
+        <p className="text-muted-foreground">HIGH: R{data.high.toFixed(2)}</p>
+        <p className="text-muted-foreground">LOW: R{data.low.toFixed(2)}</p>
+        <p className="text-muted-foreground">CLOSE: R{data.close.toFixed(2)}</p>
       </div>
     );
   }
@@ -107,21 +102,21 @@ export default function PriceChart({ ticker }: PriceChartProps) {
                 data={chartData}
                 margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                <XAxis dataKey="name" stroke="#ffffff" />
-                <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => `R${v}`} width={70} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" stroke="var(--text)" />
+                <YAxis domain={['auto', 'auto']} stroke="var(--text)" tickFormatter={(v) => `R${v}`} width={70} />
                 <Tooltip
-                  cursor={{ stroke: '#9ca3af' }}
+                  cursor={{ stroke: 'var(--muted)' }}
                   content={<CustomTooltip />}
                 />
                 <Legend />
                 <Line
                   type="monotone"
                   dataKey="close"
-                  stroke="#6950a1"
+                  stroke="var(--purple)"
                   strokeWidth={4}
                   dot={false}
-                  activeDot={{ r: 2, stroke: '#1c75bc' }}
+                  activeDot={{ r: 2, stroke: 'var(--blue)' }}
                 />
               </LineChart>
             </ResponsiveContainer>

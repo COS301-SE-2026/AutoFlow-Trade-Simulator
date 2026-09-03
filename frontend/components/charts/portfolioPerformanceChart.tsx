@@ -93,18 +93,18 @@ export function PortfolioPerformanceChart({ accountId }: PortfolioPerformanceCha
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                             <XAxis
                                 dataKey="date"
-                                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                                tick={{ fontSize: 11, fill: 'var(--muted)' }}
                                 tickLine={false}
                                 axisLine={false}
                             />
                             <YAxis
-                                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                                tick={{ fontSize: 11, fill: 'var(--muted)' }}
                                 tickLine={false}
                                 axisLine={false}
                                 domain={['auto', 'auto']}
                                 width={70}
                             />
-                            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--muted-foreground)' }} />
+                            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--muted)' }} />
                             <Area
                                 type="monotone"
                                 dataKey="value"
