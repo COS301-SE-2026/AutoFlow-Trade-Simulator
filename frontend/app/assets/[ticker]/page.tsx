@@ -12,7 +12,6 @@ import { useAccount } from '@/lib/hooks/accountContext';
 import { apiClient } from '@/lib/api';
 import { LiveDataGraph } from '@/components/liveDataGraph';
 import { useState } from 'react';
-import { TickerSearch } from '@/components/TickerSearch';
 import Link from 'next/link';
 import Toast from '@/components/Toast';
 import { TopMovers } from '@/components/topMovers';
@@ -103,10 +102,6 @@ export default function AssetPage() {
 
       <div className='flex min-h-screen bg-background'>
         <aside className='hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 overflow-y-auto'>
-          <div className='mb-3 flex justify-center'>
-            <TickerSearch />
-          </div>
-
           <TopMovers />
         </aside>
 
