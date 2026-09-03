@@ -9,9 +9,13 @@ module.exports = {
         "collect": {
             "url": [
                 `${FRONTEND_URL}`,
+                `${FRONTEND_URL}/assets/AAPL`,
+                `${FRONTEND_URL}/dashboard`,
+                `${FRONTEND_URL}/help`,
+                `${FRONTEND_URL}/learning`,
                 `${FRONTEND_URL}/login`,
-                `${FRONTEND_URL}/register`,
-                `${FRONTEND_URL}/dashboard`
+                `${FRONTEND_URL}/portfolio`,
+                `${FRONTEND_URL}/signup`,
             ],
             "numberOfRuns": 1,
             "settings": {
