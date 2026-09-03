@@ -266,6 +266,15 @@ export function TopMovers() {
     return (
         <Card className="w-full max-w-md">
             <CardHeader className="pb-3">
+                <div className="relative mt-2">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/>
+                    <Input
+                        placeholder="Search tickers..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value.toUpperCase())}
+                        className="h-9 w-full pl-8"
+                    />
+                </div>
                 <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
                     {isSearching ? (
                         'Search Results'
@@ -279,15 +288,6 @@ export function TopMovers() {
                         </>
                     )}
                 </CardTitle>
-                <div className="relative mt-2">
-                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/>
-                    <Input
-                        placeholder="Search tickers..."
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value.toUpperCase())}
-                        className="h-9 w-full pl-8"
-                    />
-                </div>
             </CardHeader>
 
             <CardContent>

@@ -19,15 +19,17 @@ export function ReportView({ }: {}) {
                 <Button className='bg-transparent border border-[var(--border)]' onClick={() => setPeriod("weekly")}>Weekly</Button>
                 <Button className='bg-transparent border border-[var(--border)]' onClick={() => createReport(period)}>Generate Report</Button>
             </div>
-            {reports.length === 0 ? (
-                <p className='text-sm'>No reports generated yet.</p>
-            ) : (
-                <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
-                    {reports.map((report) => (
-                        <ReportCard key={report.id} report={report} />
-                    ))}
-                </div>
-            )}
+            <div className='m-2'>
+                {reports.length === 0 ? (
+                    <p className='text-sm'>No reports generated yet.</p>
+                ) : (
+                    <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
+                        {reports.map((report) => (
+                            <ReportCard key={report.id} report={report} />
+                        ))}
+                    </div>
+                )}
+            </div>
         </>
     );
 }
