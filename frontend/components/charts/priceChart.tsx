@@ -76,9 +76,27 @@ export default function PriceChart({ ticker }: PriceChartProps) {
       <>
         <div className='flex flex-row justify-evenly m-5 card'>
           <Label className='text'>Select Chart Timeframe:</Label>
-          <Button className='bg-(--accent) button secondary' onClick={() => setTimeframe('daily')}>Daily</Button>
-          <Button className='button secondary' onClick={() => setTimeframe('weekly')}>Weekly</Button>
-          <Button className='button secondary' onClick={() => setTimeframe('monthly')}>Monthly</Button>
+          <Button
+            type='button'
+            variant={timeframe === 'daily' ? 'default' : 'ghost'}
+            onClick={() => setTimeframe('daily')}
+          >
+            Daily
+          </Button>
+          <Button
+            type='button'
+            variant={timeframe === 'weekly' ? 'default' : 'ghost'}
+            onClick={() => setTimeframe('weekly')}
+          >
+            Weekly
+          </Button>
+          <Button
+            type='button'
+            variant={timeframe === 'monthly' ? 'default' : 'ghost'}
+            onClick={() => setTimeframe('monthly')}
+          >
+            Monthly
+          </Button>
         </div>
         {
           loading ? (<ChartSkeleton />)
