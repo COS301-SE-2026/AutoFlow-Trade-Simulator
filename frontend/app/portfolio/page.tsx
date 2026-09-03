@@ -22,6 +22,7 @@ import { Search } from 'lucide-react';
 import Fuse from 'fuse.js';
 
 import PriceChart from '@/components/charts/priceChart';
+import { PortfolioPerformanceChart } from '@/components/charts/portfolioPerformanceChart';
 import { useHoldings } from '@/hooks/useHoldings';
 
 export default function PortfolioPage() {
@@ -95,6 +96,11 @@ export default function PortfolioPage() {
           <TradingAuthPrompt />
         }
       </div>
+      {activeAccount && (
+        <div className="w-full p-4">
+          <PortfolioPerformanceChart accountId={activeAccount.id} />
+        </div>
+      )}
       <div className="flex w-full gap-6 p-4">
         {activeAccount ? (
           <HoldingsSummary
@@ -106,9 +112,6 @@ export default function PortfolioPage() {
           />
         ) : <TradingAuthPrompt />}
         <AssetSummaryBar ticker={ticker || 'AAPL'} holding={selectedHolding} />
-      </div>
-      <div className='gap-6'>
-
       </div>
       <div className="overflow-hidden p-3">
         <div className='bg-card rounded-xl border-border/60 p-3'>
