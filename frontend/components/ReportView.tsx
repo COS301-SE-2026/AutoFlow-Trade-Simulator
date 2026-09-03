@@ -20,9 +20,9 @@ export function ReportView({ }: {}) {
                 <Button onClick={() => createReport(period)}>Generate Report</Button>
             </div>
             {reports.length === 0 ? (
-                <p>No reports generated yet.</p>
+                <p className='text-sm'>No reports generated yet.</p>
             ) : (
-                <div className='grid grid-cols-1 gap-4'>
+                <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
                     {reports.map((report) => (
                         <ReportCard key={report.id} report={report} />
                     ))}
