@@ -1,12 +1,15 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {fetchChartBars} from '@/lib/api/assets';
 import type {ChartBar} from '@/lib/types/assets';
+import {useRealTimeTicksList} from '@/hooks/useRealTimeTicks';
+import Fuse from 'fuse.js';
 
 const TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'BTC/USDT'] as const;
+const MAX_SEARCH_RESULTS = 5;
 
 type MoverData = {
     ticker: string;
@@ -172,6 +175,23 @@ export function TopMovers() {
     const [movers, setMovers] = useState<MoverData[] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    const [query, setQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<MoverData[] | null>(null);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const isSearching = query.trim().length > 0;
+
+    const {realTimeTicksList} = useRealTimeTicksList();
+
+    const fuse = useMemo(() => new Fuse(realTimeTicksList, {
+        threshold: 0.3,
+    }), [realTimeTicksList]);
+
+    const matchedTickers = useMemo(() => {
+        if (!isSearching) return [];
+        const results = fuse.search(query.trim().toUpperCase());
+        return results.map((r) => r.item).slice(0, MAX_SEARCH_RESULTS);
+    }, [query, isSearching, fuse]);
+
     useEffect(() => {
         let cancelled = false;
 
@@ -202,6 +222,40 @@ export function TopMovers() {
             cancelled = true;
         };
     }, []);
+
+    useEffect(() => {
+        if (!isSearching) {
+            setSearchResults(null);
+            return;
+        }
+
+        let cancelled = false;
+
+        async function search() {
+            setSearchLoading(true);
+            try {
+                const results = await Promise.all(
+                    matchedTickers.map((ticker) =>
+                        fetchChartBars(ticker, '1d')
+                            .then((bars) => buildMoverData(ticker, bars))
+                            .catch(() => null),
+                    ),
+                );
+
+                if (cancelled) return;
+
+                const valid = results.filter((r): r is MoverData => r !== null);
+                setSearchResults(valid);
+            } finally {
+                if (!cancelled) setSearchLoading(false);
+            }
+        }
+
+        search();
+        return () => {
+            cancelled = true;
+        };
+    }, [matchedTickers, isSearching]);
 
     const latestTimestamp = movers?.[0]?.timestamp;
 
