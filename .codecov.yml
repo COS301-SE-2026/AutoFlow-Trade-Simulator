@@ -1,5 +1,5 @@
 # .codecov.yml
 ignore:
-- "frontend/components/ui/**/*
+- "frontend/components/ui/**/*"
 - "frontend/**/*.test.tsx"
 - "frontend/**/*.test.ts"
