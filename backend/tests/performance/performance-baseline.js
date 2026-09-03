@@ -9,9 +9,11 @@ const TEST_USER = {
 const ACCOUNT_ID = 21;
 
 export const options = {
-    iterations: 1,  // ← Run exactly once
-    stages: [],     // ← Remove stages
-    // OR keep stages but set vus and iterations
+    stages: [
+        { duration: '1m', target: 50 },
+        { duration: '5m', target: 50 },
+        { duration: '1m', target: 0 }
+    ],
     thresholds: {
         http_req_duration: ['p(95)<500'],
         http_req_failed: ['rate<0.01'],
