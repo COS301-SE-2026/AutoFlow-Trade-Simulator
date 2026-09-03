@@ -11,6 +11,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {TransactionLog} from "@/components/TransactionLog";
 import {TradingAuthPrompt} from "@/components/tradingAuthPrompt";
 import {HoldingsSummary} from "@/components/HoldingsSummary";
+import {useHoldings} from "@/hooks/useHoldings";
 import {Navbar} from '@/components/navbar';
 import {ReportView} from "@/components/ReportView";
 
@@ -69,6 +70,7 @@ export default function Dashboard() {
     const { loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
     const { loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
     const {activeAccount} = useAccount();
+    const { holdings, loading: holdingsLoading, error: holdingsError } = useHoldings(activeAccount?.id ?? null);
 
     if (!ticker) return <PageError message="Invalid ticker" />;
     if (pricesLoading || summaryLoading) return <PageSkeleton />;
@@ -122,7 +124,9 @@ export default function Dashboard() {
                     </TabsContent>
 
                     <TabsContent value="Holdings" className="w-full mt-4">
-                        {activeAccount ? <HoldingsSummary accountId={activeAccount.id} /> : <TradingAuthPrompt />}
+                        {activeAccount ? (
+                            <HoldingsSummary holdings={holdings} loading={holdingsLoading} error={holdingsError} />
+                        ) : <TradingAuthPrompt />}
                     </TabsContent>
 
                     <TabsContent value="Report" className="w-full mt-4">

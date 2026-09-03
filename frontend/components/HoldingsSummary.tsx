@@ -170,14 +170,15 @@ function HoldingRow({ holding, index, active, onSelectAction }: HoldingRowProps)
     );
 }
 type HoldingProps = {
-    accountId: number | null;
+    holdings: HoldingsWithCurrPrice[];
+    loading: boolean;
+    error: string | null;
     onSelectAction?: (ticker: string) => void;
     selectedTicker?: string | null;
 }
 
 
-export function HoldingsSummary({ accountId, onSelectAction = () => {}, selectedTicker = null }: HoldingProps) {
-    const { holdings, loading, error } = useHoldings(accountId);
+export function HoldingsSummary({ holdings, loading, error, onSelectAction = () => { }, selectedTicker = null }: HoldingProps) {
     const cardData = holdings.map(buildHoldingCardData);
     return (
         <Card className='w-full max-w-md'>
