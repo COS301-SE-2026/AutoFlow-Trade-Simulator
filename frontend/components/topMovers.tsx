@@ -3,6 +3,8 @@
 import {useEffect, useMemo, useState} from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
+import {Input} from '@/components/ui/input';
+import {Search} from 'lucide-react';
 import {fetchChartBars} from '@/lib/api/assets';
 import type {ChartBar} from '@/lib/types/assets';
 import {useRealTimeTicksList} from '@/hooks/useRealTimeTicks';
@@ -257,37 +259,58 @@ export function TopMovers() {
         };
     }, [matchedTickers, isSearching]);
 
-    const latestTimestamp = movers?.[0]?.timestamp;
+    const displayedMovers = isSearching ? searchResults : movers;
+    const displayedLoading = isSearching ? searchLoading || searchResults === null : movers === null;
+    const latestTimestamp = displayedMovers?.[0]?.timestamp;
 
     return (
         <Card className="w-full max-w-md">
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"/>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"/>
-          </span>
-                    Top Movers Today
+                    {isSearching ? (
+                        'Search Results'
+                    ) : (
+                        <>
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"/>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"/>
+                            </span>
+                            Top Movers Today
+                        </>
+                    )}
                 </CardTitle>
+                <div className="relative mt-2">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/>
+                    <Input
+                        placeholder="Search tickers..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value.toUpperCase())}
+                        className="h-9 w-full pl-8"
+                    />
+                </div>
             </CardHeader>
 
             <CardContent>
-                {error ? (
+                {isSearching && matchedTickers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground font-mono">No matching tickers.</p>
+                ) : !isSearching && error ? (
                     <p className="text-sm text-destructive font-mono">{error}</p>
-                ) : movers === null ? (
+                ) : displayedLoading ? (
                     <ul className="flex flex-col gap-2">
-                        {Array.from({length: TICKERS.length}).map((_, i) => (
+                        {Array.from({length: isSearching ? matchedTickers.length : TICKERS.length}).map((_, i) => (
                             <li
                                 key={i}
                                 className="h-[62px] rounded-xl border border-border/40 bg-muted/40 animate-pulse"
                             />
                         ))}
                     </ul>
-                ) : movers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground font-mono">No data available.</p>
+                ) : displayedMovers === null || displayedMovers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground font-mono">
+                        {isSearching ? 'No data available for matching tickers.' : 'No data available.'}
+                    </p>
                 ) : (
                     <ul className="flex flex-col gap-2">
-                        {movers.map((m, i) => (
+                        {displayedMovers.map((m, i) => (
                             <MoverRow key={m.ticker} mover={m} index={i}/>
                         ))}
                     </ul>
