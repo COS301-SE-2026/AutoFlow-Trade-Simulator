@@ -8,7 +8,7 @@ export function PortfolioTotalValue({ accountId }: { accountId: number | null })
     const isPositive = profitLoss >= 0;
 
     return (
-        <div className='rounded-xl w-96 p-6' style={{ background: 'var(--panel)' }}>
+        <div className='rounded-xl w-full p-6' style={{ background: 'var(--panel)' }}>
             <div className='flex items-center gap-3 mb-3'>
                 <div className='p-2 rounded-lg' style={{ background: 'rgba(96, 165, 250, 0.15)' }}>
                     <DollarSign className="w-5 h-5 text-blue-400" />

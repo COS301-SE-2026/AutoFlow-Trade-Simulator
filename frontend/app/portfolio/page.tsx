@@ -16,8 +16,6 @@ import { HoldingsSummary } from "@/components/HoldingsSummary";
 
 import AssetSummaryBar from '@/components/AssetSummaryBar';
 
-import { TickerSearch } from '@/components/TickerSearch';
-
 import { PortfolioPerformanceChart } from '@/components/charts/portfolioPerformanceChart';
 import { useHoldings } from '@/hooks/useHoldings';
 
@@ -32,12 +30,7 @@ export default function PortfolioPage() {
   return (
     <>
       <Navbar />
-      <div className="w-full max-w-sm p-4">
-        <TickerSearch onSelect={(selected) => setTicker(selected)} />
-      </div>
-
-
-      <div className="flex w-full gap-6 p-4">
+      <div className="grid w-full grid-cols-1 gap-6 p-4 md:grid-cols-3">
         {activeAccount ? (
           <>
             <PortfolioCashBalance accountId={activeAccount.id} />
