@@ -50,13 +50,13 @@ export default function BuySellForm({
 
             try {
                 if (mode === 'buy' && onBuy) {
-                    onBuy(qty);
+                    await onBuy(qty);
                 } else if (mode === 'sell' && onSell) {
-                    onSell(qty);
+                    await onSell(qty);
                 }
                 setQuantity('');
             } catch (e: any) {
-                throw e;
+                console.error(e);
             } finally {
                 setIsSubmitting(false);
                 setShowConfirm(false);

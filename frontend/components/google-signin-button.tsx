@@ -30,6 +30,8 @@ interface GoogleSignInButtonProps {
 
 export function GoogleSignInButton({ onCredential, text = 'signin_with' }: Readonly<GoogleSignInButtonProps>) {
   const buttonRef = useRef<HTMLDivElement>(null);
+  const onCredentialRef = useRef(onCredential);
+  onCredentialRef.current = onCredential;
   const [status, setStatus] = useState<Status>(GOOGLE_CLIENT_ID ? 'loading' : 'error');
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export function GoogleSignInButton({ onCredential, text = 'signin_with' }: Reado
       try {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
-          callback: (response) => onCredential(response.credential),
+          callback: (response) => onCredentialRef.current(response.credential),
         });
 
         window.google.accounts.id.renderButton(buttonRef.current, {
@@ -88,11 +90,18 @@ export function GoogleSignInButton({ onCredential, text = 'signin_with' }: Reado
       script.onload = null;
       script.onerror = null;
     };
-  }, [onCredential, text]);
+  }, [text]);
 
   return (
     <div className="flex w-full justify-center">
-      <div ref={buttonRef} className={status === 'ready' ? 'contents' : 'hidden'} />
+      <div
+        ref={buttonRef}
+        className={
+          status === 'ready'
+            ? 'overflow-hidden rounded-full bg-[var(--background-alt)]'
+            : 'hidden'
+        }
+      />
       {status === 'loading' && (
         <Button variant="outline" type="button" disabled className="w-full animate-pulse">
           Loading Google Sign-In...

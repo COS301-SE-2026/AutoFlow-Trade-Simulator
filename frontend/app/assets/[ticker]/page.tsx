@@ -12,10 +12,9 @@ import { useAccount } from '@/lib/hooks/accountContext';
 import { apiClient } from '@/lib/api';
 import { LiveDataGraph } from '@/components/liveDataGraph';
 import { useState } from 'react';
-import { TickerSearch } from '@/components/TickerSearch';
 import Link from 'next/link';
 import Toast from '@/components/Toast';
-
+import { TopMovers } from '@/components/topMovers';
 
 export default function AssetPage() {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
@@ -100,7 +99,13 @@ export default function AssetPage() {
   return (
     <div>
       <Navbar />
-      <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+
+      <div className='flex min-h-screen bg-background'>
+        <aside className='hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 overflow-y-auto'>
+          <TopMovers />
+        </aside>
+
+      <main className='flex-1 flex flex-col gap-5 p-6 min-w-0'>
         <div className='flex justify-evenly'>
           {toast && (
             <Toast
@@ -110,19 +115,16 @@ export default function AssetPage() {
             />
           )}
         </div>
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ textAlign: 'center' }}>{ticker}</h1>
+
+        <div>
+          <h1 className='text-2xl font-bold uppercase'>{ticker}</h1>
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
-          <TickerSearch />
-        </div>
-
-        <div style={{ marginBottom: '24px' }}>
+        <div>
           <LiveDataGraph symbol={ticker} />
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
+        <div>
           <BuySellForm
             price={currentPrice}
             accountBalance={accountBalance}
@@ -131,6 +133,7 @@ export default function AssetPage() {
             onSell={handleSell}
           />
         </div>
+        </main>
       </div>
     </div>
   );

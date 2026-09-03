@@ -17,3 +17,16 @@ class EpicStatusDTO(SQLModel):
 class SymbolResponseDTO(SQLModel):
     symbols:list[str]
     count:int
+
+class MoverDTO(SQLModel):
+    ticker:str
+    current_price: Decimal
+    daily_high: Decimal
+    daily_low: Decimal
+    pct_change: float
+    timestamp: datetime
+
+class MoversResponseDTO(SQLModel):
+    movers: list[MoverDTO]
+
+
