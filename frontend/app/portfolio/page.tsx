@@ -97,7 +97,7 @@ export default function PortfolioPage() {
           <HoldingsSummary
             accountId={activeAccount.id}
             selectedTicker={ticker}
-            onSelect={(selected) => { setTicker(selected); setQuery(''); }}
+            onSelectAction={(selected) => { setTicker(selected); setQuery(''); }}
           />
         ) : <TradingAuthPrompt />}
         <AssetSummaryBar ticker={ticker || 'AAPL'} />

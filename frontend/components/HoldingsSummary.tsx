@@ -113,10 +113,10 @@ type HoldingRowProps = {
     holding: HoldingCardData;
     index: number;
     active: boolean;
-    onSelect: (ticker: string) => void;
+    onSelectAction: (ticker: string) => void;
 }
 
-function HoldingRow({ holding, index, active, onSelect }: HoldingRowProps) {
+function HoldingRow({ holding, index, active, onSelectAction }: HoldingRowProps) {
     const hasLivePrice = holding.current_price !== null && holding.pct_change !== null;
     const isUp = hasLivePrice && holding.pct_change! >= 0;
 
@@ -132,7 +132,7 @@ function HoldingRow({ holding, index, active, onSelect }: HoldingRowProps) {
         >
             <button
                 type="button"
-                onClick={() => onSelect(holding.ticker)}
+                onClick={() => onSelectAction(holding.ticker)}
                 aria-pressed={active}
                 className={`group flex w-full flex-col gap-1 rounded-xl border px-4 py-3 text-left transition-all duration-200 hover:border-border hover:bg-accent/40 hover:shadow-sm ${active ? 'border-primary bg-accent/30' : 'border-border/60 bg-card'
                     }`}
@@ -171,13 +171,13 @@ function HoldingRow({ holding, index, active, onSelect }: HoldingRowProps) {
 }
 type HoldingProps = {
     accountId: number | null;
-    onSelect: (ticker: string) => void;
+    onSelectAction: (ticker: string) => void;
     selectedTicker: string | null;
 
 }
 
 
-export function HoldingsSummary({ accountId, onSelect, selectedTicker }: HoldingProps) {
+export function HoldingsSummary({ accountId, onSelectAction, selectedTicker }: HoldingProps) {
     const { holdings, loading, error } = useHoldings(accountId);
     const cardData = holdings.map(buildHoldingCardData);
     return (
@@ -210,7 +210,7 @@ export function HoldingsSummary({ accountId, onSelect, selectedTicker }: Holding
                                 holding={h}
                                 index={i}
                                 active={h.ticker === selectedTicker}
-                                onSelect={onSelect}
+                                onSelectAction={onSelectAction}
                             />
                         ))}
                     </ul>
