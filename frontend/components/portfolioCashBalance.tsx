@@ -8,7 +8,7 @@ export function PortfolioCashBalance({ accountId }: { accountId: number | null }
     return (
         <div className='rounded-xl w-96 p-6' style={{ background: 'var(--panel)' }}>
             <div className='flex items-center gap-3 mb-3'>
-                <div className='p-2 rounded-lg'>
+                <div className='p-2 rounded-lg' style={{ background: 'rgba(192, 132, 252, 0.15)' }}>
                     <PieChart className="w-5 h-5 text-purple-400" />
                 </div>
                 <span style={{ color: 'var(--muted)' }}>Cash Balance</span>
