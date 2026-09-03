@@ -171,13 +171,12 @@ function HoldingRow({ holding, index, active, onSelectAction }: HoldingRowProps)
 }
 type HoldingProps = {
     accountId: number | null;
-    onSelectAction: (ticker: string) => void;
-    selectedTicker: string | null;
-
+    onSelectAction?: (ticker: string) => void;
+    selectedTicker?: string | null;
 }
 
 
-export function HoldingsSummary({ accountId, onSelectAction, selectedTicker }: HoldingProps) {
+export function HoldingsSummary({ accountId, onSelectAction = () => {}, selectedTicker = null }: HoldingProps) {
     const { holdings, loading, error } = useHoldings(accountId);
     const cardData = holdings.map(buildHoldingCardData);
     return (
