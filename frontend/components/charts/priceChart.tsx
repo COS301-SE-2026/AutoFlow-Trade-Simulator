@@ -69,7 +69,7 @@ export default function PriceChart({ ticker }: PriceChartProps) {
  
     return (
       <>
-        <div className='flex flex-row justify-evenly m-5 card'>
+        <div className='flex flex-row justify-evenly gap-2'>
           <Label className='text'>Select Chart Timeframe:</Label>
           <Button
             type='button'

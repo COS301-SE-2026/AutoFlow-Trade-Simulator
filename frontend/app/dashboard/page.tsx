@@ -93,9 +93,6 @@ export default function Dashboard() {
                         <AssetSummaryBar ticker={ticker}/>
                     </div>
 
-                    <div className="h-[500px] rounded-xl border border-border/60 bg-card overflow-hidden">
-                    </div>
-
                     <div className="lg:hidden">
                         <TopMovers/>
                     </div>
