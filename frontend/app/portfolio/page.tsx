@@ -60,25 +60,31 @@ export default function PortfolioPage() {
   return (
     <>
       <Navbar />
-      <div style={{ position: 'relative', }}>
+      <div className="w-full max-w-sm p-4">
         <Combobox value={query} onChange={handleSelect}>
-          <div className='flex gap-2'>
-            <Search />
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <ComboboxInput
-              placeholder={'Ticker Search...'}
+              placeholder="Ticker Search..."
               onChange={(e) => setQuery(e.target.value.toUpperCase())}
+              className="h-9 w-full min-w-0 rounded-lg border border-input bg-transparent py-1 pl-8 pr-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             />
           </div>
-          {suggestions.length > 0 ? (
-            <ComboboxOptions anchor={{ to: 'bottom start' }} style={{ position: 'absolute', background: '#171620' }}>
-              {suggestions.map((ticker) => (
-                <ComboboxOption key={ticker} value={ticker} className='px-2 py-2' style={{ background: '#171620' }}>
-                  {ticker}
+          {suggestions.length > 0 && (
+            <ComboboxOptions
+              anchor={{ to: 'bottom start', gap: 4 }}
+              className="z-50 min-w-[200px] rounded-lg border border-border bg-popover p-1 text-sm text-popover-foreground shadow-md"
+            >
+              {suggestions.map((t) => (
+                <ComboboxOption
+                  key={t}
+                  value={t}
+                  className="cursor-pointer rounded-md px-2.5 py-1.5 data-[focus]:bg-accent data-[focus]:text-accent-foreground"
+                >
+                  {t}
                 </ComboboxOption>
               ))}
             </ComboboxOptions>
-          ) : (
-            <></>
           )}
         </Combobox>
       </div>
