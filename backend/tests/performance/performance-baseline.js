@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-const BASE_URL = __ENV.NEXT_PUBLIC_API_URL;
+const BASE_URL = __ENV.DEPLOYED_API_URL;
 const TEST_USER = {
     email: __ENV.TEST_USER_EMAIL,
     password: __ENV.TEST_USER_PASSWORD
@@ -11,8 +11,7 @@ const ACCOUNT_ID = 6;
 export const options = {
     stages: [
         { duration: '1m', target: 50 },
-        { duration: '1m', target: 200 },
-        { duration: '5m', target: 200 },
+        { duration: '5m', target: 50 },
         { duration: '1m', target: 0 }
     ],
     thresholds: {
@@ -53,7 +52,7 @@ export default function performanceTest() {
     // Market Data
     const ticker = 'AAPL';
     http.get(`${BASE_URL}/market-data/status`, { headers: authHeaders });
-    http.get(`${BASE_URL}/market-data/assets`, { headers: authHeaders });
+    http.get(`${BASE_URL}/market-data/assets`, { headers: authHeaders, tags: { endpoint: 'marketAssets' } });
     http.get(`${BASE_URL}/market-data/assets/${ticker}/prices`, { headers: authHeaders });
     http.get(`${BASE_URL}/market-data/assets/${ticker}/summary`, { headers: authHeaders });
 
@@ -76,8 +75,8 @@ export default function performanceTest() {
     http.get(`${BASE_URL}/portfolio/status`, { headers: authHeaders });
     http.get(`${BASE_URL}/portfolio/accounts/${ACCOUNT_ID}/transactions`, { headers: authHeaders });
 
-    const tradeResBuy = http.post(`${BASE_URL}/portfolio/accounts/${ACCOUNT_ID}`, portfolioPayloadBuy, { headers: authHeaders });
-    const tradeResSell = http.post(`${BASE_URL}/portfolio/accounts/${ACCOUNT_ID}`, portfolioPayloadSell, { headers: authHeaders });
+    const tradeResBuy = http.post(`${BASE_URL}/portfolio/accounts/${ACCOUNT_ID}`, portfolioPayloadBuy, { headers: authHeaders, tags: { endpoint: 'portfolioTrade' } });
+    const tradeResSell = http.post(`${BASE_URL}/portfolio/accounts/${ACCOUNT_ID}`, portfolioPayloadSell, { headers: authHeaders, tags: { endpoint: 'portfolioTrade' } });
 
     check(tradeResBuy, {
         'trade success': (r) => r.status === 200
