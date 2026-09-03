@@ -21,7 +21,7 @@ export default function AssetSummaryBar({ ticker, holding = null }: SummaryBarPr
   const priceColor = dayChangePct !== null && dayChangePct >= 0 ? 'text-green-600' : 'text-red-600';
 
   return (
-    <div className="card p-6">
+    <div className="card p-6 w-full flex-1">
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading summary...</p>
       ) : !data ? (
