@@ -26,3 +26,6 @@ coverage/
 test.db
 node_modules/
 frontend/tsconfig.tsbuildinfo
+
+.lighthouseci/
+lhci-reports/
