@@ -22,10 +22,12 @@ import { Search } from 'lucide-react';
 import Fuse from 'fuse.js';
 
 import PriceChart from '@/components/charts/priceChart';
+import { useHoldings } from '@/hooks/useHoldings';
 
 export default function PortfolioPage() {
   const { activeAccount } = useAccount();
   const { realTimeTicksList, loading, error } = useRealTimeTicksList();
+  const { holdings, loading: holdingsLoading, error: holdingsError } = useHoldings(activeAccount?.id ?? null)
 
   const [query, setQuery] = useState('');
   const [ticker, setTicker] = useState<string | null>('AAPL');
@@ -50,6 +52,7 @@ export default function PortfolioPage() {
     setTicker(value);
     setQuery('');
   }
+  const selectedHolding = holdings.find(h => h.ticker === ticker) ?? null;
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error loading tickers</div>;
@@ -95,12 +98,14 @@ export default function PortfolioPage() {
       <div className="flex w-full gap-6 p-4">
         {activeAccount ? (
           <HoldingsSummary
-            accountId={activeAccount.id}
+            holdings={holdings}
+            loading={holdingsLoading}
+            error={holdingsError}
             selectedTicker={ticker}
             onSelectAction={(selected) => { setTicker(selected); setQuery(''); }}
           />
         ) : <TradingAuthPrompt />}
-        <AssetSummaryBar ticker={ticker || 'AAPL'} />
+        <AssetSummaryBar ticker={ticker || 'AAPL'} holding={selectedHolding} />
       </div>
       <div className='gap-6'>
 
