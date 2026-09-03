@@ -39,7 +39,7 @@ export function useReports() {
                 method: "POST",
                 body: { period }
             });
-            setReports(prev => [...prev, response]);
+            setReports(prev => [...prev, ...response]);
         } catch (error: any) {
             setError(error.message);
         } finally {

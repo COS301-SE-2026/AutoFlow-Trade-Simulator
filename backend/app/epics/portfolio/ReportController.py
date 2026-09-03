@@ -19,10 +19,10 @@ router = APIRouter(prefix="/reports", tags=["Reports"])
 )
 def create_report(
     current_user: Annotated[User, Depends(get_current_user)],
-    period: Annotated[str, Body(..., embed=True)], 
-    db: Annotated[Session, Depends(get_session)],  
+    period: Annotated[str, Body(..., embed=True)],
+    db: Annotated[Session, Depends(get_session)],
     service: Annotated[ReportGenService, Depends()]
-) -> ReportSection: 
+) -> List[ReportSection]:
     if current_user.id is None:
         raise HTTPException(status_code=401, detail="Invalid Identity")
 
