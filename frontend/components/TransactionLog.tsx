@@ -82,57 +82,64 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
     if (error) return <p>{error}</p>;
 
     return (
-        <div>
+        <div className='gap-4 m-2'>
             <div className='gap-4 m-2'>
-                <Input
-                    placeholder="Search by ticker..."
-                    value={tickerFilter}
-                    onChange={(e) => setTickerFilter(e.target.value)}
+                <div className='m-2'>
+                    <Input
+                        placeholder="Search by ticker..."
+                        value={tickerFilter}
+                        onChange={(e) => setTickerFilter(e.target.value)}
+                        
+                        className="pl-9 w-[400px]"
+                        style={{
+                            borderColor: 'var(--border)',
+                            color: 'var(--text)',
+                        }}
+                    />
+                </div>
+                <div className='m-2'>
+                    <Input
+                        placeholder="Start date"
+                        type="date"
+                        value={dateStartFilter}
+                        onChange={(e) => setDateStartFilter(e.target.value)}
 
-                    className="pl-9 w-[400px]"
-                    style={{
-                        borderColor: 'var(--border)',
-                        color: 'var(--text)',
-                    }}
-                />
-                <Input
-                    placeholder="Start date"
-                    type="date"
-                    value={dateStartFilter}
-                    onChange={(e) => setDateStartFilter(e.target.value)}
+                        className="w-[150px]"
+                        style={{
+                            borderColor: 'var(--border)',
+                            color: 'var(--text)',
+                        }}
+                    />
+                </div>
+                <div className='m-2'>
+                    <Input
+                        placeholder="End date"
+                        type="date"
+                        value={dateEndFilter}
+                        onChange={(e) => setDateEndFilter(e.target.value)}
 
-                    className="w-[150px]"
-                    style={{
-                        borderColor: 'var(--border)',
-                        color: 'var(--text)',
-                    }}
-                />
-                <Input
-                    placeholder="End date"
-                    type="date"
-                    value={dateEndFilter}
-                    onChange={(e) => setDateEndFilter(e.target.value)}
-
-                    className="w-[150px]"
-                    style={{
-                        borderColor: 'var(--border)',
-                        color: 'var(--text)',
-                    }}
-                />
-
-                <Select
-                    value={directionFilter}
-                    onValueChange={(value: 'all' | 'buy' | 'sell') => setDirectionFilter(value)}
-                >
-                    <SelectTrigger>
-                        <SelectValue placeholder="Direction" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value='all'>All</SelectItem>
-                        <SelectItem value='buy'>Buy</SelectItem>
-                        <SelectItem value='sell'>Sell</SelectItem>
-                    </SelectContent>
-                </Select>
+                        className="w-[150px]"
+                        style={{
+                            borderColor: 'var(--border)',
+                            color: 'var(--text)',
+                        }}
+                    />
+                </div>
+                <div className='m-2'>
+                    <Select
+                        value={directionFilter}
+                        onValueChange={(value: 'all' | 'buy' | 'sell') => setDirectionFilter(value)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Direction" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value='all'>All</SelectItem>
+                            <SelectItem value='buy'>Buy</SelectItem>
+                            <SelectItem value='sell'>Sell</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <Table>
