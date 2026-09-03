@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
+import {useRouter} from 'next/navigation';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {Input} from '@/components/ui/input';
@@ -123,7 +124,7 @@ function RangeBar({low, high, current}: { low: number; high: number; current: nu
     );
 }
 
-function MoverRow({mover, index}: { mover: MoverData; index: number }) {
+function MoverRow({mover, index, onSelect}: { mover: MoverData; index: number; onSelect: (ticker: string) => void }) {
     const isUp = mover.pct_change >= 0;
 
     const trendClass = isUp
@@ -136,9 +137,14 @@ function MoverRow({mover, index}: { mover: MoverData; index: number }) {
 
     return (
         <li
-            className="group flex flex-col gap-1 rounded-xl border border-border/60 bg-card px-4 py-3 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:shadow-sm animate-in fade-in slide-in-from-bottom-2"
+            className="animate-in fade-in slide-in-from-bottom-2"
             style={{animationDelay: `${index * 60}ms`, animationFillMode: 'both'}}
         >
+            <button
+                type="button"
+                onClick={() => onSelect(mover.ticker)}
+                className="group flex w-full flex-col gap-1 rounded-xl border border-border/60 bg-card px-4 py-3 text-left transition-all duration-200 hover:border-border hover:bg-accent/40 hover:shadow-sm"
+            >
             <div className="flex items-center justify-between gap-3">
         <span className="font-mono text-sm font-semibold tracking-widest uppercase text-foreground">
           {mover.ticker}
@@ -169,11 +175,15 @@ function MoverRow({mover, index}: { mover: MoverData; index: number }) {
                 high={mover.daily_high}
                 current={mover.current_price}
             />
+            </button>
         </li>
     );
 }
 
 export function TopMovers() {
+    const router = useRouter();
+    const handleSelectTicker = (ticker: string) => router.push(`/assets/${encodeURIComponent(ticker)}`);
+
     const [movers, setMovers] = useState<MoverData[] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -311,7 +321,7 @@ export function TopMovers() {
                 ) : (
                     <ul className="flex flex-col gap-2">
                         {displayedMovers.map((m, i) => (
-                            <MoverRow key={m.ticker} mover={m} index={i}/>
+                            <MoverRow key={m.ticker} mover={m} index={i} onSelect={handleSelectTicker}/>
                         ))}
                     </ul>
                 )}
