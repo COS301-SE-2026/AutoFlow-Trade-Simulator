@@ -14,7 +14,7 @@ export function ReportView({ }: {}) {
 
     return (
         <>
-            <div>
+            <div className='gap-4'>
                 <Button onClick={() => setPeriod("daily")}>Daily</Button>
                 <Button onClick={() => setPeriod("weekly")}>Weekly</Button>
                 <Button onClick={() => createReport(period)}>Generate Report</Button>

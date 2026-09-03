@@ -83,7 +83,7 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
 
     return (
         <div>
-            <div>
+            <div className='gap-4 m-2'>
                 <Input
                     placeholder="Search by ticker..."
                     value={tickerFilter}
@@ -91,40 +91,34 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
 
                     className="pl-9 w-[400px]"
                     style={{
-                        backgroundColor: 'var(--panel)',
                         borderColor: 'var(--border)',
                         color: 'var(--text)',
                     }}
                 />
+                <Input
+                    placeholder="Start date"
+                    type="date"
+                    value={dateStartFilter}
+                    onChange={(e) => setDateStartFilter(e.target.value)}
 
-                <div className="flex gap-2">
-                    <Input
-                        placeholder="Start date"
-                        type="date"
-                        value={dateStartFilter}
-                        onChange={(e) => setDateStartFilter(e.target.value)}
+                    className="w-[150px]"
+                    style={{
+                        borderColor: 'var(--border)',
+                        color: 'var(--text)',
+                    }}
+                />
+                <Input
+                    placeholder="End date"
+                    type="date"
+                    value={dateEndFilter}
+                    onChange={(e) => setDateEndFilter(e.target.value)}
 
-                        className="w-[150px]"
-                        style={{
-                            backgroundColor: 'var(--panel)',
-                            borderColor: 'var(--border)',
-                            color: 'var(--text)',
-                        }}
-                    />
-                    <Input
-                        placeholder="End date"
-                        type="date"
-                        value={dateEndFilter}
-                        onChange={(e) => setDateEndFilter(e.target.value)}
-
-                        className="w-[150px]"
-                        style={{
-                            backgroundColor: 'var(--panel)',
-                            borderColor: 'var(--border)',
-                            color: 'var(--text)',
-                        }}
-                    />
-                </div>
+                    className="w-[150px]"
+                    style={{
+                        borderColor: 'var(--border)',
+                        color: 'var(--text)',
+                    }}
+                />
 
                 <Select
                     value={directionFilter}
