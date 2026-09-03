@@ -11,6 +11,10 @@ jest.mock('@/lib/hooks/accountContext', () => ({
     useAccount: jest.fn(),
 }))
 
+jest.mock('@/lib/hooks/useRealTimeTicks', () => ({
+    useRealTimeTicks: jest.fn(),
+}))
+
 jest.mock('@/components/navbar', () => ({
     Navbar: () => <nav data-testid="navbar-mock">Navbar</nav>,
 }))
@@ -20,7 +24,7 @@ jest.mock('@/components/tradingAuthPrompt', () => ({
 }))
 
 jest.mock('@/components/portfolioCashBalance', () => ({
-    PortfolioCashBalance: ({ accountId }: {accountId: string}) => (
+    PortfolioCashBalance: ({ accountId }: { accountId: string }) => (
         <div data-testid="cash-balance-mock">Cash Balance: {accountId} </div>
     )
 }))
@@ -32,9 +36,53 @@ jest.mock('@/components/portfolioInvested', () => ({
 }))
 
 jest.mock('@/components/portfolioTotalValue', () => ({
-    PortfolioTotalValue: ({ accountId }: {accountId: string}) => (
+    PortfolioTotalValue: ({ accountId }: { accountId: string }) => (
         <div data-testid="total-value-mock">Total Value: {accountId} </div>
     )
+}))
+
+jest.mock('@/components/HoldingsSummary', () => ({
+    HoldingsSummary: ({ accountId }: { accountId: string }) => (
+        <div data-testid="holdings-mock">Holdings: {accountId} </div>
+    )
+}))
+
+jest.mock('@/components/AssetSummaryBar', () => ({
+    __esModule: true,
+    AssetSummaryBar: ({ ticker }: { ticker: string }) => (
+        <div data-testid="asset-summary-mock">Asset Summary: {ticker} </div>
+    )
+}))
+
+jest.mock('@/components/charts/priceChart', () => ({
+    __esModule: true,
+    AssetSummaryBar: ({ ticker }: { ticker: string }) => (
+        <div data-testid="price-chart-mock">price Chart: {ticker} </div>
+    )
+}))
+
+jest.mock('@/headlessui/react', () => ({
+    Combobox: ({ children, value, onChange }: any) => (
+        <div data-testid="combobox-mock" data-value={value}>
+            {children}
+            <button
+                data-testid="combobox-select-button"
+                onClick={() => onChange('MSFT')}>
+                Select MSFT
+            </button>
+        </div>
+    ),
+    ComboboxInput: ({ placeholder, onChange }: any) => (
+        <input
+            data-testid="combobox-input"
+            placeholder={placeholder}
+            onChange={onChange}
+        />
+    )
+}))
+
+jest.mock('lucide-react', () => ({
+    Search: () => <span data-testid="search-icon">?</span>
 }))
 
 describe('PortfolioPage', () => {
@@ -45,9 +93,9 @@ describe('PortfolioPage', () => {
     })
 
     it('renders the auth prompt when there is no active account', () => {
-        mockUseAccount.mockReturnValue({ activeAccount: null})
+        mockUseAccount.mockReturnValue({ activeAccount: null })
 
-        render(<PortfolioPage/>)
+        render(<PortfolioPage />)
 
         expect(screen.getByRole('main')).toBeInTheDocument()
         expect(screen.getByTestId('navbar-mock')).toBeInTheDocument()
@@ -62,7 +110,7 @@ describe('PortfolioPage', () => {
     it('renders portfolio balances when an active account exists', () => {
 
         mockUseAccount.mockReturnValue({
-            activeAccount: {id: 'acc_12345'}
+            activeAccount: { id: 'acc_12345' }
         })
 
         render(<PortfolioPage />)
