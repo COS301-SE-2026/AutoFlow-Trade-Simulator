@@ -83,7 +83,7 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
 
     return (
         <div className='gap-4 m-2'>
-            <div className='gap-4 m-2'>
+            <div className='flex flex-row gap-4 m-2'>
                 <div className='m-2'>
                     <Input
                         placeholder="Search by ticker..."
@@ -178,9 +178,9 @@ export function TransactionLog({ accountId }: { accountId: number | null }) {
             </Table>
 
             <div className='flex justify-center gap-4'>
-                <Button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>prev</Button>
+                <Button className='bg-transparent border border-[var(--border)]' onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>prev</Button>
                 Page {currentPage} of {numPages}
-                <Button onClick={() => setCurrentPage(prev => Math.min(prev + 1, numPages))} disabled={currentPage === numPages}>next</Button>
+                <Button className='bg-transparent border border-[var(--border)]' onClick={() => setCurrentPage(prev => Math.min(prev + 1, numPages))} disabled={currentPage === numPages}>next</Button>
             </div>
         </div>
     );

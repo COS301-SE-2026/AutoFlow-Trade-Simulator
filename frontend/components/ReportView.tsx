@@ -14,10 +14,10 @@ export function ReportView({ }: {}) {
 
     return (
         <>
-            <div className='gap-4'>
-                <Button onClick={() => setPeriod("daily")}>Daily</Button>
-                <Button onClick={() => setPeriod("weekly")}>Weekly</Button>
-                <Button onClick={() => createReport(period)}>Generate Report</Button>
+            <div className='flex flex-row gap-4 m-2'>
+                <Button className='bg-transparent border border-[var(--border)]' onClick={() => setPeriod("daily")}>Daily</Button>
+                <Button className='bg-transparent border border-[var(--border)]' onClick={() => setPeriod("weekly")}>Weekly</Button>
+                <Button className='bg-transparent border border-[var(--border)]' onClick={() => createReport(period)}>Generate Report</Button>
             </div>
             {reports.length === 0 ? (
                 <p className='text-sm'>No reports generated yet.</p>
