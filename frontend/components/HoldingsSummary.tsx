@@ -29,7 +29,11 @@ function fmt(n: number, decimals = 2): string {
 }
 
 
-function TrendIcon({ up }: { up: boolean }) {
+type TrendIconProps = {
+    up: boolean;
+}
+
+function TrendIcon({ up }: TrendIconProps) {
     return up ? (
         <svg
             width="14"
@@ -81,7 +85,12 @@ function TrendIcon({ up }: { up: boolean }) {
     );
 }
 
-function CostRangeBar({ avgCost, current }: { avgCost: number, current: number }) {
+type CostRangeBarProps = {
+    avgCost: number;
+    current: number;
+}
+
+function CostRangeBar({ avgCost, current }: CostRangeBarProps) {
     const low = Math.min(avgCost, current);
     const high = Math.max(avgCost, current);
     const range = high - low;
@@ -100,7 +109,14 @@ function CostRangeBar({ avgCost, current }: { avgCost: number, current: number }
     );
 }
 
-function HoldingRow({ holding, index }: { holding: HoldingCardData; index: number }) {
+type HoldingRowProps = {
+    holding: HoldingCardData;
+    index: number;
+    active: boolean;
+    onSelectAction: (ticker: string) => void;
+}
+
+function HoldingRow({ holding, index, active, onSelectAction }: HoldingRowProps) {
     const hasLivePrice = holding.current_price !== null && holding.pct_change !== null;
     const isUp = hasLivePrice && holding.pct_change! >= 0;
 
@@ -111,45 +127,58 @@ function HoldingRow({ holding, index }: { holding: HoldingCardData; index: numbe
 
     return (
         <li
-            className="group flex flex-col gap-1 rounded-xl border border-border/60 bg-card px-4 py-3 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:shadow-sm animate-in fade-in slide-in-from-bottom-2"
+            className="animate-in fade-in slide-in-from-bottom-2"
             style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'both' }}
         >
-            <div className="flex items-center justify-between gap-3">
-                <div className="flex items-baseline gap-2">
-                    <span className="font-mono text-sm font-semibold tracking-widest uppercase text-foreground">
-                        {holding.ticker}
-                    </span>
-                    <span className="font-mono text-[10px] text-muted-foreground">{holding.net_quantity} shares</span>
-                </div>
+            <button
+                type="button"
+                onClick={() => onSelectAction(holding.ticker)}
+                aria-pressed={active}
+                className={`group flex w-full flex-col gap-1 rounded-xl border px-4 py-3 text-left transition-all duration-200 hover:border-border hover:bg-accent/40 hover:shadow-sm ${active ? 'border-primary bg-accent/30' : 'border-border/60 bg-card'
+                    }`}
+            >
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-baseline gap-2">
+                        <span className="font-mono text-sm font-semibold tracking-widest uppercase text-foreground">
+                            {holding.ticker}
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground">{holding.net_quantity} shares</span>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                    {hasLivePrice ? (
-                        <>
-                            <span className="font-mono text-sm font-medium tabular-nums text-foreground">
-                                ${fmt(holding.current_price!)}
-                            </span>
-                            <Badge variant="outline" className={`gap-1 px-2 py-0.5 text-xs font-mono font-semibold ${badgeClass}`}>
-                                <span className={trendClass}><TrendIcon up={isUp} /></span>
-                                {isUp ? '+' : ''}{fmt(holding.pct_change!)}%
+                    <div className="flex items-center gap-2">
+                        {hasLivePrice ? (
+                            <>
+                                <span className="font-mono text-sm font-medium tabular-nums text-foreground">
+                                    ${fmt(holding.current_price!)}
+                                </span>
+                                <Badge variant="outline" className={`gap-1 px-2 py-0.5 text-xs font-mono font-semibold ${badgeClass}`}>
+                                    <span className={trendClass}><TrendIcon up={isUp} /></span>
+                                    {isUp ? '+' : ''}{fmt(holding.pct_change!)}%
+                                </Badge>
+                            </>
+                        ) : (
+                            <Badge variant="outline" className="px-2 py-0.5 text-xs font-mono text-muted-foreground">
+                                No live price
                             </Badge>
-                        </>
-                    ) : (
-                        <Badge variant="outline" className="px-2 py-0.5 text-xs font-mono text-muted-foreground">
-                            No live price
-                        </Badge>
-                    )}
+                        )}
+                    </div>
                 </div>
-            </div>
 
-            {hasLivePrice && <CostRangeBar avgCost={holding.average_cost} current={holding.current_price!} />}
+                {hasLivePrice && <CostRangeBar avgCost={holding.average_cost} current={holding.current_price!} />}
+            </button>
         </li>
     );
 }
+type HoldingProps = {
+    holdings: HoldingsWithCurrPrice[];
+    loading: boolean;
+    error: string | null;
+    onSelectAction?: (ticker: string) => void;
+    selectedTicker?: string | null;
+}
 
 
-
-export function HoldingsSummary({ accountId }: { accountId: number | null }) {
-    const { holdings, loading, error } = useHoldings(accountId);
+export function HoldingsSummary({ holdings, loading, error, onSelectAction = () => { }, selectedTicker = null }: HoldingProps) {
     const cardData = holdings.map(buildHoldingCardData);
     return (
         <Card className='w-full max-w-md'>
@@ -176,7 +205,13 @@ export function HoldingsSummary({ accountId }: { accountId: number | null }) {
                 ) : (
                     <ul className="flex flex-col gap-2">
                         {cardData.map((h, i) => (
-                            <HoldingRow key={h.asset_id} holding={h} index={i} />
+                            <HoldingRow
+                                key={h.asset_id}
+                                holding={h}
+                                index={i}
+                                active={h.ticker === selectedTicker}
+                                onSelectAction={onSelectAction}
+                            />
                         ))}
                     </ul>
                 )}

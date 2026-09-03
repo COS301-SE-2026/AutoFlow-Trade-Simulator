@@ -96,7 +96,7 @@ function RangeBar({low, high, current}: { low: number; high: number; current: nu
     );
 }
 
-function MoverRow({mover, index}: { mover: MoverData; index: number }) {
+function MoverRow({mover, index, onSelect}: { mover: MoverData; index: number; onSelect: (ticker: string) => void }) {
     const isUp = mover.pct_change >= 0;
 
     const trendClass = isUp
@@ -109,9 +109,14 @@ function MoverRow({mover, index}: { mover: MoverData; index: number }) {
 
     return (
         <li
-            className="group flex flex-col gap-1 rounded-xl border border-border/60 bg-card px-4 py-3 transition-all duration-200 hover:border-border hover:bg-accent/40 hover:shadow-sm animate-in fade-in slide-in-from-bottom-2"
+            className="animate-in fade-in slide-in-from-bottom-2"
             style={{animationDelay: `${index * 60}ms`, animationFillMode: 'both'}}
         >
+            <button
+                type="button"
+                onClick={() => onSelect(mover.ticker)}
+                className="group flex w-full flex-col gap-1 rounded-xl border border-border/60 bg-card px-4 py-3 text-left transition-all duration-200 hover:border-border hover:bg-accent/40 hover:shadow-sm"
+            >
             <div className="flex items-center justify-between gap-3">
         <span className="font-mono text-sm font-semibold tracking-widest uppercase text-foreground">
           {mover.ticker}
@@ -142,13 +147,34 @@ function MoverRow({mover, index}: { mover: MoverData; index: number }) {
                 high={mover.daily_high}
                 current={mover.current_price}
             />
+            </button>
         </li>
     );
 }
 
 export function TopMovers() {
+    const router = useRouter();
+    const handleSelectTicker = (ticker: string) => router.push(`/assets/${encodeURIComponent(ticker)}`);
+
     const [movers, setMovers] = useState<MoverData[] | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const [query, setQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<MoverData[] | null>(null);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const isSearching = query.trim().length > 0;
+
+    const {realTimeTicksList} = useRealTimeTicksList();
+
+    const fuse = useMemo(() => new Fuse(realTimeTicksList, {
+        threshold: 0.3,
+    }), [realTimeTicksList]);
+
+    const matchedTickers = useMemo(() => {
+        if (!isSearching) return [];
+        const results = fuse.search(query.trim().toUpperCase());
+        return results.map((r) => r.item).slice(0, MAX_SEARCH_RESULTS);
+    }, [query, isSearching, fuse]);
 
     useEffect(() => {
         let cancelled = false;
@@ -171,38 +197,94 @@ export function TopMovers() {
         };
     }, []);
 
-    const latestTimestamp = movers?.[0]?.timestamp;
+    useEffect(() => {
+        if (!isSearching) {
+            setSearchResults(null);
+            return;
+        }
+
+        let cancelled = false;
+
+        async function search() {
+            setSearchLoading(true);
+            try {
+                const results = await Promise.all(
+                    matchedTickers.map((ticker) =>
+                        fetchChartBars(ticker, '1d')
+                            .then((bars) => buildMoverData(ticker, bars))
+                            .catch(() => null),
+                    ),
+                );
+
+                if (cancelled) return;
+
+                const valid = results.filter((r): r is MoverData => r !== null);
+                setSearchResults(valid);
+            } finally {
+                if (!cancelled) setSearchLoading(false);
+            }
+        }
+
+        search();
+        return () => {
+            cancelled = true;
+        };
+    }, [matchedTickers, isSearching]);
+
+    const displayedMovers = isSearching ? searchResults : movers;
+    const displayedLoading = isSearching ? searchLoading || searchResults === null : movers === null;
+    const latestTimestamp = displayedMovers?.[0]?.timestamp;
 
     return (
         <Card className="w-full max-w-md">
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"/>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"/>
-          </span>
-                    Top Movers Today
+                    {isSearching ? (
+                        'Search Results'
+                    ) : (
+                        <>
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"/>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"/>
+                            </span>
+                            Top Movers Today
+                        </>
+                    )}
                 </CardTitle>
+                <div className="relative mt-2">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/>
+                    <Input
+                        placeholder="Search tickers..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value.toUpperCase())}
+                        className="h-9 w-full pl-8"
+                    />
+                </div>
             </CardHeader>
 
             <CardContent>
-                {error ? (
+                {isSearching && matchedTickers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground font-mono">No matching tickers.</p>
+                ) : !isSearching && error ? (
                     <p className="text-sm text-destructive font-mono">{error}</p>
-                ) : movers === null ? (
+                ) : displayedLoading ? (
                     <ul className="flex flex-col gap-2">
                         {Array.from({length: MOVERS_LIMIT}).map((_, i) => (
+                        {Array.from({length: isSearching ? matchedTickers.length : TICKERS.length}).map((_, i) => (
                             <li
                                 key={i}
                                 className="h-[62px] rounded-xl border border-border/40 bg-muted/40 animate-pulse"
                             />
                         ))}
                     </ul>
-                ) : movers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground font-mono">No data available.</p>
+                ) : displayedMovers === null || displayedMovers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground font-mono">
+                        {isSearching ? 'No data available for matching tickers.' : 'No data available.'}
+                    </p>
                 ) : (
                     <ul className="flex flex-col gap-2">
-                        {movers.map((m, i) => (
-                            <MoverRow key={m.ticker} mover={m} index={i}/>
+                        {displayedMovers.map((m, i) => (
+                            <MoverRow key={m.ticker} mover={m} index={i} onSelect={handleSelectTicker}/>
                         ))}
                     </ul>
                 )}
