@@ -1,8 +1,30 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import userEvent from '@testing-library/user-event'
 import BuySellForm from '@/components/BuySellForm';
+import { Target } from 'lucide-react';
 
-describe('BuySellForm', () => {
+jest.mock('@/components/TradeConfirmModal', () => {
+    return function DummyTradeConfirmModal({
+        side,
+        quantity,
+        price,
+        onConfirm,
+        onCancel,
+    }: any) {
+        return (
+            <div data-testid="trade-confirm-modal">
+                <span>Modal Side: {side} </span>
+                <span>Modal Qty: {quantity} </span>
+                <span>Modal Price: {price} </span>
+                <button onClick={onConfirm}>  Confirm Modal </button>
+                <button onClick={onCancel}> Cancel Modal </button>
+            </div>
+        )
+    }
+});
+
+describe ('BuySellForm', () => {
     const mockOnBuy = jest.fn();
     const mockOnSell = jest.fn();
 
@@ -12,11 +34,11 @@ describe('BuySellForm', () => {
         currentHoldings: 5,
         onBuy: mockOnBuy,
         onSell: mockOnSell
-    };
+    }
 
     beforeEach(() => {
         jest.clearAllMocks();
-    })
+    });
 
     describe('Basic Rendering', () => {
         it('should show the buy and sell form buttons', () => {
@@ -39,142 +61,158 @@ describe('BuySellForm', () => {
         });
     });
 
-    describe('User interaction', () => {
-        it('should let a user enter a quantity', () => {
-            render(<BuySellForm {...defaultProps} />);
+    //This test will be testing the inputs
+    it('Testing inputs and the assocaited validation', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps}/>);
 
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, { target: { value: '5' } });
+        const qtyInput = screen.getByPlaceholderText('Enter Quantity') as HTMLInputElement;
 
-            expect(input).toHaveValue('5');
-        });
+        await user.type(qtyInput, 'abc');
+        expect(qtyInput.value).toBe('');
 
-        it('should calculate and show total cost', () => {
-            render(<BuySellForm {...defaultProps} />);
-            
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, {target: { value: '5' } });
-            
-            expect(screen.getByText('500.00')).toBeInTheDocument();
-        });
+        await user.clear(qtyInput);
 
-        it('should enable Buy and Sell buttons only when quantity is positive', () => {
-            render(<BuySellForm {...defaultProps} />);
-            const buyBtn = screen.getByRole('button', { name: 'Buy' });
-            const sellBtn = screen.getByRole('button', { name: 'Sell' });
+        await user.type(qtyInput, '5');
+        expect(qtyInput.value).toBe('5');
+        expect(screen.getByText('500.00')).toBeInTheDocument()
 
-            expect(buyBtn).toBeDisabled();
-            expect(sellBtn).toBeDisabled();
+        await user.clear(qtyInput);
 
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, { target: { value: '3' } });
+        fireEvent.change(qtyInput, { target: {value: '5.11'} })
+        expect(qtyInput.value).toBe('5.11');
 
-            expect(buyBtn).toBeEnabled();
-            expect(sellBtn).toBeEnabled();
-        });
+        expect(screen.getByText('511.00')).toBeInTheDocument();
     });
 
-    describe('Trade Execution', () => {
-        it('should show confirmation before buying', async () => {
-            render(<BuySellForm {...defaultProps} />);
-    
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, { target: { value: '10' } });
-            fireEvent.click(screen.getByRole('button', { name: 'Buy' }));
-    
-            await waitFor(() => {
-                expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
-            });
-        });
+    // Button enabling
+    it('enable buy and sell button when qty > 0', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps} />);
 
-        it('should show confirmation before selling', async () => {
-            render(<BuySellForm {...defaultProps} />);
+        const qtyInput = screen.getByPlaceholderText('Enter Quantity');
+        const buyBtn = screen.getByRole('button', { name: /^buy$/i });
+        const sellBtn = screen.getByRole('button', { name: /^sell$/i });
 
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, { target: { value: '3' } });
-    
-            fireEvent.click(screen.getByRole('button', { name: 'Sell' }));
-    
-            await waitFor(() => {
-                expect(screen.getByText('Confirm Sell')).toBeInTheDocument();
-            });
-        });
+        expect(buyBtn).toBeDisabled();
+        expect(sellBtn).toBeDisabled();
 
-        it('should execute buy when confirmed', async () => {
-            render(<BuySellForm {...defaultProps} />);
+        await user.type(qtyInput, '5');
 
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, { target: { value: '10' } });
-            
-            fireEvent.click(screen.getByRole('button', { name: 'Buy' }));
-
-            await waitFor(() => {
-                expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
-            });
-
-            const confirmButton = screen.getByText('Confirm');
-            fireEvent.click(confirmButton);
-
-            await waitFor(() => {
-                expect(mockOnBuy).toHaveBeenCalledWith(10);
-            });
-        });
-
-        it('should execute sell when confirmed', async () => {
-            render(<BuySellForm {...defaultProps} />);
-
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, { target: { value: '3' } });
-
-            fireEvent.click(screen.getByRole('button', { name: 'Sell' }));
-            
-            await waitFor(() => {
-                expect(screen.getByText('Confirm Sell')).toBeInTheDocument();
-            });
-
-            const confirmButton = screen.getByText('Confirm');
-            fireEvent.click(confirmButton);
-
-            await waitFor(() => {
-                expect(mockOnSell).toHaveBeenCalledWith(3);
-            });
-        });
-
-        it('should cancel trade when cancel is clicked', async () => {
-            render(<BuySellForm {...defaultProps} />);
-
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, { target: { value: '10' } });
-            fireEvent.click(screen.getByRole('button', { name: 'Buy' }));
-
-            await waitFor(() => {
-                expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
-            });
-
-            fireEvent.click(screen.getByText('Cancel'));
-
-            await waitFor(() => {
-                expect(screen.queryByText('Confirm Buy')).not.toBeInTheDocument();
-                expect(mockOnBuy).not.toHaveBeenCalled();
-            });
-        });
-
-        it('should reset form after successful trade', async () => {
-            render(<BuySellForm {...defaultProps} />);
-
-            const input = screen.getByPlaceholderText('Enter Quantity');
-            fireEvent.change(input, { target: { value: '10' } });
-            fireEvent.click(screen.getByRole('button', { name: 'Buy' }));
-
-            await waitFor(() => {
-                expect(screen.getByText('Confirm Buy')).toBeInTheDocument();
-            });
-
-            fireEvent.click(screen.getByText('Confirm'));
-
-            await waitFor(() => {
-                expect(input).toHaveValue('');
-            })
-        })
+        expect(buyBtn).not.toBeDisabled();
+        expect(sellBtn).not.toBeDisabled();
     });
-})
+
+    // Buy interaction
+    it('Going through opening buy modal and caling onBuy upon confirmation', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps}/>);
+
+        await user.type(screen.getByPlaceholderText('Enter Quantity'), '3');
+        await user.click(screen.getByRole('button', { name: /^buy$/i}));
+
+        expect(screen.getByTestId('trade-confirm-modal')).toBeInTheDocument();
+        expect(screen.getByText('Modal Side: buy')).toBeInTheDocument();
+        expect(screen.getByText('Modal Qty: 3')).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: /confirm modal/i }));
+
+        expect(defaultProps.onBuy).toHaveBeenCalledWith(3);
+        expect(defaultProps.onBuy).toHaveBeenCalledTimes(1);
+
+        expect(screen.queryByTestId('trade-confirm-modal')).not.toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Enter Quantity')).toHaveValue('');
+    });
+
+    // Sell interaction
+    it('Going through opening sell modal and caling onSell upon confirmation', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps}/>);
+
+        await user.type(screen.getByPlaceholderText('Enter Quantity'), '3');
+        await user.click(screen.getByRole('button', { name: /^sell$/i}));
+
+        expect(screen.getByTestId('trade-confirm-modal')).toBeInTheDocument();
+        expect(screen.getByText('Modal Side: sell')).toBeInTheDocument();
+        expect(screen.getByText('Modal Qty: 3')).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: /confirm modal/i }));
+
+        expect(defaultProps.onSell).toHaveBeenCalledWith(3);
+        expect(defaultProps.onSell).toHaveBeenCalledTimes(1);
+
+        expect(screen.queryByTestId('trade-confirm-modal')).not.toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Enter Quantity')).toHaveValue('');
+    });
+
+    //Cacel modal flow
+    it('User cancels their transaction', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps}/>);
+
+        await user.type(screen.getByPlaceholderText('Enter Quantity'), '4');
+        await user.click(screen.getByRole('button', { name: /^buy$/i }));
+
+        expect(screen.getByTestId('trade-confirm-modal')).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: /cancel modal/i }));
+
+        expect(screen.queryByTestId('trade-confirm-modal')).not.toBeInTheDocument();
+        expect(defaultProps.onBuy).not.toHaveBeenCalled();
+        expect(defaultProps.onSell).not.toHaveBeenCalled();
+    });
+  
+    // zero fallback
+    it('renders fallback when price is 0', () => {
+        render(<BuySellForm {...defaultProps} price={0}/>);
+
+        const zeroElements = screen.getAllByText('0.00');
+        expect(zeroElements).toHaveLength(2);
+        expect(zeroElements[0]).toBeInTheDocument();
+    });
+
+    // Handle Sumbit test
+    it('handles direct form submisson', async () => {
+        render(<BuySellForm {...defaultProps}/>);
+        const qtyInput = screen.getByPlaceholderText('Enter Quantity');
+
+        fireEvent.change(qtyInput, { target: { value: '2'} });
+        fireEvent.submit(qtyInput.closest('form')!);
+        expect(screen.getByTestId('trade-confirm-modal')).toBeInTheDocument();
+    });
+
+    // tests handleconfirm
+    it('handles comfirm modal when it throws a error', async () => {
+
+        const consoleWatcher = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        const errorOnBuy = jest.fn().mockRejectedValue(() => {
+            new Error('Transaction failed! Try again later :)');
+        });
+        
+        const user = userEvent.setup();
+        render(<BuySellForm {...defaultProps} onBuy={errorOnBuy}/>);
+
+        await user.type(screen.getByPlaceholderText('Enter Quantity'), '1');
+        await user.click(screen.getByRole('button', { name: /^buy$/i }));
+
+        await user.click(screen.getByRole('button', { name: /confirm modal/i }));
+
+        expect(errorOnBuy).toHaveBeenCalled();
+        expect(consoleWatcher).toHaveBeenCalled();
+
+        consoleWatcher.mockRestore();
+    });
+
+    // Missing onBuy/onSell props
+    it('Handle onBuy/onSell when they are missing', async () => {
+        const user = userEvent.setup();
+        render(<BuySellForm price={500} accountBalance={1000} currentHoldings={10}/>);
+
+        await user.type(screen.getByPlaceholderText('Enter Quantity'), '2');
+        await user.click(screen.getByRole('button', { name: /^buy$/i }));
+        await user.click(screen.getByRole('button', { name: /confirm modal/i }));
+
+        expect(screen.queryByTestId('trade-confirm-modal')).not.toBeInTheDocument();
+    });
+});

@@ -4,39 +4,40 @@ from typing import List, Optional
 from sqlmodel import Session, select
 from fastapi import HTTPException
 
-from app.epics.market_data.MarketDataService import MarketDataService
-from app.epics.market_data.tickers import Symbols, profiles
 from app.models.report import Report, Period
 from app.models.report_section import ReportSection
-from app.epics.market_data.MarketDataDTOs import MockOHLCV
+from app.models.asset import Asset
+from app.models.daily_OHLCV import DailyOHLCV
 
 #I have to include some stuff for swagger to see here or qube throws a fit
 
 class ReportGenService:
     def __init__(self):
-        self.market_service = MarketDataService()
-    
+        pass
+
     #Helper function to so qube stops crying
-    def _fetch_historical_bars(self, symbol: str, count: int) -> Optional[List[MockOHLCV]]:
-        if symbol not in profiles:
+    def _fetch_historical_bars(self, db: Session, symbol: str, count: int) -> Optional[List[DailyOHLCV]]:
+        asset = db.exec(select(Asset).where(Asset.symbol == symbol)).first()
+        if asset is None:
             return None
 
-        payload = {
-            "symbol": symbol,
-            "interval": "1d",
-            "count": count
-        }
-
         try:
-            historical_bars = self.market_service.generate_history(payload)
-            if not historical_bars or len(historical_bars) < 2:
+            recent_bars = db.exec(
+                select(DailyOHLCV)
+                .where(DailyOHLCV.asset_id == asset.asset_id)
+                .order_by(DailyOHLCV.timestamp.desc())
+                .limit(count)
+            ).all()
+
+            if not recent_bars or len(recent_bars) < 2:
                 return None
-            return historical_bars
+
+            return list(reversed(recent_bars))
         except Exception:
             return None
 
     #another helper function to help calculate the values
-    def _calculate_section_metrics(self, historical_bars: List[MockOHLCV], report_id: int, symbol: str) -> ReportSection:
+    def _calculate_section_metrics(self, historical_bars: List[DailyOHLCV], report_id: int, symbol: str) -> ReportSection:
         latest_bar = historical_bars[-1]
         baseline_bar = historical_bars[0]
 
@@ -93,9 +94,11 @@ class ReportGenService:
         if db_report.id is None:
             raise HTTPException(status_code=500, detail="Failed to initialize row.")
 
-        # Read the ticker file and get an appropriate symbol
-        for symbol in Symbols:
-            historical_bars = self._fetch_historical_bars(symbol, count)
+        # Try each tracked asset until one has enough historical data
+        assets = db.exec(select(Asset)).all()
+        for asset in assets:
+            symbol = asset.symbol
+            historical_bars = self._fetch_historical_bars(db, symbol, count)
             if not historical_bars:
                 continue
 

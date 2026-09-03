@@ -11,12 +11,13 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {TransactionLog} from "@/components/TransactionLog";
 import {TradingAuthPrompt} from "@/components/tradingAuthPrompt";
 import {HoldingsSummary} from "@/components/HoldingsSummary";
+import {useHoldings} from "@/hooks/useHoldings";
 import {Navbar} from '@/components/navbar';
 import {ReportView} from "@/components/ReportView";
 
 function PageSkeleton() {
     return (
-        <div className="flex min-h-screen bg-background">
+        <div className="flex min-h-screen ">
             <aside className="hidden lg:flex flex-col w-72 shrink-0 border-r border-border/60 p-4 gap-3">
                 <Skeleton className="h-6 w-32 mb-2" />
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -35,7 +36,7 @@ function PageSkeleton() {
 
 function PageError({ message }: { message: string }) {
     return (
-        <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex items-center justify-center min-h-screen ">
             <div className="flex flex-col items-center gap-3 text-center px-6">
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-destructive">
@@ -69,6 +70,7 @@ export default function Dashboard() {
     const { loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
     const { loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
     const {activeAccount} = useAccount();
+    const { holdings, loading: holdingsLoading, error: holdingsError } = useHoldings(activeAccount?.id ?? null);
 
     if (!ticker) return <PageError message="Invalid ticker" />;
     if (pricesLoading || summaryLoading) return <PageSkeleton />;
@@ -77,7 +79,7 @@ export default function Dashboard() {
     return (
         <div>
             <Navbar />
-            <div className="flex min-h-screen bg-background">
+            <div className="flex min-h-screen ">
                 <aside
                     className="hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">
                     <TopMovers/>
@@ -89,10 +91,6 @@ export default function Dashboard() {
 
                     <div className="w-full">
                         <AssetSummaryBar ticker={ticker}/>
-                    </div>
-
-                    <div className="h-[500px] rounded-xl border border-border/60 bg-card overflow-hidden">
-                        <PriceChart ticker={ticker}/>
                     </div>
 
                     <div className="lg:hidden">
@@ -123,7 +121,9 @@ export default function Dashboard() {
                     </TabsContent>
 
                     <TabsContent value="Holdings" className="w-full mt-4">
-                        {activeAccount ? <HoldingsSummary accountId={activeAccount.id} /> : <TradingAuthPrompt />}
+                        {activeAccount ? (
+                            <HoldingsSummary holdings={holdings} loading={holdingsLoading} error={holdingsError} />
+                        ) : <TradingAuthPrompt />}
                     </TabsContent>
 
                     <TabsContent value="Report" className="w-full mt-4">

@@ -1,15 +1,10 @@
-from sqlmodel import Session
+from datetime import datetime, timezone
+from decimal import Decimal
+from sqlmodel import Session, select
 from app.models.currency import Currency
-from tests.conftest import test_engine
 from app.models.asset import Asset
-
-from tests.conftest import client, get_token
-
-def seed_asset(ticker: str = "AAPL") -> None:
-    with Session(test_engine) as session:
-        asset = Asset(symbol=ticker, asset_class="STOCK", exchange="NASDAQ", currency="ZAR")
-        session.add(asset)
-        session.commit()
+from app.models.real_time_ticks import RealTimeTicks
+from tests.conftest import test_engine, client, get_token
         
 def seed_currency(code: str = "ZAR") -> None:
     with Session(test_engine) as session:
@@ -17,13 +12,26 @@ def seed_currency(code: str = "ZAR") -> None:
         session.add(currency)
         session.commit()
         
+def seed_tick(symbol: str = "AAPL", price: str = "10000.00") -> None:
+    with Session(test_engine) as session:
+        asset = session.exec(select(Asset).where(Asset.symbol == symbol)).first()
+        assert asset is not None, f"{symbol} already exists"
+        assert asset.asset_id is not None, f"{symbol} already exists"
+        session.add(RealTimeTicks(
+            asset_id=asset.asset_id,
+            timestamp=datetime.now(timezone.utc),
+            price=Decimal(price),
+            volume=Decimal("10.00")
+        ))
+        session.commit()
+        
 def create_trade_setup(email: str = "test@example.com"):
-    seed_asset()
     seed_currency()
-    token = get_token()
+    seed_tick()
+    token = get_token(email)
     create_response = client.post("/accounts", json={
         "currency_code": "ZAR",
-        "initial_balance": "1000.00"
+        "initial_balance": "100000.00"
     }, headers={"Authorization": f"Bearer {token}"})
     account_id = create_response.json()["id"]
     return token, account_id
@@ -37,6 +45,9 @@ def test_execute_buy_trade() -> None:
         "direction": "buy",
         "quantity": 1
     }, headers={"Authorization": f"Bearer {token}"})
+    
+    print(f"\nresonnse status: {response.status_code}")
+    print(f"\nresonnse body: {response.json()}")
     
     assert response.status_code == 200
 
@@ -99,8 +110,8 @@ def test_sell_more_than_owned() -> None:
 
 
 def test_trade_wrong_account() -> None:
-    seed_asset()
     seed_currency()
+    seed_tick()
 
     token_1 = get_token("test_user_number_1@email.com")
     token_2 = get_token("test_user_number_2@email.com")

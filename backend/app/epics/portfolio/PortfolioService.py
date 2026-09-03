@@ -1,14 +1,15 @@
+from datetime import date, timedelta, timezone, datetime
 from decimal import Decimal
 from fastapi import HTTPException, status
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 from typing import List, Dict
 from collections import defaultdict
 
-from ..market_data.MarketDataService import MarketDataService
-from ..market_data.MarketDataDTOs import AssetSummary
 from ...models.transaction import Direction
+from ...models.real_time_ticks import RealTimeTicks
+from ...models.daily_OHLCV import DailyOHLCV
 from ...models import Asset,InternationalAccount,User,Portfolio,Transaction,Currency
-from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, TransactionResponse, HoldingResponse, Holding
+from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, TransactionResponse, HoldingResponse, Holding, PortfolioHistoryResponse, PortfolioHistoryPoint
 
 
 class PortfolioService:
@@ -38,6 +39,18 @@ class PortfolioService:
 
         return quantity
 
+    def _get_current_price(self, asset_id: int) -> Decimal:
+        latest_tick = self.session.exec(
+            select(RealTimeTicks)
+            .where(RealTimeTicks.asset_id == asset_id)
+            .order_by(col(RealTimeTicks.timestamp).desc())
+        ).first()
+
+        if latest_tick is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No live price available for this asset")
+
+        return Decimal(str(latest_tick.price))
+
     def execute_trade(self,data:ExecuteTradeDTO,account_id:int,current_user:User)->ExecuteTradeResponseDTO:
         account = self.session.get(InternationalAccount,account_id)
         if account is None:
@@ -55,20 +68,17 @@ class PortfolioService:
 
         #get account balance
         balance:Decimal =account.balance
-        
-        # get asset price   
-        
-        market_service:MarketDataService= MarketDataService()
-        asset_summary:AssetSummary= market_service.get_asset_summary_data(data.ticker)
-        asset_price:Decimal=Decimal(asset_summary.current_price)
-        total_cost = asset_price * Decimal(str(data.quantity))
 
-         # get asset based on ticker
+        # get asset based on ticker
         asset=self.session.exec(select(Asset).where(Asset.symbol==data.ticker)).first()
         if asset is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="There is no asset with specified ticker")
-        
+
         assert asset.asset_id is not None,"Asset ID should not be none"
+
+        # get asset price from the latest real-time tick
+        asset_price:Decimal = self._get_current_price(asset.asset_id)
+        total_cost = asset_price * Decimal(str(data.quantity))
 
 
         if data.direction== Direction.Buy:
@@ -190,8 +200,87 @@ class PortfolioService:
 
         return HoldingResponse(holdings=holdings_list)
 
+    def get_portfolio_history(self, account_id: int, current_user: User) -> PortfolioHistoryResponse:
+        # validate account and ownership (same checks as other methods)
+        account = self.session.get(InternationalAccount, account_id)
+        if account is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=self.ERROR_NO_ACCOUNT)
 
+        portfolio = self.session.exec(select(Portfolio).where(Portfolio.user_id == current_user.id)).first()
+        assert portfolio is not None, self.ERROR_USER_NO_PORTFOLIO
 
+        if account.portfolio_id != portfolio.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=self.ERROR_ACCOUNT_NOT_OWNER)
+
+        transactions = sorted(
+            self.session.exec(select(Transaction).where(Transaction.account_id == account_id)).all(),
+            key=lambda t: t.executed_at,
+        )
+
+        if not transactions:
+            return PortfolioHistoryResponse(points=[])
+
+        # Account.balance is only ever mutated by trades (see execute_trade), so we can
+        # recover the cash balance *before* any trade happened by reversing every trade's
+        # effect on the current balance.
+        starting_cash = account.balance
+        for tx in transactions:
+            cost = Decimal(str(tx.quantity)) * tx.price_at_execution
+            if tx.direction == Direction.Buy:
+                starting_cash += cost
+            else:
+                starting_cash -= cost
+
+        asset_ids = sorted({tx.asset_id for tx in transactions})
+        start_date: date = transactions[0].executed_at.date()
+        end_date: date = datetime.now(timezone.utc).date()
+
+        ohlcv_rows = self.session.exec(
+            select(DailyOHLCV).where(
+                col(DailyOHLCV.asset_id).in_(asset_ids),
+                DailyOHLCV.timestamp >= transactions[0].executed_at,
+            )
+        ).all()
+
+        closes: Dict[int, Dict[date, Decimal]] = defaultdict(dict)
+        for row in ohlcv_rows:
+            closes[row.asset_id][row.timestamp.date()] = row.close
+
+        txs_by_date: Dict[date, List[Transaction]] = defaultdict(list)
+        for tx in transactions:
+            txs_by_date[tx.executed_at.date()].append(tx)
+
+        cash = starting_cash
+        positions: Dict[int, float] = defaultdict(float)
+        last_known_close: Dict[int, Decimal] = {}
+        points: List[PortfolioHistoryPoint] = []
+
+        current_date = start_date
+        while current_date <= end_date:
+            for tx in txs_by_date.get(current_date, []):
+                cost = Decimal(str(tx.quantity)) * tx.price_at_execution
+                if tx.direction == Direction.Buy:
+                    cash -= cost
+                    positions[tx.asset_id] += tx.quantity
+                else:
+                    cash += cost
+                    positions[tx.asset_id] -= tx.quantity
+
+            holdings_value = Decimal(0)
+            for asset_id, qty in positions.items():
+                if qty == 0:
+                    continue
+                price = closes.get(asset_id, {}).get(current_date)
+                if price is not None:
+                    last_known_close[asset_id] = price
+                price = last_known_close.get(asset_id)
+                if price is not None:
+                    holdings_value += Decimal(str(qty)) * price
+
+            points.append(PortfolioHistoryPoint(date=current_date, total_value=float(cash + holdings_value)))
+            current_date += timedelta(days=1)
+
+        return PortfolioHistoryResponse(points=points)
 
 
 
