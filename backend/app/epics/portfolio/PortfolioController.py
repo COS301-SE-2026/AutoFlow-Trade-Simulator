@@ -5,7 +5,7 @@ from typing import Annotated
 from ...core.security import get_current_user
 from ...models import User
 
-from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, HoldingResponse
+from .PortfolioDTOs import EpicStatusDTO, ExecuteTradeDTO, ExecuteTradeResponseDTO, TradeHistoryResponse, HoldingResponse, PortfolioHistoryResponse
 from .PortfolioService import PortfolioService
 from ...database import get_session
 
@@ -50,3 +50,12 @@ def get_holdings(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> HoldingResponse:
     return service.get_holdings(account_id, current_user)
+
+
+@router.get("/accounts/{account_id}/history")
+def get_portfolio_history(
+    account_id: int,
+    service: Annotated[PortfolioService, Depends(get_portfolio_service)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> PortfolioHistoryResponse:
+    return service.get_portfolio_history(account_id, current_user)
