@@ -24,7 +24,7 @@ export function ReportView({ }: {}) {
             ) : (
                 <div className='grid grid-cols-1 gap-4'>
                     {reports.map((report) => (
-                        <ReportCard key={report.id} />
+                        <ReportCard key={report.id} report={report} />
                     ))}
                 </div>
             )}
