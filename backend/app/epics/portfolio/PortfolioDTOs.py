@@ -1,6 +1,6 @@
 
 
-from datetime import datetime
+from datetime import date, datetime
 from ...models.transaction import Direction
 from sqlmodel import SQLModel
 
@@ -47,3 +47,10 @@ class Holding(SQLModel):
 
 class HoldingResponse(SQLModel):
     holdings: list[Holding]
+
+class PortfolioHistoryPoint(SQLModel):
+    date: date
+    total_value: float
+
+class PortfolioHistoryResponse(SQLModel):
+    points: list[PortfolioHistoryPoint]
