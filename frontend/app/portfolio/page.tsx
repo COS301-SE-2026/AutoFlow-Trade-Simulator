@@ -93,7 +93,13 @@ export default function PortfolioPage() {
         }
       </div>
       <div className="flex w-full gap-6 p-4">
-        {activeAccount ? <HoldingsSummary accountId={activeAccount.id} /> : <TradingAuthPrompt />}
+        {activeAccount ? (
+          <HoldingsSummary
+            accountId={activeAccount.id}
+            selectedTicker={ticker}
+            onSelect={(selected) => { setTicker(selected); setQuery(''); }}
+          />
+        ) : <TradingAuthPrompt />}
         <AssetSummaryBar ticker={ticker || 'AAPL'} />
       </div>
       <div className='gap-6'>
