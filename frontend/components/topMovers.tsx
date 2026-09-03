@@ -1,11 +1,15 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
-import {fetchTopMovers} from '@/lib/api/assets';
+import {fetchChartBars, fetchTopMovers} from '@/lib/api/assets';
+import {useRouter} from "next/navigation";
+import {useRealTimeTicksList} from "@/hooks/useRealTimeTicks";
+import Fuse from "fuse.js";
 
 const MOVERS_LIMIT = 8;
+const MAX_SEARCH_RESULTS = 5;
 
 type MoverData = {
     ticker: string;
