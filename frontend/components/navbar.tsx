@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { AccountProvider } from "@/lib/hooks/accountContext";
 import { AccountSelector } from "@/components/intAccSwitcher";
 import { useRouter } from 'next/navigation';
@@ -44,14 +45,28 @@ export function Navbar() {
             top: 0,
             zIndex: 50,
         }}>
-
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                <Image
+                    src='/logo.svg'
+                    alt='Logo'
+                    width={32}
+                    height={32}
+                    style={{ borderRadius: '8px' }}
+                ></Image>
+                <span style={{
+                    fontSize: '17px',
+                    fontWeight: 700,
+                    color: '#ffffff',
+                    letterSpacing: '-0.2px',
+                }}>
+                    AutoFlow
+                </span>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 {[
                     { label: 'Dashboard', href: '/dashboard' },
                     { label: 'Portfolio', href: '/portfolio' },
-                    { label: 'Markets', href: '/assets/AAPL' },
-                    { label: 'Leaderboard', href: '/#' },
-                    { label: 'AI Assistant', href: '/#' },
+                    { label: 'Markets', href: '/assets/BTC' },
                     { label: 'Learning', href: '/learning' },
                     { label: 'Help', href: '/help' },
                 ].map(({ label, href }) => (
