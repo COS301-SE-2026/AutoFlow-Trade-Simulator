@@ -56,7 +56,7 @@ describe('useReports', () => {
     });
 
     it('can create a report', async () => {
-        mockApiClient.mockResolvedValueOnce(mockreports).mockResolvedValueOnce(mockreport);
+        mockApiClient.mockResolvedValueOnce(mockreports).mockResolvedValueOnce([mockreport]);
 
         const { result } = renderHook(() => useReports());
 
