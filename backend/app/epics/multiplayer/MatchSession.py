@@ -10,7 +10,7 @@ from sqlmodel import Session
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.multiplayer_match import ActionLogEntry, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
 from ..simulation.SimulationService import SimulationService
-from .MultiplayerDTOs import MatchFoundMessage
+from .MultiplayerDTOs import BarDTO, DayMessage, MatchFoundMessage
 from .PerturbationService import derive_seed, perturb_bars
 
 TICK_SECONDS: float = 2.0
@@ -42,6 +42,7 @@ class PlayerState:
 class MatchSession:
     def __init__(
         self,
+        scenario_id: int,
         symbol: str,
         start: date,
         end: date,
@@ -50,6 +51,7 @@ class MatchSession:
         session_factory: Callable[[], Session],
     ) -> None:
         self.match_id: Optional[int] = None  # assigned once prepare() persists the MultiplayerMatch row
+        self.scenario_id = scenario_id
         self.symbol = symbol
         self.start = start
         self.end = end
@@ -67,6 +69,7 @@ class MatchSession:
 
         self._current_qte: Optional[QTEQuestion] = None
         self._qte_event = asyncio.Event()
+        self._actions_event = asyncio.Event()
 
     async def prepare(self) -> None:
         players = list(self.players.values())
@@ -77,6 +80,7 @@ class MatchSession:
             base_bars = sim_service.load_bars(self.symbol, self.start, self.end)
 
             match = MultiplayerMatch(
+                scenario_id=self.scenario_id,
                 symbol=self.symbol,
                 start_date=self.start,
                 end_date=self.end,
@@ -147,6 +151,8 @@ class MatchSession:
                     error = self._apply_trade(player, bar, action, qty)
                     if error is None:
                         player.pending_action = PendingAction(type=action, qty=qty or 0.0, price=bar.close)
+                        if all(p.pending_action is not None for p in self.players.values()):
+                            self._actions_event.set()
 
             if self._current_qte is not None and qte_answer is not None and player.pending_qte_answer is None:
                 player.pending_qte_answer = qte_answer
@@ -181,3 +187,66 @@ class MatchSession:
             return None
 
         return f"unknown action type: {action}"
+
+    async def _run(self) -> None:
+        while self.day_index < self.total_days:
+            for player in self.players.values():
+                player.pending_action = None
+                player.pending_qte_answer = None
+            self._actions_event.clear()
+            self._qte_event.clear()
+            self._current_qte = None  # QTE selection is added in a later step
+
+            bar = next(iter(self.players.values())).bars[self.day_index]
+            current_date = bar.timestamp.date()
+
+            for player in self.players.values():
+                await self._send_day(player, bar, current_date)
+
+            if self._current_qte is not None:
+                await self._collect_qte(timeout=QTE_TIMEOUT_SECONDS)
+            else:
+                await self._collect_actions(timeout=TICK_SECONDS)
+
+            for player in self.players.values():
+                if player.pending_action is None:
+                    player.pending_action = PendingAction(type="hold", qty=0.0, price=bar.close)
+
+            self.day_index += 1
+
+        await self._finalize()
+
+    async def _collect_actions(self, timeout: float) -> None:
+        try:
+            await asyncio.wait_for(self._actions_event.wait(), timeout=timeout)
+        except asyncio.TimeoutError:
+            pass
+
+    async def _collect_qte(self, timeout: float) -> None:
+        try:
+            await asyncio.wait_for(self._qte_event.wait(), timeout=timeout)
+        except asyncio.TimeoutError:
+            pass
+
+    async def _send_day(self, player: PlayerState, bar: DailyOHLCV, current_date: date) -> None:
+        message = DayMessage(
+            day_index=self.day_index,
+            date=current_date,
+            bar=BarDTO(
+                open=float(bar.open),
+                high=float(bar.high),
+                low=float(bar.low),
+                close=float(bar.close),
+                volume=float(bar.volume),
+            ),
+            cash_balance=float(player.cash),
+            position_qty=float(player.qty),
+            qte=None,
+        )
+        await player.socket.send_text(message.model_dump_json())
+
+    async def _finalize(self) -> None:
+        pass  
+
+    def start(self) -> None:
+        self.task = asyncio.create_task(self._run())

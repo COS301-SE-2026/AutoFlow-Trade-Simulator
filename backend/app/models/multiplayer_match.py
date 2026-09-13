@@ -38,6 +38,7 @@ class ActionLogEntry(SQLModel):
 
 class MultiplayerMatch(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    scenario_id: int = Field(foreign_key="scenario.id")
     symbol: str = Field(max_length=20)
     start_date: date
     end_date: date

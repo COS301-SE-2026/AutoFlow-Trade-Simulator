@@ -16,6 +16,7 @@ from .practice_simulation import PraticeSimulation
 from .options import Options
 from .news import News
 from .back_test_results import BackTestResults
+from .scenario import Scenario
 from .multiplayer_match import (
     MultiplayerMatch,
     MultiplayerParticipant,
@@ -47,6 +48,7 @@ __all__ = [
 	"Options",
 	"News",
 	"BackTestResults",
+	"Scenario",
 	"MultiplayerMatch",
 	"MultiplayerParticipant",
 	"QTEQuestion",
