@@ -68,8 +68,8 @@ class MatchSession:
         self.match_id: Optional[int] = None  # assigned once prepare() persists the MultiplayerMatch row
         self.scenario_id = scenario_id
         self.symbol = symbol
-        self.start = start
-        self.end = end
+        self.start_date = start
+        self.end_date = end
         self.initial_balance = initial_balance
         self.session_factory = session_factory
 
@@ -92,13 +92,13 @@ class MatchSession:
 
         with self.session_factory() as db:
             sim_service = SimulationService(db)
-            base_bars = sim_service.load_bars(self.symbol, self.start, self.end)
+            base_bars = sim_service.load_bars(self.symbol, self.start_date, self.end_date)
 
             match = MultiplayerMatch(
                 scenario_id=self.scenario_id,
                 symbol=self.symbol,
-                start_date=self.start,
-                end_date=self.end,
+                start_date=self.start_date,
+                end_date=self.end_date,
                 initial_balance=self.initial_balance,
                 player_one_id=player_one.user_id,
                 player_two_id=player_two.user_id,
@@ -132,8 +132,8 @@ class MatchSession:
             message = MatchFoundMessage(
                 match_id=self.match_id,
                 symbol=self.symbol,
-                start_date=self.start,
-                end_date=self.end,
+                start_date=self.start_date,
+                end_date=self.end_date,
                 initial_balance=float(self.initial_balance),
                 opponent_user_id=opponent.user_id,
                 total_days=self.total_days,
