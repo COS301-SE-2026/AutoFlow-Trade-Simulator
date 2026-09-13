@@ -1,16 +1,17 @@
 import asyncio
+import random
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Callable, Dict, List, Optional
 
 from fastapi import WebSocket
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.multiplayer_match import ActionLogEntry, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
 from ..simulation.SimulationService import SimulationService
-from .MultiplayerDTOs import BarDTO, DayMessage, MatchFoundMessage
+from .MultiplayerDTOs import BarDTO, DayMessage, MatchEndMessage, MatchFoundMessage, QteOfferDTO, QtePlayerOutcome, QteResultMessage
 from .PerturbationService import derive_seed, perturb_bars
 
 TICK_SECONDS: float = 2.0
@@ -67,9 +68,9 @@ class MatchSession:
         self.lock = asyncio.Lock()
         self.task: Optional[asyncio.Task] = None
 
-        self._current_qte: Optional[QTEQuestion] = None
-        self._qte_event = asyncio.Event()
-        self._actions_event = asyncio.Event()
+        self.current_qte: Optional[QTEQuestion] = None
+        self.qte_event = asyncio.Event()
+        self.actions_event = asyncio.Event()
 
     async def prepare(self) -> None:
         players = list(self.players.values())
@@ -148,20 +149,20 @@ class MatchSession:
                     error = "action already submitted for this day"
                 else:
                     bar = player.bars[self.day_index]
-                    error = self._apply_trade(player, bar, action, qty)
+                    error = self.apply_trade(player, bar, action, qty)
                     if error is None:
                         player.pending_action = PendingAction(type=action, qty=qty or 0.0, price=bar.close)
                         if all(p.pending_action is not None for p in self.players.values()):
-                            self._actions_event.set()
+                            self.actions_event.set()
 
-            if self._current_qte is not None and qte_answer is not None and player.pending_qte_answer is None:
+            if self.current_qte is not None and qte_answer is not None and player.pending_qte_answer is None:
                 player.pending_qte_answer = qte_answer
                 if all(p.pending_qte_answer is not None for p in self.players.values()):
-                    self._qte_event.set()
+                    self.qte_event.set()
 
             return error
 
-    def _apply_trade(self, player: PlayerState, bar: DailyOHLCV, action: str, qty: Optional[float]) -> Optional[str]:
+    def apply_trade(self, player: PlayerState, bar: DailyOHLCV, action: str, qty: Optional[float]) -> Optional[str]:
         if action == "hold":
             return None
 
@@ -188,47 +189,66 @@ class MatchSession:
 
         return f"unknown action type: {action}"
 
-    async def _run(self) -> None:
+    async def run(self) -> None:
         while self.day_index < self.total_days:
             for player in self.players.values():
                 player.pending_action = None
                 player.pending_qte_answer = None
-            self._actions_event.clear()
-            self._qte_event.clear()
-            self._current_qte = None  # QTE selection is added in a later step
+            self.actions_event.clear()
+            self.qte_event.clear()
+            self.current_qte = None
+            if random.random() < QTE_PROBABILITY:
+                self.current_qte = self.pick_qte_question()
 
             bar = next(iter(self.players.values())).bars[self.day_index]
             current_date = bar.timestamp.date()
 
             for player in self.players.values():
-                await self._send_day(player, bar, current_date)
+                await self.send_day(player, bar, current_date)
 
-            if self._current_qte is not None:
-                await self._collect_qte(timeout=QTE_TIMEOUT_SECONDS)
+            if self.current_qte is not None:
+                await self.collect_qte(timeout=QTE_TIMEOUT_SECONDS)
             else:
-                await self._collect_actions(timeout=TICK_SECONDS)
+                await self.collect_actions(timeout=TICK_SECONDS)
 
             for player in self.players.values():
                 if player.pending_action is None:
                     player.pending_action = PendingAction(type="hold", qty=0.0, price=bar.close)
 
+            if self.current_qte is not None:
+                outcomes = {
+                    player.user_id: self.apply_qte_effect(player, self.current_qte)
+                    for player in self.players.values()
+                }
+                await self.send_qte_result(self.current_qte, outcomes)
+
             self.day_index += 1
 
-        await self._finalize()
+        await self.finalize()
 
-    async def _collect_actions(self, timeout: float) -> None:
+    async def collect_actions(self, timeout: float) -> None:
         try:
-            await asyncio.wait_for(self._actions_event.wait(), timeout=timeout)
+            await asyncio.wait_for(self.actions_event.wait(), timeout=timeout)
         except asyncio.TimeoutError:
             pass
 
-    async def _collect_qte(self, timeout: float) -> None:
+    async def collect_qte(self, timeout: float) -> None:
         try:
-            await asyncio.wait_for(self._qte_event.wait(), timeout=timeout)
+            await asyncio.wait_for(self.qte_event.wait(), timeout=timeout)
         except asyncio.TimeoutError:
             pass
 
-    async def _send_day(self, player: PlayerState, bar: DailyOHLCV, current_date: date) -> None:
+    async def send_day(self, player: PlayerState, bar: DailyOHLCV, current_date: date) -> None:
+        qte_offer: Optional[QteOfferDTO] = None
+        if self.current_qte is not None:
+            qte_offer = QteOfferDTO(
+                question_id=self.current_qte.id,
+                question_type=self.current_qte.question_type.value,
+                prompt=self.current_qte.prompt,
+                options=self.current_qte.options,
+                timeout_seconds=int(QTE_TIMEOUT_SECONDS),
+            )
+
         message = DayMessage(
             day_index=self.day_index,
             date=current_date,
@@ -241,12 +261,82 @@ class MatchSession:
             ),
             cash_balance=float(player.cash),
             position_qty=float(player.qty),
-            qte=None,
+            qte=qte_offer,
         )
         await player.socket.send_text(message.model_dump_json())
 
-    async def _finalize(self) -> None:
-        pass  
+    def pick_qte_question(self) -> Optional[QTEQuestion]:
+        with self.session_factory() as db:
+            questions = list(db.exec(select(QTEQuestion).where(QTEQuestion.active == True)).all())
+        if not questions:
+            return None
+        return random.choice(questions)
+
+    def apply_qte_effect(self, player: PlayerState, question: QTEQuestion) -> QtePlayerOutcome:
+        answer = player.pending_qte_answer
+        if answer is None:
+            return QtePlayerOutcome(answer=None, correct=False, cash_delta=0.0)
+
+        correct = answer == question.correct_answer
+        pct = question.correct_cash_delta_pct if correct else question.incorrect_cash_delta_pct
+        delta = player.cash * pct
+        player.cash += delta
+        return QtePlayerOutcome(answer=answer, correct=correct, cash_delta=float(delta))
+
+    async def send_qte_result(self, question: QTEQuestion, outcomes: Dict[int, QtePlayerOutcome]) -> None:
+        message = QteResultMessage(
+            day_index=self.day_index,
+            question_id=question.id,
+            correct_answer=question.correct_answer,
+            per_player={str(user_id): outcome for user_id, outcome in outcomes.items()},
+        )
+        for player in self.players.values():
+            await player.socket.send_text(message.model_dump_json())
+
+    async def finalize(self) -> None:
+        final_bar = next(iter(self.players.values())).bars[-1]
+
+        for player in self.players.values():
+            if player.qty > 0:
+                self.apply_trade(player, final_bar, "sell", float(player.qty))
+
+        balances: Dict[int, Decimal] = {p.user_id: p.cash for p in self.players.values()}
+        winner_user_id: Optional[int] = None
+        values = list(balances.values())
+        if values[0] != values[1]:
+            winner_user_id = max(balances, key=lambda uid: balances[uid])
+
+        with self.session_factory() as db:
+            match = db.get(MultiplayerMatch, self.match_id)
+            match.status = MatchStatus.completed
+            match.winner_user_id = winner_user_id
+            match.ended_at = datetime.utcnow()
+            match.current_day_index = self.day_index
+            db.add(match)
+
+            for player in self.players.values():
+                participant = db.exec(
+                    select(MultiplayerParticipant)
+                    .where(MultiplayerParticipant.match_id == self.match_id)
+                    .where(MultiplayerParticipant.user_id == player.user_id)
+                ).one()
+                participant.cash_balance = player.cash
+                participant.position_qty = player.qty
+                participant.final_balance = player.cash
+                db.add(participant)
+
+            db.commit()
+
+        self.status = MatchStatus.completed
+
+        message = MatchEndMessage(
+            match_id=self.match_id,
+            final_balances={str(user_id): float(cash) for user_id, cash in balances.items()},
+            winner_user_id=winner_user_id,
+            reason="completed",
+        )
+        for player in self.players.values():
+            await player.socket.send_text(message.model_dump_json())
 
     def start(self) -> None:
-        self.task = asyncio.create_task(self._run())
+        self.task = asyncio.create_task(self.run())
