@@ -6,13 +6,27 @@ from decimal import Decimal
 from typing import Callable, Dict, List, Optional
 
 from fastapi import WebSocket
+from pydantic import ValidationError
 from sqlmodel import Session, select
 
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.multiplayer_match import ActionLogEntry, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
 from ..simulation.SimulationService import SimulationService
-from .MultiplayerDTOs import BarDTO, DayMessage, MatchEndMessage, MatchFoundMessage, QteOfferDTO, QtePlayerOutcome, QteResultMessage
+from .MultiplayerDTOs import (
+    ActionAckMessage,
+    ActionMessage,
+    BarDTO,
+    DayMessage,
+    ErrorMessage,
+    MatchEndMessage,
+    MatchFoundMessage,
+    QteOfferDTO,
+    QtePlayerOutcome,
+    QteResultMessage,
+)
 from .PerturbationService import derive_seed, perturb_bars
+
+DISCONNECT_GRACE_SECONDS: float = 30.0
 
 TICK_SECONDS: float = 2.0
 QTE_TIMEOUT_SECONDS: float = 10.0
@@ -191,6 +205,9 @@ class MatchSession:
 
     async def run(self) -> None:
         while self.day_index < self.total_days:
+            if self.status != MatchStatus.in_progress:
+                return  # match was forfeited mid-tick; finalize() must not run
+
             for player in self.players.values():
                 player.pending_action = None
                 player.pending_qte_answer = None
@@ -224,7 +241,8 @@ class MatchSession:
 
             self.day_index += 1
 
-        await self.finalize()
+        if self.status == MatchStatus.in_progress:
+            await self.finalize()
 
     async def collect_actions(self, timeout: float) -> None:
         try:
@@ -340,3 +358,93 @@ class MatchSession:
 
     def start(self) -> None:
         self.task = asyncio.create_task(self.run())
+
+    async def handle_client_message(self, user_id: int, raw: str) -> None:
+        player = self.players.get(user_id)
+        if player is None:
+            return
+
+        try:
+            action = ActionMessage.model_validate_json(raw)
+        except ValidationError:
+            await player.socket.send_text(ErrorMessage(detail="malformed action message").model_dump_json())
+            return
+
+        error = await self.submit_action(user_id, action.day_index, action.action, action.qty, action.qte_answer)
+        ack = ActionAckMessage(
+            day_index=action.day_index,
+            cash_balance=float(player.cash),
+            position_qty=float(player.qty),
+            error=error,
+        )
+        await player.socket.send_text(ack.model_dump_json())
+
+    async def handle_disconnect(self, user_id: int) -> None:
+        player = self.players.get(user_id)
+        if player is None:
+            return
+
+        player.connected = False
+
+        with self.session_factory() as db:
+            participant = db.exec(
+                select(MultiplayerParticipant)
+                .where(MultiplayerParticipant.match_id == self.match_id)
+                .where(MultiplayerParticipant.user_id == user_id)
+            ).one()
+            participant.disconnected_at = datetime.utcnow()
+            db.add(participant)
+            db.commit()
+
+        asyncio.create_task(self.disconnect_grace(user_id))
+
+    async def disconnect_grace(self, user_id: int, seconds: float = DISCONNECT_GRACE_SECONDS) -> None:
+        await asyncio.sleep(seconds)
+        player = self.players.get(user_id)
+        if player is None or player.connected:
+            return  # reconnected within the grace period
+        await self.forfeit(disconnected_user_id=user_id)
+
+    async def forfeit(self, disconnected_user_id: int) -> None:
+        if self.status != MatchStatus.in_progress:
+            return  # match already completed or already forfeited
+
+        winner_user_id = next(uid for uid in self.players if uid != disconnected_user_id)
+
+        with self.session_factory() as db:
+            match = db.get(MultiplayerMatch, self.match_id)
+            match.status = MatchStatus.abandoned
+            match.winner_user_id = winner_user_id
+            match.ended_at = datetime.utcnow()
+            db.add(match)
+            db.commit()
+
+        self.status = MatchStatus.abandoned
+
+        message = MatchEndMessage(
+            match_id=self.match_id,
+            final_balances={str(uid): float(p.cash) for uid, p in self.players.items()},
+            winner_user_id=winner_user_id,
+            reason="opponent_disconnected",
+        )
+        winner = self.players[winner_user_id]
+        if winner.connected:
+            await winner.socket.send_text(message.model_dump_json())
+
+    async def rebind_socket(self, user_id: int, socket: WebSocket) -> None:
+        player = self.players.get(user_id)
+        if player is None:
+            raise ValueError(f"No player {user_id} in match {self.match_id}")
+
+        player.socket = socket
+        player.connected = True
+
+        with self.session_factory() as db:
+            participant = db.exec(
+                select(MultiplayerParticipant)
+                .where(MultiplayerParticipant.match_id == self.match_id)
+                .where(MultiplayerParticipant.user_id == user_id)
+            ).one()
+            participant.disconnected_at = None
+            db.add(participant)
+            db.commit()
