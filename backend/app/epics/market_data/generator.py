@@ -5,15 +5,12 @@ from .MarketDataDTOs import MockOHLCV
 #This is the random number generator for money
 class LCGPseudoRandomGenerator:
 
-    def __init__(self, a=1103515245, c=12345, m=2**31, seed=None):
+    def __init__(self, seed:number, a=1103515245, c=12345, m=2**31):
         self.a = a
         self.c = c
         self.m = m
 
-        if seed is None:
-            computed_seed = int(time.time() * 1000)
-        else:
-            computed_seed = (int(seed) * 2654435761) & 0xFFFFFFFF
+        computed_seed = (int(seed) * 2654435761) & 0xFFFFFFFF
 
         self.x_prev = computed_seed % self.m
     
