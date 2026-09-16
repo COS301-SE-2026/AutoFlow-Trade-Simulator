@@ -5,7 +5,7 @@ from .MarketDataDTOs import MockOHLCV
 #This is the random number generator for money
 class LCGPseudoRandomGenerator:
 
-    def __init__(self, seed:number, a=1103515245, c=12345, m=2**31):
+    def __init__(self, seed:int, a=1103515245, c=12345, m=2**31):
         self.a = a
         self.c = c
         self.m = m
