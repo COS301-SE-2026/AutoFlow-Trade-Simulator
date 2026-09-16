@@ -1,5 +1,4 @@
 import asyncio
-import random
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Callable, Dict, List, Optional
@@ -7,6 +6,7 @@ from typing import Callable, Dict, List, Optional
 from fastapi import WebSocket
 from sqlmodel import Session, select
 
+from ..market_data.generator import LCGPseudoRandomGenerator
 from ...models.scenario import Scenario
 from .MatchSession import MatchSession, PlayerState
 
@@ -64,14 +64,14 @@ class MultiplayerService:
             scenarios = list(db.exec(select(Scenario).where(Scenario.active == True)).all())
         if not scenarios:
             raise ValueError("No active scenarios configured")
-        return random.choice(scenarios)
+        return LCGPseudoRandomGenerator.choice(scenarios)
 
     async def find_match(self, connection: Connection) -> Optional[MatchSession]:
         async with self.queue_lock:
             waiting = [
                 c for c in self.active_connections
                 if c.match_id is None and c.user_id != connection.user_id
-            ]
+            ] #connects current user to the first other user waiting for a game.
             if not waiting:
                 return None
 

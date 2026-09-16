@@ -1,3 +1,4 @@
+import hashlib
 from decimal import Decimal
 from typing import List
 
@@ -13,9 +14,7 @@ def derive_seed(namespace: str, identifier: str) -> int:
     return int(digest[:8], 16)
 
 
-def perturb_bars(bars: List[DailyOHLCV], seed: int) -> List[DailyOHLCV]:
-    rng = LCGPseudoRandomGenerator(seed=seed)
-
+def perturb_bars(bars: List[DailyOHLCV], rng: LCGPseudoRandomGenerator) -> List[DailyOHLCV]:
     def jitter(value: Decimal) -> Decimal:
         offset = (Decimal(str(rng.generate_float())) * 2 - 1) * JITTER_PCT
         return (value * (1 + offset)).quantize(Decimal("0.0001"))

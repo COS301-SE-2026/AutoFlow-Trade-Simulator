@@ -1,5 +1,4 @@
 import asyncio
-import random
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
@@ -9,6 +8,7 @@ from fastapi import WebSocket
 from pydantic import ValidationError
 from sqlmodel import Session, select
 
+from ..market_data.generator import LCGPseudoRandomGenerator
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.multiplayer_match import ActionLogEntry, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
 from ..simulation.SimulationService import SimulationService
@@ -86,6 +86,10 @@ class MatchSession:
         self.qte_event = asyncio.Event()
         self.actions_event = asyncio.Event()
 
+        #also assigned after prepare()
+        self.seed: Optional[int]=None
+        self.rnd_gen: Optional[LCGPseudoRandomGenerator] = None
+
     async def prepare(self) -> None:
         players = list(self.players.values())
         player_one, player_two = players[0], players[1]
@@ -109,19 +113,20 @@ class MatchSession:
             assert match.id is not None
             self.match_id = match.id
 
-            seed = derive_seed("match", f"{self.match_id}:{player_one.user_id}:{player_two.user_id}")
-            perturbed_bars = perturb_bars(base_bars, seed)
+            self.seed = derive_seed("match", f"{self.match_id}:{player_one.user_id}:{player_two.user_id}")
+            self.rnd_gen = LCGPseudoRandomGenerator(self.seed)
+            perturbed_bars = perturb_bars(base_bars, self.rnd_gen)
             self.total_days = len(perturbed_bars)
 
             for player in players:
-                player.seed = seed
+                player.seed = self.seed
                 player.bars = perturbed_bars
                 player.cash = self.initial_balance
 
                 participant = MultiplayerParticipant(
                     match_id=self.match_id,
                     user_id=player.user_id,
-                    perturbation_seed=seed,
+                    perturbation_seed=self.seed,
                     cash_balance=self.initial_balance,
                 )
                 db.add(participant)
@@ -214,7 +219,7 @@ class MatchSession:
             self.actions_event.clear()
             self.qte_event.clear()
             self.current_qte = None
-            if random.random() < QTE_PROBABILITY:
+            if self.rnd_gen.generate_float() < QTE_PROBABILITY:
                 self.current_qte = self.pick_qte_question()
 
             bar = next(iter(self.players.values())).bars[self.day_index]
@@ -288,7 +293,7 @@ class MatchSession:
             questions = list(db.exec(select(QTEQuestion).where(QTEQuestion.active == True)).all())
         if not questions:
             return None
-        return random.choice(questions)
+        return self.rnd_gen.choice(questions)
 
     def apply_qte_effect(self, player: PlayerState, question: QTEQuestion) -> QtePlayerOutcome:
         answer = player.pending_qte_answer
