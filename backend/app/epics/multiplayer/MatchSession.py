@@ -109,7 +109,7 @@ class MatchSession:
             assert match.id is not None
             self.match_id = match.id
 
-            seed = derive_seed(self.match_id, player_one.user_id, player_two.user_id)
+            seed = derive_seed("match",  f"{match_id}:{player_one}:{player_two}")
             perturbed_bars = perturb_bars(base_bars, seed)
             self.total_days = len(perturbed_bars)
 

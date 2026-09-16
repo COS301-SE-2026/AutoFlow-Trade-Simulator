@@ -7,8 +7,10 @@ from ..market_data.generator import LCGPseudoRandomGenerator
 JITTER_PCT = Decimal("0.004")
 
 
-def derive_seed(match_id: int, player_one_id: int, player_two_id: int) -> int:
-    return match_id * 1_000_003 + player_one_id + player_two_id
+def derive_seed(namespace: str, identifier: str) -> int:
+    raw = f"{namespace}:{identifier}".encode("utf-8")
+    digest = hashlib.sha256(raw).hexdigest()
+    return int(digest[:8], 16)
 
 
 def perturb_bars(bars: List[DailyOHLCV], seed: int) -> List[DailyOHLCV]:
