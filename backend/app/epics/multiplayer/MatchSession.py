@@ -100,7 +100,6 @@ class MatchSession:
         for player in players:
             opponent = player_two if player is player_one else player_one
             message = MatchFoundMessage(
-                match_id=self.match_id,
                 symbol=self.symbol,
                 start_date=self.start_date,
                 end_date=self.end_date,
@@ -275,7 +274,7 @@ class MatchSession:
 
     def pick_qte_question(self) -> Optional[QTEQuestion]:
         with self.session_factory() as db:
-            questions = list(db.exec(select(QTEQuestion).where(QTEQuestion.active == True)).all())
+            questions = list(db.exec(select(QTEQuestion).where(QTEQuestion.active == True).order_by(QTEQuestion.id)).all())
         if not questions:
             return None
         return self.rnd_gen.choice(questions)
@@ -338,7 +337,6 @@ class MatchSession:
         self.status = MatchStatus.completed
 
         message = MatchEndMessage(
-            match_id=self.match_id,
             final_balances={str(user_id): float(cash) for user_id, cash in balances.items()},
             winner_user_id=winner_user_id,
             reason="completed",
@@ -412,7 +410,6 @@ class MatchSession:
         self.status = MatchStatus.abandoned
 
         message = MatchEndMessage(
-            match_id=self.match_id,
             final_balances={str(uid): float(p.cash) for uid, p in self.players.items()},
             winner_user_id=winner_user_id,
             reason="opponent_disconnected",

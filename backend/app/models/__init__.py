@@ -20,11 +20,10 @@ from .scenario import Scenario
 from .multiplayer_match import (
     MultiplayerMatch,
     MultiplayerParticipant,
+    MatchEventLog,
     QTEQuestion,
     MatchStatus,
     QuestionType,
-    ActionLogEntry,
-    QteAttempt,
 )
 
 __all__ = [
@@ -51,9 +50,8 @@ __all__ = [
 	"Scenario",
 	"MultiplayerMatch",
 	"MultiplayerParticipant",
+	"MatchEventLog",
 	"QTEQuestion",
 	"MatchStatus",
 	"QuestionType",
-	"ActionLogEntry",
-	"QteAttempt",
 ]

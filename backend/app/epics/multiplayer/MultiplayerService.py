@@ -5,6 +5,8 @@ from typing import Callable, Dict, List, Optional
 
 from fastapi import WebSocket
 from sqlmodel import Session, select
+from sqlalchemy import func
+
 
 from ...models.multiplayer_match import MultiplayerMatch, MultiplayerParticipant
 from ...models.scenario import Scenario
@@ -64,12 +66,15 @@ class MultiplayerService:
                 return match
         return None
 
-    def pick_random_scenario(self) -> Scenario:
+    def pick_scenario_for_players(self, user_a: int, user_b: int) -> Scenario:
         with self.session_factory() as db:
-            scenarios = list(db.exec(select(Scenario).where(Scenario.active == True)).all())
-        if not scenarios:
-            raise ValueError("No active scenarios configured")
-        return LCGPseudoRandomGenerator.choice(scenarios)
+            scenarios = list(db.exec(select(Scenario).where(Scenario.active == True).order_by(Scenario.id)).all())
+            if not scenarios:
+                raise ValueError("No active scenarios configured")
+            match_count = db.exec(select(func.count()).select_from(MultiplayerMatch)).one()
+        pair = f"{min(user_a, user_b)}:{max(user_a, user_b)}"
+        rng = LCGPseudoRandomGenerator(seed=derive_seed("matchmaking", f"{match_count}:{pair}"))
+        return rng.choice(scenarios)
 
     async def find_match(self, connection: Connection) -> Optional[MatchSession]:
         async with self.queue_lock:
@@ -81,7 +86,7 @@ class MultiplayerService:
                 return None
 
             peer = waiting[0]
-            scenario = self.pick_random_scenario()
+            scenario = self.pick_scenario_for_players(peer.user_id, connection.user_id)
 
             player_one = PlayerState(user_id=peer.user_id, socket=peer.socket)
             player_two = PlayerState(user_id=connection.user_id, socket=connection.socket)

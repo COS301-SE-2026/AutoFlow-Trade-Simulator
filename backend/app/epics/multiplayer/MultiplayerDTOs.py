@@ -22,7 +22,6 @@ class QteOfferDTO(SQLModel):
 
 class MatchFoundMessage(SQLModel):
     type: Literal["match_found"] = "match_found"
-    match_id: int
     symbol: str
     start_date: date
     end_date: date
@@ -73,7 +72,6 @@ class QteResultMessage(SQLModel):
 
 class MatchEndMessage(SQLModel):
     type: Literal["match_end"] = "match_end"
-    match_id: int
     final_balances: Dict[str, float]
     winner_user_id: Optional[int] = None
     reason: Literal["completed", "opponent_disconnected"]
