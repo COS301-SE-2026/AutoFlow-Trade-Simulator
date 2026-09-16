@@ -33,7 +33,7 @@ async def open_socket(
             await service.find_match(connection)
 
         while True:
-            data = await service.recieve_text(socket)
+            data = await service.receive_text(socket)
             match = service.get_match(connection.match_id) if connection.match_id else None
             if match is None:
                 continue

@@ -47,7 +47,7 @@ class MultiplayerService:
                 await match.handle_disconnect(user_id)
         self.active_connections.remove(connection)
 
-    async def recieve_text(self, websocket: WebSocket) -> str:
+    async def receive_text(self, websocket: WebSocket) -> str:
         return await websocket.receive_text()
 
     def get_match(self, match_id: int) -> Optional[MatchSession]:

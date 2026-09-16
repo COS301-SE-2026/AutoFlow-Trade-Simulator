@@ -10,7 +10,7 @@ from sqlmodel import Session, select
 
 from ..market_data.generator import LCGPseudoRandomGenerator
 from ...models.daily_OHLCV import DailyOHLCV
-from ...models.multiplayer_match import ActionLogEntry, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
+from ...models.multiplayer_match import MatchEventLog, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
 from ..simulation.SimulationService import SimulationService
 from .MultiplayerDTOs import (
     ActionAckMessage,
@@ -32,6 +32,9 @@ TICK_SECONDS: float = 2.0
 QTE_TIMEOUT_SECONDS: float = 10.0
 QTE_PROBABILITY: float = 0.175
 
+PERTURBATION_VERSION: str = "v1"
+DATA_SNAPSHOT_ID: str = "demo"
+
 
 @dataclass
 class PendingAction:
@@ -48,7 +51,6 @@ class PlayerState:
         self.qty: Decimal = Decimal("0")
         self.seed: int = 0
         self.bars: List[DailyOHLCV] = []
-        self.action_log: List[ActionLogEntry] = []
         self.connected: bool = True
         self.pending_action: Optional[PendingAction] = None
         self.pending_qte_answer: Optional[str] = None
@@ -89,6 +91,7 @@ class MatchSession:
         #also assigned after prepare()
         self.seed: Optional[int]=None
         self.rnd_gen: Optional[LCGPseudoRandomGenerator] = None
+        self.next_seq: int = 1
 
     async def prepare(self) -> None:
         players = list(self.players.values())
@@ -98,6 +101,8 @@ class MatchSession:
             sim_service = SimulationService(db)
             base_bars = sim_service.load_bars(self.symbol, self.start_date, self.end_date)
 
+            self.seed = derive_seed("match", f"{self.match_id}:{player_one.user_id}:{player_two.user_id}")
+            self.rnd_gen = LCGPseudoRandomGenerator(self.seed)
             match = MultiplayerMatch(
                 scenario_id=self.scenario_id,
                 symbol=self.symbol,
@@ -106,6 +111,9 @@ class MatchSession:
                 initial_balance=self.initial_balance,
                 player_one_id=player_one.user_id,
                 player_two_id=player_two.user_id,
+                perturbation_seed=self.seed,
+                perturbation_version=PERTURBATION_VERSION,
+                data_snapshot_id=DATA_SNAPSHOT_ID,
             )
             db.add(match)
             db.commit()
@@ -113,8 +121,6 @@ class MatchSession:
             assert match.id is not None
             self.match_id = match.id
 
-            self.seed = derive_seed("match", f"{self.match_id}:{player_one.user_id}:{player_two.user_id}")
-            self.rnd_gen = LCGPseudoRandomGenerator(self.seed)
             perturbed_bars = perturb_bars(base_bars, self.rnd_gen)
             self.total_days = len(perturbed_bars)
 
@@ -126,7 +132,6 @@ class MatchSession:
                 participant = MultiplayerParticipant(
                     match_id=self.match_id,
                     user_id=player.user_id,
-                    perturbation_seed=self.seed,
                     cash_balance=self.initial_balance,
                 )
                 db.add(participant)
@@ -144,6 +149,21 @@ class MatchSession:
                 total_days=self.total_days,
             )
             await player.socket.send_text(message.model_dump_json())
+
+    def log_event(self, user_id: int, event_type: str, payload: Dict) -> None:
+        with self.session_factory() as db:
+            db.add(
+                MatchEventLog(
+                    match_id=self.match_id,
+                    seq=self.next_seq,
+                    user_id=user_id,
+                    day_index=self.day_index,
+                    event_type=event_type,
+                    payload=payload,
+                )
+            )
+            db.commit()
+        self.next_seq += 1
 
     async def submit_action(
         self,
@@ -171,11 +191,14 @@ class MatchSession:
                     error = self.apply_trade(player, bar, action, qty)
                     if error is None:
                         player.pending_action = PendingAction(type=action, qty=qty or 0.0, price=bar.close)
+                        if action != "hold": # we don't need to remember that they did nothing
+                            self.log_event(user_id, event_type=action, payload={"qty": qty or 0.0, "price": float(bar.close)})
                         if all(p.pending_action is not None for p in self.players.values()):
                             self.actions_event.set()
 
             if self.current_qte is not None and qte_answer is not None and player.pending_qte_answer is None:
                 player.pending_qte_answer = qte_answer
+                self.log_event(user_id, event_type="qte_attempt", payload={"question_id": self.current_qte.id, "answer": qte_answer})
                 if all(p.pending_qte_answer is not None for p in self.players.values()):
                     self.qte_event.set()
 
@@ -242,6 +265,8 @@ class MatchSession:
                     player.user_id: self.apply_qte_effect(player, self.current_qte)
                     for player in self.players.values()
                 }
+                for user_id, outcome in outcomes.items():
+                    self.log_event(user_id, event_type="qte_result", payload={"question_id": self.current_qte.id, "answer": outcome.answer, "correct": outcome.correct, "cash_delta": outcome.cash_delta})
                 await self.send_qte_result(self.current_qte, outcomes)
 
             self.day_index += 1
@@ -322,6 +347,7 @@ class MatchSession:
         for player in self.players.values():
             if player.qty > 0:
                 self.apply_trade(player, final_bar, "sell", float(player.qty))
+                self.log_event(player.user_id, event_type="sell", payload={"qty": float(player.qty), "price": float(final_bar.close), "reason": "final_liquidation"})
 
         balances: Dict[int, Decimal] = {p.user_id: p.cash for p in self.players.values()}
         winner_user_id: Optional[int] = None
@@ -345,7 +371,6 @@ class MatchSession:
                 ).one()
                 participant.cash_balance = player.cash
                 participant.position_qty = player.qty
-                participant.final_balance = player.cash
                 db.add(participant)
 
             db.commit()
