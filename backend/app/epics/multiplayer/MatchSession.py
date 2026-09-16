@@ -11,7 +11,6 @@ from sqlmodel import Session, select
 from ..market_data.generator import LCGPseudoRandomGenerator
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.multiplayer_match import MatchEventLog, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
-from ..simulation.SimulationService import SimulationService
 from .MultiplayerDTOs import (
     ActionAckMessage,
     ActionMessage,
@@ -24,16 +23,12 @@ from .MultiplayerDTOs import (
     QtePlayerOutcome,
     QteResultMessage,
 )
-from .PerturbationService import derive_seed, perturb_bars
 
 DISCONNECT_GRACE_SECONDS: float = 30.0
 
 TICK_SECONDS: float = 2.0
 QTE_TIMEOUT_SECONDS: float = 10.0
 QTE_PROBABILITY: float = 0.175
-
-PERTURBATION_VERSION: str = "v1"
-DATA_SNAPSHOT_ID: str = "demo"
 
 
 @dataclass
@@ -59,6 +54,9 @@ class PlayerState:
 class MatchSession:
     def __init__(
         self,
+        match_id: int,
+        seed: int,
+        perturbed_bars: List[DailyOHLCV],
         scenario_id: int,
         symbol: str,
         start: date,
@@ -67,7 +65,8 @@ class MatchSession:
         players: List[PlayerState],
         session_factory: Callable[[], Session],
     ) -> None:
-        self.match_id: Optional[int] = None  # assigned once prepare() persists the MultiplayerMatch row
+        self.match_id: int = match_id
+        self.seed: int = seed
         self.scenario_id = scenario_id
         self.symbol = symbol
         self.start_date = start
@@ -76,10 +75,17 @@ class MatchSession:
         self.session_factory = session_factory
 
         self.players: Dict[int, PlayerState] = {p.user_id: p for p in players}
+        for player in self.players.values():
+            player.seed = seed
+            player.bars = perturbed_bars
+            player.cash = initial_balance
 
         self.day_index: int = 0
-        self.total_days: int = 0  # set in prepare(), once the bar range is loaded
+        self.total_days: int = 0
         self.status: MatchStatus = MatchStatus.in_progress
+
+        self.rnd_gen = LCGPseudoRandomGenerator(seed=seed)
+        self.next_seq: int = 1
 
         self.lock = asyncio.Lock()
         self.task: Optional[asyncio.Task] = None
@@ -88,55 +94,9 @@ class MatchSession:
         self.qte_event = asyncio.Event()
         self.actions_event = asyncio.Event()
 
-        #also assigned after prepare()
-        self.seed: Optional[int]=None
-        self.rnd_gen: Optional[LCGPseudoRandomGenerator] = None
-        self.next_seq: int = 1
-
-    async def prepare(self) -> None:
+    async def announce(self) -> None:
         players = list(self.players.values())
         player_one, player_two = players[0], players[1]
-
-        with self.session_factory() as db:
-            sim_service = SimulationService(db)
-            base_bars = sim_service.load_bars(self.symbol, self.start_date, self.end_date)
-
-            self.seed = derive_seed("match", f"{self.match_id}:{player_one.user_id}:{player_two.user_id}")
-            self.rnd_gen = LCGPseudoRandomGenerator(self.seed)
-            match = MultiplayerMatch(
-                scenario_id=self.scenario_id,
-                symbol=self.symbol,
-                start_date=self.start_date,
-                end_date=self.end_date,
-                initial_balance=self.initial_balance,
-                player_one_id=player_one.user_id,
-                player_two_id=player_two.user_id,
-                perturbation_seed=self.seed,
-                perturbation_version=PERTURBATION_VERSION,
-                data_snapshot_id=DATA_SNAPSHOT_ID,
-            )
-            db.add(match)
-            db.commit()
-            db.refresh(match)
-            assert match.id is not None
-            self.match_id = match.id
-
-            perturbed_bars = perturb_bars(base_bars, self.rnd_gen)
-            self.total_days = len(perturbed_bars)
-
-            for player in players:
-                player.seed = self.seed
-                player.bars = perturbed_bars
-                player.cash = self.initial_balance
-
-                participant = MultiplayerParticipant(
-                    match_id=self.match_id,
-                    user_id=player.user_id,
-                    cash_balance=self.initial_balance,
-                )
-                db.add(participant)
-            db.commit()
-
         for player in players:
             opponent = player_two if player is player_one else player_one
             message = MatchFoundMessage(
