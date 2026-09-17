@@ -1,4 +1,5 @@
 import asyncio
+import secrets
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Callable, Dict, List, Optional
@@ -66,14 +67,12 @@ class MultiplayerService:
                 return match
         return None
 
-    def pick_scenario_for_players(self, user_a: int, user_b: int) -> Scenario:
+    def pick_scenario_for_players(self) -> Scenario:
         with self.session_factory() as db:
             scenarios = list(db.exec(select(Scenario).where(Scenario.active == True).order_by(Scenario.id)).all())
-            if not scenarios:
-                raise ValueError("No active scenarios configured")
-            match_count = db.exec(select(func.count()).select_from(MultiplayerMatch)).one()
-        pair = f"{min(user_a, user_b)}:{max(user_a, user_b)}"
-        rng = LCGPseudoRandomGenerator(seed=derive_seed("matchmaking", f"{match_count}:{pair}"))
+        if not scenarios:
+            raise ValueError("No active scenarios configured")
+        rng = LCGPseudoRandomGenerator(seed=secrets.randbits(31)) # don't need to store this seed because we store what it chose.
         return rng.choice(scenarios)
 
     async def find_match(self, connection: Connection) -> Optional[MatchSession]:
@@ -81,12 +80,13 @@ class MultiplayerService:
             waiting = [
                 c for c in self.active_connections
                 if c.match_id is None and c.user_id != connection.user_id
-            ] #connects current user to the first other user waiting for a game.
+            ]
             if not waiting:
                 return None
 
             peer = waiting[0]
-            scenario = self.pick_scenario_for_players(peer.user_id, connection.user_id)
+
+            scenario = self.pick_scenario_for_players()
 
             player_one = PlayerState(user_id=peer.user_id, socket=peer.socket)
             player_two = PlayerState(user_id=connection.user_id, socket=connection.socket)
@@ -109,7 +109,7 @@ class MultiplayerService:
                 assert match.id is not None
                 match_id = match.id
 
-                seed = derive_seed("match", f"{match_id}:{peer.user_id}:{connection.user_id}")
+                seed = secrets.randbits(31)
                 match.perturbation_seed = seed
                 db.add(match)
 
