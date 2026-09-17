@@ -43,7 +43,7 @@ __all__ = [
 	"Greeks",
 	"MarketCondition",
 	"Strategies",
-	"PraticeSimulation",
+	"PracticeSimulation",
 	"Options",
 	"News",
 	"BackTestResults",
