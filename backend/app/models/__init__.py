@@ -12,7 +12,7 @@ from .daily_OHLCV import DailyOHLCV
 from .greeks import Greeks
 from .market_condition import MarketCondition
 from .strategies import Strategies
-from .practice_simulation import PraticeSimulation
+from .practice_simulation import PracticeSimulation
 from .options import Options
 from .news import News
 from .back_test_results import BackTestResults
