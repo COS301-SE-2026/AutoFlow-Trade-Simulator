@@ -37,6 +37,9 @@ async def open_socket(
             match = service.get_match(connection.match_id) if connection.match_id else None
             if match is None:
                 continue
-            await match.handle_client_message(current_user.id, data)
+            try:
+                await match.handle_client_message(current_user.id, data)
+            except Exception:
+                continue
     except WebSocketDisconnect:
         await service.disconnect(current_user.id)
