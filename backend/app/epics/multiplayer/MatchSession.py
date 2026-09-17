@@ -81,11 +81,12 @@ class MatchSession:
             player.cash = initial_balance
 
         self.day_index: int = 0
-        self.total_days: int = 0
+        self.total_days: int = len(perturbed_bars)
         self.status: MatchStatus = MatchStatus.in_progress
 
         self.rnd_gen = LCGPseudoRandomGenerator(seed=seed)
         self.next_seq: int = 1
+        self.pending_events: List[Dict] = []
 
         self.lock = asyncio.Lock()
         self.task: Optional[asyncio.Task] = None
@@ -110,19 +111,31 @@ class MatchSession:
             await player.socket.send_text(message.model_dump_json())
 
     def log_event(self, user_id: int, event_type: str, payload: Dict) -> None:
+        self.pending_events.append({
+            "user_id": user_id,
+            "event_type": event_type,
+            "payload": payload,
+            "day_index": self.day_index,
+        })
+
+    def flush_events(self) -> None:
+        if not self.pending_events:
+            return
         with self.session_factory() as db:
-            db.add(
-                MatchEventLog(
-                    match_id=self.match_id,
-                    seq=self.next_seq,
-                    user_id=user_id,
-                    day_index=self.day_index,
-                    event_type=event_type,
-                    payload=payload,
+            for event in self.pending_events:
+                db.add(
+                    MatchEventLog(
+                        match_id=self.match_id,
+                        seq=self.next_seq,
+                        user_id=event["user_id"],
+                        day_index=event["day_index"],
+                        event_type=event["event_type"],
+                        payload=event["payload"],
+                    )
                 )
-            )
+                self.next_seq += 1
             db.commit()
-        self.next_seq += 1
+        self.pending_events.clear()
 
     async def submit_action(
         self,
@@ -229,6 +242,7 @@ class MatchSession:
                 await self.send_qte_result(self.current_qte, outcomes)
 
             self.day_index += 1
+            self.flush_events()
 
         if self.status == MatchStatus.in_progress:
             await self.finalize()
@@ -335,6 +349,7 @@ class MatchSession:
             db.commit()
 
         self.status = MatchStatus.completed
+        self.flush_events()
 
         message = MatchEndMessage(
             final_balances={str(user_id): float(cash) for user_id, cash in balances.items()},
