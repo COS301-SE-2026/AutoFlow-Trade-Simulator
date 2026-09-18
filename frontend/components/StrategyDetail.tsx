@@ -5,6 +5,7 @@ import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
 import { Button } from "./ui/button";
 import { X } from 'lucide-react';
 import { useLearning } from '@/context/LearningContext';
+import Link from 'next/link';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
     const { strategy, loading, error } = useStrategy(id);
@@ -143,15 +144,13 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 <div className='border-b border-[var(--border)] mb-4'></div>
 
                 {/* Try it now button */}
-                <Button
+                <Link
                     data-testid="Try it now button"
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
-                    onClick={() => {
-                        switchToEvents();
-                    }}
+                    href='/learning/events'
+                    className="w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
                 >
                     Try it now!
-                </Button>
+                </Link>
             </div>
         </div>
     );
