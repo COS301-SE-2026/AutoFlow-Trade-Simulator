@@ -3,17 +3,14 @@
 import { usePrices } from '@/hooks/usePrices';
 import { useAssetSummary } from '@/hooks/useAssetSummary';
 import AssetSummaryBar from '@/components/AssetSummaryBar';
-import PriceChart from '@/components/charts/priceChart';
 import { TopMovers } from '@/components/topMovers';
 import { Skeleton } from '@/components/ui/skeleton';
-import {useAccount} from "@/lib/hooks/accountContext";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {TransactionLog} from "@/components/TransactionLog";
-import {TradingAuthPrompt} from "@/components/tradingAuthPrompt";
-import {HoldingsSummary} from "@/components/HoldingsSummary";
-import {useHoldings} from "@/hooks/useHoldings";
-import {Navbar} from '@/components/navbar';
-import {ReportView} from "@/components/ReportView";
+import { useAccount } from "@/lib/hooks/accountContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TransactionLog } from "@/components/TransactionLog";
+import { TradingAuthPrompt } from "@/components/tradingAuthPrompt";
+import { Navbar } from '@/components/navbar';
+import { ReportView } from "@/components/ReportView";
 
 function PageSkeleton() {
     return (
@@ -36,18 +33,22 @@ function PageSkeleton() {
 
 function PageError({ message }: { message: string }) {
     return (
-        <div className="flex items-center justify-center min-h-screen ">
-            <div className="flex flex-col items-center gap-3 text-center px-6">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-destructive">
-                        <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M10 6v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                        <circle cx="10" cy="14" r="0.75" fill="currentColor" />
-                    </svg>
+        <>
+            <Navbar />
+            <div className="flex items-center justify-center min-h-screen ">
+                <div className="flex flex-col items-center gap-3 text-center px-6">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-destructive">
+                            <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" />
+                            <path d="M10 6v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            <circle cx="10" cy="14" r="0.75" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <p className="font-mono text-sm text-destructive">{message}</p>
                 </div>
-                <p className="font-mono text-sm text-destructive">{message}</p>
             </div>
-        </div>
+
+        </>
     );
 }
 
@@ -58,8 +59,8 @@ function TickerHeader({ ticker }: { ticker: string }) {
                 {ticker}
             </h1>
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-        NASDAQ
-      </span>
+                NASDAQ
+            </span>
         </div>
     );
 }
@@ -69,31 +70,31 @@ export default function Dashboard() {
 
     const { loading: pricesLoading, error: pricesError } = usePrices(ticker || '', '1d');
     const { loading: summaryLoading, error: summaryError } = useAssetSummary(ticker || '');
-    const {activeAccount} = useAccount();
+    const { activeAccount } = useAccount();
 
     if (!ticker) return <PageError message="Invalid ticker" />;
     if (pricesLoading || summaryLoading) return <PageSkeleton />;
     if (pricesError || summaryError) return <PageError message={pricesError || summaryError || 'Unknown error'} />;
 
     return (
-        <div>
+        <>
             <Navbar />
             <div className="flex min-h-screen ">
                 <aside
                     className="hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">
-                    <TopMovers/>
+                    <TopMovers />
                 </aside>
 
                 <main className="flex-1 flex flex-col gap-5 p-6 min-w-0">
 
-                    <TickerHeader ticker={ticker}/>
+                    <TickerHeader ticker={ticker} />
 
                     <div className="w-full">
-                        <AssetSummaryBar ticker={ticker}/>
+                        <AssetSummaryBar ticker={ticker} />
                     </div>
 
                     <div className="lg:hidden">
-                        <TopMovers/>
+                        <TopMovers />
                     </div>
 
                 </main>
@@ -120,10 +121,10 @@ export default function Dashboard() {
                     </TabsContent>
 
                     <TabsContent value="Report" className="w-full mt-4">
-                        {activeAccount ? <ReportView/> : <TradingAuthPrompt />}
+                        {activeAccount ? <ReportView /> : <TradingAuthPrompt />}
                     </TabsContent>
                 </Tabs>
             </div>
-        </div>
+        </>
     );
 }
