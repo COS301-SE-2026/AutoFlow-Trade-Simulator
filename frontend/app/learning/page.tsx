@@ -14,9 +14,9 @@ export default function LearningPage() {
     const { activeTab, setActiveTab } = useLearning();
 
     const tabs = [
-        { id: 'strategies' as TabId, label: 'Strategies', icon: BookOpen },
-        { id: 'greeks' as TabId, label: 'Options Greeks', icon: Activity },
-        { id: 'events' as TabId, label: 'Historical Events', icon: History },
+        { id: 'strategies' as TabId, label: 'Strategies', icon: BookOpen , href: '/learning/strategies'},
+        { id: 'greeks' as TabId, label: 'Options Greeks', icon: Activity, href: '/learning/greeks'},
+        { id: 'events' as TabId, label: 'Historical Events', icon: History, href: '/learning/events'},
     ];
 
     return (
