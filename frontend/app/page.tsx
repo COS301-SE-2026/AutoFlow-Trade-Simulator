@@ -4,9 +4,6 @@ import Image from 'next/image';
 import { Zap, ArrowRight, History, BookOpen, Shield, Triangle, ChartLine, BrainCircuit } from 'lucide-react';
 import Link from 'next/link';
 
-import Toast from '@/components/Toast';
-import { useState } from 'react';
-
 export default function SplashPage() {
 
     return (
