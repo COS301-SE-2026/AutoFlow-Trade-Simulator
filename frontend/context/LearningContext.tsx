@@ -13,7 +13,7 @@ interface LearningContextType {
 const LearningContext = createContext<LearningContextType | undefined>(undefined);
 
 export function LearningProvider({ children }: { readonly children: ReactNode }) {
-    const [activeTab, setActiveTab] = useState<TabId>('events');
+    const [activeTab, setActiveTab] = useState<TabId>('strategies');
 
     const switchToEvents = () => {
         setActiveTab('events');
