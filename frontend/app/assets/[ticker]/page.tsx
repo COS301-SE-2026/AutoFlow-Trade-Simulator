@@ -3,8 +3,6 @@
 import { useParams } from 'next/navigation';
 import { usePrices } from '@/hooks/usePrices';
 import { useAssetSummary } from '@/hooks/useAssetSummary';
-import AssetSummaryBar from '@/components/AssetSummaryBar';
-import PriceChart from '@/components/charts/priceChart';
 import { Navbar } from '@/components/navbar';
 import BuySellForm from '@/components/BuySellForm';
 import { useHoldings } from '@/hooks/useHoldings';
@@ -12,13 +10,13 @@ import { useAccount } from '@/lib/hooks/accountContext';
 import { apiClient } from '@/lib/api';
 import { LiveDataGraph } from '@/components/liveDataGraph';
 import { useState } from 'react';
-import Link from 'next/link';
 import Toast from '@/components/Toast';
 import { TopMovers } from '@/components/topMovers';
+import { PageError } from '@/components/PageError';
 
 export default function AssetPage() {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
-  
+
   const params = useParams();
   const iTicker = params?.ticker ? decodeURIComponent(params.ticker as string) : null;
   const ticker = iTicker?.replace('-', '/');
@@ -28,10 +26,10 @@ export default function AssetPage() {
 
   const { activeAccount, refetchAccounts } = useAccount();
   const { holdings, refetch: refetchHoldings } = useHoldings(activeAccount?.id ?? null);
-  
-  if (!ticker) return <div>Invalid ticker</div>;
-  if (pricesLoading || summaryLoading) return <div>Loading...</div>;
-  if (pricesError || summaryError) return <div>Error: {pricesError || summaryError}</div>;
+
+  if (!ticker) return <PageError message='Invalid ticker' />;
+  if (pricesLoading || summaryLoading) return <PageError message='Loading...' />;
+  if (pricesError || summaryError) return <PageError message={`Error: ${pricesError || summaryError}`} />;
 
   const currentPrice = prices.length > 0
     ? prices[prices.length - 1].close
@@ -48,7 +46,7 @@ export default function AssetPage() {
 
   const handleBuy = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss' = 'market', limitPrice?: number) => {
     if (!activeAccount) {
-      setToast({ message:'No active account is selected', type:'warning' });
+      setToast({ message: 'No active account is selected', type: 'warning' });
       return;
     }
 
@@ -65,15 +63,15 @@ export default function AssetPage() {
       //console.log('Buy order executed:', response);
 
       await refreshAccountData();
-      setToast({ message:`Successfully bought ${quantity} units of ${ticker}`, type:'success' });
+      setToast({ message: `Successfully bought ${quantity} units of ${ticker}`, type: 'success' });
     } catch (e: any) {
-      setToast({ message:`Failed to execute order: ${e.message}`, type:'error' });
+      setToast({ message: `Failed to execute order: ${e.message}`, type: 'error' });
     }
   }
 
   const handleSell = async (quantity: number, orderType: 'market' | 'limit' | 'stop-loss' = 'market', limitPrice?: number) => {
     if (!activeAccount) {
-      setToast({ message:'No active account is selected', type:'warning' });
+      setToast({ message: 'No active account is selected', type: 'warning' });
       return;
     }
 
@@ -90,9 +88,9 @@ export default function AssetPage() {
       //console.log('Sell order executed:', response);
 
       await refreshAccountData();
-      setToast({ message:`Successfully sold ${quantity} units of ${ticker}`, type: 'success'});
+      setToast({ message: `Successfully sold ${quantity} units of ${ticker}`, type: 'success' });
     } catch (e: any) {
-      setToast({ message:`Failed to execute order: ${e.message}`, type: 'error'});
+      setToast({ message: `Failed to execute order: ${e.message}`, type: 'error' });
     }
   }
 
@@ -105,34 +103,34 @@ export default function AssetPage() {
           <TopMovers />
         </aside>
 
-      <main className='flex-1 flex flex-col gap-5 p-6 min-w-0'>
-        <div className='flex justify-evenly'>
-          {toast && (
-            <Toast
-              message={toast.message}
-              type={toast.type}
-              onClose={() => setToast(null)}
+        <main className='flex-1 flex flex-col gap-5 p-6 min-w-0'>
+          <div className='flex justify-evenly'>
+            {toast && (
+              <Toast
+                message={toast.message}
+                type={toast.type}
+                onClose={() => setToast(null)}
+              />
+            )}
+          </div>
+
+          <div>
+            <h1 className='text-2xl font-bold uppercase'>{ticker}</h1>
+          </div>
+
+          <div>
+            <LiveDataGraph symbol={ticker} />
+          </div>
+
+          <div>
+            <BuySellForm
+              price={currentPrice}
+              accountBalance={accountBalance}
+              currentHoldings={currentHoldings}
+              onBuy={handleBuy}
+              onSell={handleSell}
             />
-          )}
-        </div>
-
-        <div>
-          <h1 className='text-2xl font-bold uppercase'>{ticker}</h1>
-        </div>
-
-        <div>
-          <LiveDataGraph symbol={ticker} />
-        </div>
-
-        <div>
-          <BuySellForm
-            price={currentPrice}
-            accountBalance={accountBalance}
-            currentHoldings={currentHoldings}
-            onBuy={handleBuy}
-            onSell={handleSell}
-          />
-        </div>
+          </div>
         </main>
       </div>
     </div>
