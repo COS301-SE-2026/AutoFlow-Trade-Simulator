@@ -9,7 +9,7 @@ import sqlalchemy as sa
 import sqlmodel
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import UUID
-
+from sqlalchemy.types import UserDefinedType
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -35,6 +35,10 @@ def upgrade() -> None:
         );
     """)
 
+    class TechNodeUDT(UserDefinedType):
+        def get_col_spec(self, **kw):
+            return '"TechNode"'
+
     #Make the table that houses the DAG (Directed Acyclic Graph)
     op.create_table(
         'techtree',
@@ -44,7 +48,7 @@ def upgrade() -> None:
             primary_key=True,
             server_default=sa.text('gen_random_uuid()')
         ),
-        sa.Column('node', sa.text('"TechNode"'), nullable=False)
+        sa.Column('node', TechNodeUDT(), nullable=False)
     )
 
     #Add trigger for technodes
@@ -85,9 +89,9 @@ def upgrade() -> None:
 
                     UNION ALL
 
-                    Select t.(node).name, t.(node).prerequisites
+                    Select (t.node).name, (t.node).prerequisites
                     FROM techtree t
-                    INNER JOIN prereq_path p ON t.(node).name = ANY(p.req_prereqs)
+                    INNER JOIN prereq_path p ON (t.node).name = ANY(p.req_prereqs)
                 )   
                 SELECT EXISTS (
                     SELECT 1 FROM prereq_path WHERE current_node = (NEW.node).name
@@ -183,7 +187,8 @@ def upgrade() -> None:
     op.alter_column('options', 'option_type',
                existing_type=postgresql.ENUM('CALL', 'PUT', name='option_type'),
                type_=sa.Enum('CALL', 'PUT', name='optiontype'),
-               existing_nullable=False)
+               existing_nullable=False,
+               postgresql_using='option_type::text::optiontype'),
     op.alter_column('options', 'in_the_money',
                existing_type=sa.BOOLEAN(),
                server_default=None,
@@ -210,7 +215,8 @@ def downgrade() -> None:
     op.alter_column('options', 'option_type',
                existing_type=sa.Enum('CALL', 'PUT', name='optiontype'),
                type_=postgresql.ENUM('CALL', 'PUT', name='option_type'),
-               existing_nullable=False)
+               existing_nullable=False,
+               postgresql_using='option_type::text::option_type'),
     op.drop_table('multiplayerparticipant')
     op.drop_table('multiplayermatch')
     op.drop_table('scenario')

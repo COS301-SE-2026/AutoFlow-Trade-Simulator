@@ -12,7 +12,7 @@ class User(SQLModel, table=True):
     google_sub: Optional[str] = Field(default=None, index=True, nullable=True, sa_column_kwargs={"unique": True})
     currency: int = Field(default=0, nullable=False)
     elo: int = Field(default=0, nullable=False)
-    upgrades: List[str] = Field(
+    upgrades: list[str] = Field(
         default_factory=list,
         sa_column=Column(ARRAY(sa.String), nullable=False, server_default="{}")
     )
