@@ -1,5 +1,4 @@
 import asyncio
-import random
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
@@ -9,9 +8,9 @@ from fastapi import WebSocket
 from pydantic import ValidationError
 from sqlmodel import Session, select
 
+from ..market_data.generator import LCGPseudoRandomGenerator
 from ...models.daily_OHLCV import DailyOHLCV
-from ...models.multiplayer_match import ActionLogEntry, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
-from ..simulation.SimulationService import SimulationService
+from ...models.multiplayer_match import MatchEventLog, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
 from .MultiplayerDTOs import (
     ActionAckMessage,
     ActionMessage,
@@ -24,7 +23,6 @@ from .MultiplayerDTOs import (
     QtePlayerOutcome,
     QteResultMessage,
 )
-from .PerturbationService import derive_seed, perturb_bars
 
 DISCONNECT_GRACE_SECONDS: float = 30.0
 
@@ -48,7 +46,6 @@ class PlayerState:
         self.qty: Decimal = Decimal("0")
         self.seed: int = 0
         self.bars: List[DailyOHLCV] = []
-        self.action_log: List[ActionLogEntry] = []
         self.connected: bool = True
         self.pending_action: Optional[PendingAction] = None
         self.pending_qte_answer: Optional[str] = None
@@ -57,6 +54,9 @@ class PlayerState:
 class MatchSession:
     def __init__(
         self,
+        match_id: int,
+        seed: int,
+        perturbed_bars: List[DailyOHLCV],
         scenario_id: int,
         symbol: str,
         start: date,
@@ -65,7 +65,8 @@ class MatchSession:
         players: List[PlayerState],
         session_factory: Callable[[], Session],
     ) -> None:
-        self.match_id: Optional[int] = None  # assigned once prepare() persists the MultiplayerMatch row
+        self.match_id: int = match_id
+        self.seed: int = seed
         self.scenario_id = scenario_id
         self.symbol = symbol
         self.start_date = start
@@ -74,10 +75,18 @@ class MatchSession:
         self.session_factory = session_factory
 
         self.players: Dict[int, PlayerState] = {p.user_id: p for p in players}
+        for player in self.players.values():
+            player.seed = seed
+            player.bars = perturbed_bars
+            player.cash = initial_balance
 
         self.day_index: int = 0
-        self.total_days: int = 0  # set in prepare(), once the bar range is loaded
+        self.total_days: int = len(perturbed_bars)
         self.status: MatchStatus = MatchStatus.in_progress
+
+        self.rnd_gen = LCGPseudoRandomGenerator(seed=seed)
+        self.next_seq: int = 1
+        self.pending_events: List[Dict] = []
 
         self.lock = asyncio.Lock()
         self.task: Optional[asyncio.Task] = None
@@ -86,51 +95,12 @@ class MatchSession:
         self.qte_event = asyncio.Event()
         self.actions_event = asyncio.Event()
 
-    async def prepare(self) -> None:
+    async def announce(self) -> None:
         players = list(self.players.values())
         player_one, player_two = players[0], players[1]
-
-        with self.session_factory() as db:
-            sim_service = SimulationService(db)
-            base_bars = sim_service.load_bars(self.symbol, self.start_date, self.end_date)
-
-            match = MultiplayerMatch(
-                scenario_id=self.scenario_id,
-                symbol=self.symbol,
-                start_date=self.start_date,
-                end_date=self.end_date,
-                initial_balance=self.initial_balance,
-                player_one_id=player_one.user_id,
-                player_two_id=player_two.user_id,
-            )
-            db.add(match)
-            db.commit()
-            db.refresh(match)
-            assert match.id is not None
-            self.match_id = match.id
-
-            seed = derive_seed(self.match_id, player_one.user_id, player_two.user_id)
-            perturbed_bars = perturb_bars(base_bars, seed)
-            self.total_days = len(perturbed_bars)
-
-            for player in players:
-                player.seed = seed
-                player.bars = perturbed_bars
-                player.cash = self.initial_balance
-
-                participant = MultiplayerParticipant(
-                    match_id=self.match_id,
-                    user_id=player.user_id,
-                    perturbation_seed=seed,
-                    cash_balance=self.initial_balance,
-                )
-                db.add(participant)
-            db.commit()
-
         for player in players:
             opponent = player_two if player is player_one else player_one
             message = MatchFoundMessage(
-                match_id=self.match_id,
                 symbol=self.symbol,
                 start_date=self.start_date,
                 end_date=self.end_date,
@@ -139,6 +109,33 @@ class MatchSession:
                 total_days=self.total_days,
             )
             await player.socket.send_text(message.model_dump_json())
+
+    def log_event(self, user_id: int, event_type: str, payload: Dict) -> None:
+        self.pending_events.append({
+            "user_id": user_id,
+            "event_type": event_type,
+            "payload": payload,
+            "day_index": self.day_index,
+        })
+
+    def flush_events(self) -> None:
+        if not self.pending_events:
+            return
+        with self.session_factory() as db:
+            for event in self.pending_events:
+                db.add(
+                    MatchEventLog(
+                        match_id=self.match_id,
+                        seq=self.next_seq,
+                        user_id=event["user_id"],
+                        day_index=event["day_index"],
+                        event_type=event["event_type"],
+                        payload=event["payload"],
+                    )
+                )
+                self.next_seq += 1
+            db.commit()
+        self.pending_events.clear()
 
     async def submit_action(
         self,
@@ -166,11 +163,14 @@ class MatchSession:
                     error = self.apply_trade(player, bar, action, qty)
                     if error is None:
                         player.pending_action = PendingAction(type=action, qty=qty or 0.0, price=bar.close)
+                        if action != "hold": # we don't need to remember that they did nothing
+                            self.log_event(user_id, event_type=action, payload={"qty": qty or 0.0, "price": float(bar.close)})
                         if all(p.pending_action is not None for p in self.players.values()):
                             self.actions_event.set()
 
             if self.current_qte is not None and qte_answer is not None and player.pending_qte_answer is None:
                 player.pending_qte_answer = qte_answer
+                self.log_event(user_id, event_type="qte_attempt", payload={"question_id": self.current_qte.id, "answer": qte_answer})
                 if all(p.pending_qte_answer is not None for p in self.players.values()):
                     self.qte_event.set()
 
@@ -214,7 +214,7 @@ class MatchSession:
             self.actions_event.clear()
             self.qte_event.clear()
             self.current_qte = None
-            if random.random() < QTE_PROBABILITY:
+            if self.rnd_gen.generate_float() < QTE_PROBABILITY:
                 self.current_qte = self.pick_qte_question()
 
             bar = next(iter(self.players.values())).bars[self.day_index]
@@ -237,9 +237,12 @@ class MatchSession:
                     player.user_id: self.apply_qte_effect(player, self.current_qte)
                     for player in self.players.values()
                 }
+                for user_id, outcome in outcomes.items():
+                    self.log_event(user_id, event_type="qte_result", payload={"question_id": self.current_qte.id, "answer": outcome.answer, "correct": outcome.correct, "cash_delta": outcome.cash_delta})
                 await self.send_qte_result(self.current_qte, outcomes)
 
             self.day_index += 1
+            self.flush_events()
 
         if self.status == MatchStatus.in_progress:
             await self.finalize()
@@ -285,10 +288,10 @@ class MatchSession:
 
     def pick_qte_question(self) -> Optional[QTEQuestion]:
         with self.session_factory() as db:
-            questions = list(db.exec(select(QTEQuestion).where(QTEQuestion.active == True)).all())
+            questions = list(db.exec(select(QTEQuestion).where(QTEQuestion.active == True).order_by(QTEQuestion.id)).all())
         if not questions:
             return None
-        return random.choice(questions)
+        return self.rnd_gen.choice(questions)
 
     def apply_qte_effect(self, player: PlayerState, question: QTEQuestion) -> QtePlayerOutcome:
         answer = player.pending_qte_answer
@@ -317,6 +320,7 @@ class MatchSession:
         for player in self.players.values():
             if player.qty > 0:
                 self.apply_trade(player, final_bar, "sell", float(player.qty))
+                self.log_event(player.user_id, event_type="sell", payload={"qty": float(player.qty), "price": float(final_bar.close), "reason": "final_liquidation"})
 
         balances: Dict[int, Decimal] = {p.user_id: p.cash for p in self.players.values()}
         winner_user_id: Optional[int] = None
@@ -340,15 +344,14 @@ class MatchSession:
                 ).one()
                 participant.cash_balance = player.cash
                 participant.position_qty = player.qty
-                participant.final_balance = player.cash
                 db.add(participant)
 
             db.commit()
 
         self.status = MatchStatus.completed
+        self.flush_events()
 
         message = MatchEndMessage(
-            match_id=self.match_id,
             final_balances={str(user_id): float(cash) for user_id, cash in balances.items()},
             winner_user_id=winner_user_id,
             reason="completed",
@@ -422,7 +425,6 @@ class MatchSession:
         self.status = MatchStatus.abandoned
 
         message = MatchEndMessage(
-            match_id=self.match_id,
             final_balances={str(uid): float(p.cash) for uid, p in self.players.items()},
             winner_user_id=winner_user_id,
             reason="opponent_disconnected",

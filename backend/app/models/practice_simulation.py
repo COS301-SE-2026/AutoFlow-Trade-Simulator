@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Dict, List, Optional
 
 JSONVariant = JSONB().with_variant(JSON, "sqlite")
-class PraticeSimulation(SQLModel, table=True):
+class PracticeSimulation(SQLModel, table=True):
     id:Optional[int]=Field(default=None, primary_key=True)
     user_id:int= Field(foreign_key="user.id")
     symbols:List[str]=Field(sa_column=Column(JSONVariant),default_factory=list)
