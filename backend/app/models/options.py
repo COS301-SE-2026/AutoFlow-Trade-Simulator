@@ -2,8 +2,9 @@ from sqlmodel import Field, SQLModel
 from datetime import datetime, date
 from enum import Enum
 from decimal import Decimal
+import sqlalchemy as sa
 
-class OptionType(Enum):
+class OptionType(str, Enum):
     CALL = "CALL"
     PUT = "PUT"
 
@@ -11,7 +12,10 @@ class Options(SQLModel, table=True):
     contract_symbol: str = Field(max_length=32, primary_key=True)
     timestamp: datetime = Field(primary_key=True)
     asset_id: int = Field(foreign_key="asset.asset_id", ondelete="CASCADE", index=True, nullable=False)
-    option_type: OptionType = Field(nullable=False)
+    option_type: OptionType = Field(sa_column=sa.Column(
+        sa.Enum(OptionType, name="option_type", values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    ))
     strike_price: Decimal = Field(max_digits=18, decimal_places=4, nullable=False)
     expr_date: date = Field(nullable=False)
     bid: Decimal = Field(max_digits=18, decimal_places=4, nullable=True)
