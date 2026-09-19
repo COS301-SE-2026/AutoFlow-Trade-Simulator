@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Callable, Dict, List, Optional
 
@@ -94,6 +94,7 @@ class MatchSession:
 
         self.lock = asyncio.Lock()
         self.task: Optional[asyncio.Task] = None
+        self._background_tasks: set[asyncio.Task] = set()
 
         self.current_qte: Optional[QTEQuestion] = None
         self.qte_event = asyncio.Event()
@@ -235,9 +236,9 @@ class MatchSession:
                 await self.send_day(player, bar, current_date)
 
             if self.current_qte is not None:
-                await self.collect_qte(timeout=QTE_TIMEOUT_SECONDS)
+                await self.collect_qte()
             else:
-                await self.collect_actions(timeout=TICK_SECONDS)
+                await self.collect_actions()
 
             for player in self.players.values():
                 if player.pending_action is None:
@@ -258,16 +259,18 @@ class MatchSession:
         if self.status == MatchStatus.in_progress:
             await self.finalize()
 
-    async def collect_actions(self, timeout: float) -> None:
+    async def collect_actions(self) -> None:
         try:
-            await asyncio.wait_for(self.actions_event.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
+            async with asyncio.timeout(TICK_SECONDS):
+                await self.actions_event.wait()
+        except TimeoutError:
             pass
 
-    async def collect_qte(self, timeout: float) -> None:
+    async def collect_qte(self) -> None:
         try:
-            await asyncio.wait_for(self.qte_event.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
+            async with asyncio.timeout(QTE_TIMEOUT_SECONDS):
+                await self.qte_event.wait()
+        except TimeoutError:
             pass
 
     async def send_day(self, player: PlayerState, bar: DailyOHLCV, current_date: date) -> None:
@@ -348,7 +351,7 @@ class MatchSession:
             match = db.get(MultiplayerMatch, self.match_id)
             match.status = MatchStatus.completed
             match.winner_user_id = winner_user_id
-            match.ended_at = datetime.utcnow()
+            match.ended_at = datetime.now(timezone.utc)
             match.current_day_index = self.day_index
             db.add(match)
 
@@ -411,11 +414,13 @@ class MatchSession:
                 .where(MultiplayerParticipant.match_id == self.match_id)
                 .where(MultiplayerParticipant.user_id == user_id)
             ).one()
-            participant.disconnected_at = datetime.utcnow()
+            participant.disconnected_at = datetime.now(timezone.utc)
             db.add(participant)
             db.commit()
 
-        asyncio.create_task(self.disconnect_grace(user_id))
+        task = asyncio.create_task(self.disconnect_grace(user_id))
+        self._background_tasks.add(task)
+        task.add_done_callback(self._background_tasks.discard)
 
     async def disconnect_grace(self, user_id: int, seconds: float = DISCONNECT_GRACE_SECONDS) -> None:
         await asyncio.sleep(seconds)
@@ -434,7 +439,7 @@ class MatchSession:
             match = db.get(MultiplayerMatch, self.match_id)
             match.status = MatchStatus.abandoned
             match.winner_user_id = winner_user_id
-            match.ended_at = datetime.utcnow()
+            match.ended_at = datetime.now(timezone.utc)
             db.add(match)
             db.commit()
 

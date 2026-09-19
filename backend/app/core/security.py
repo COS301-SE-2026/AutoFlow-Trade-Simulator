@@ -57,7 +57,6 @@ def get_current_user(token: str = Depends(oauth2_scheme),session:Session = Depen
 
 
 def get_current_user_ws(
-    websocket: WebSocket,
     token: str,
     session: Session = Depends(get_session),
 ) -> User:
