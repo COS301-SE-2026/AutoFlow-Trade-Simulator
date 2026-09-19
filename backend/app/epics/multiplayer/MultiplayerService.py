@@ -91,6 +91,8 @@ class MultiplayerService:
             player_one = PlayerState(user_id=peer.user_id, socket=peer.socket)
             player_two = PlayerState(user_id=connection.user_id, socket=connection.socket)
 
+            seed = secrets.randbits(31)
+
             with self.session_factory() as db:
                 match = MultiplayerMatch(
                     scenario_id=scenario.id,
@@ -98,6 +100,7 @@ class MultiplayerService:
                     start_date=scenario.start_date,
                     end_date=scenario.end_date,
                     initial_balance=DEFAULT_INITIAL_BALANCE,
+                    perturbation_seed=seed,
                     player_one_id=peer.user_id,
                     player_two_id=connection.user_id,
                     perturbation_version=PERTURBATION_VERSION,
@@ -108,10 +111,6 @@ class MultiplayerService:
                 db.refresh(match)
                 assert match.id is not None
                 match_id = match.id
-
-                seed = secrets.randbits(31)
-                match.perturbation_seed = seed
-                db.add(match)
 
                 sim_service = SimulationService(db)
                 base_bars = sim_service.load_bars(scenario.symbol, scenario.start_date, scenario.end_date)

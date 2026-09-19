@@ -1,11 +1,13 @@
 import asyncio
+import logging
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Callable, Dict, List, Optional
 
 from fastapi import WebSocket
 from pydantic import ValidationError
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from ..market_data.generator import LCGPseudoRandomGenerator
@@ -23,6 +25,8 @@ from .MultiplayerDTOs import (
     QtePlayerOutcome,
     QteResultMessage,
 )
+
+logger = logging.getLogger(__name__)
 
 DISCONNECT_GRACE_SECONDS: float = 30.0
 
@@ -85,11 +89,12 @@ class MatchSession:
         self.status: MatchStatus = MatchStatus.in_progress
 
         self.rnd_gen = LCGPseudoRandomGenerator(seed=seed)
-        self.next_seq: int = 1
+        self.used_question_ids: List[int] = []
         self.pending_events: List[Dict] = []
 
         self.lock = asyncio.Lock()
         self.task: Optional[asyncio.Task] = None
+        self._background_tasks: set[asyncio.Task] = set()
 
         self.current_qte: Optional[QTEQuestion] = None
         self.qte_event = asyncio.Event()
@@ -121,21 +126,28 @@ class MatchSession:
     def flush_events(self) -> None:
         if not self.pending_events:
             return
-        with self.session_factory() as db:
-            for event in self.pending_events:
-                db.add(
-                    MatchEventLog(
-                        match_id=self.match_id,
-                        seq=self.next_seq,
-                        user_id=event["user_id"],
-                        day_index=event["day_index"],
-                        event_type=event["event_type"],
-                        payload=event["payload"],
+        try:
+            with self.session_factory() as db:
+                last_seq = db.exec(
+                    select(func.max(MatchEventLog.seq)).where(MatchEventLog.match_id == self.match_id)
+                ).one()
+                next_seq = (last_seq or 0) + 1
+                for event in self.pending_events:
+                    db.add(
+                        MatchEventLog(
+                            match_id=self.match_id,
+                            seq=next_seq,
+                            user_id=event["user_id"],
+                            day_index=event["day_index"],
+                            event_type=event["event_type"],
+                            payload=event["payload"],
+                        )
                     )
-                )
-                self.next_seq += 1
-            db.commit()
-        self.pending_events.clear()
+                    next_seq += 1
+                db.commit()
+            self.pending_events.clear()
+        except Exception:
+            logger.exception("Failed to persist events for match %s; will retry on next flush", self.match_id)
 
     async def submit_action(
         self,
@@ -224,9 +236,9 @@ class MatchSession:
                 await self.send_day(player, bar, current_date)
 
             if self.current_qte is not None:
-                await self.collect_qte(timeout=QTE_TIMEOUT_SECONDS)
+                await self.collect_qte()
             else:
-                await self.collect_actions(timeout=TICK_SECONDS)
+                await self.collect_actions()
 
             for player in self.players.values():
                 if player.pending_action is None:
@@ -247,16 +259,18 @@ class MatchSession:
         if self.status == MatchStatus.in_progress:
             await self.finalize()
 
-    async def collect_actions(self, timeout: float) -> None:
+    async def collect_actions(self) -> None:
         try:
-            await asyncio.wait_for(self.actions_event.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
+            async with asyncio.timeout(TICK_SECONDS):
+                await self.actions_event.wait()
+        except TimeoutError:
             pass
 
-    async def collect_qte(self, timeout: float) -> None:
+    async def collect_qte(self) -> None:
         try:
-            await asyncio.wait_for(self.qte_event.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
+            async with asyncio.timeout(QTE_TIMEOUT_SECONDS):
+                await self.qte_event.wait()
+        except TimeoutError:
             pass
 
     async def send_day(self, player: PlayerState, bar: DailyOHLCV, current_date: date) -> None:
@@ -288,10 +302,15 @@ class MatchSession:
 
     def pick_qte_question(self) -> Optional[QTEQuestion]:
         with self.session_factory() as db:
-            questions = list(db.exec(select(QTEQuestion).where(QTEQuestion.active == True).order_by(QTEQuestion.id)).all())
+            query = select(QTEQuestion).where(QTEQuestion.active == True).order_by(QTEQuestion.id)
+            if self.used_question_ids:
+                query = query.where(QTEQuestion.id.notin_(self.used_question_ids))
+            questions = list(db.exec(query).all())
         if not questions:
             return None
-        return self.rnd_gen.choice(questions)
+        question = self.rnd_gen.choice(questions)
+        self.used_question_ids.append(question.id)
+        return question
 
     def apply_qte_effect(self, player: PlayerState, question: QTEQuestion) -> QtePlayerOutcome:
         answer = player.pending_qte_answer
@@ -332,7 +351,7 @@ class MatchSession:
             match = db.get(MultiplayerMatch, self.match_id)
             match.status = MatchStatus.completed
             match.winner_user_id = winner_user_id
-            match.ended_at = datetime.utcnow()
+            match.ended_at = datetime.now(timezone.utc)
             match.current_day_index = self.day_index
             db.add(match)
 
@@ -382,7 +401,7 @@ class MatchSession:
         )
         await player.socket.send_text(ack.model_dump_json())
 
-    async def handle_disconnect(self, user_id: int) -> None:
+    def handle_disconnect(self, user_id: int) -> None:
         player = self.players.get(user_id)
         if player is None:
             return
@@ -395,11 +414,13 @@ class MatchSession:
                 .where(MultiplayerParticipant.match_id == self.match_id)
                 .where(MultiplayerParticipant.user_id == user_id)
             ).one()
-            participant.disconnected_at = datetime.utcnow()
+            participant.disconnected_at = datetime.now(timezone.utc)
             db.add(participant)
             db.commit()
 
-        asyncio.create_task(self.disconnect_grace(user_id))
+        task = asyncio.create_task(self.disconnect_grace(user_id))
+        self._background_tasks.add(task)
+        task.add_done_callback(self._background_tasks.discard)
 
     async def disconnect_grace(self, user_id: int, seconds: float = DISCONNECT_GRACE_SECONDS) -> None:
         await asyncio.sleep(seconds)
@@ -418,7 +439,7 @@ class MatchSession:
             match = db.get(MultiplayerMatch, self.match_id)
             match.status = MatchStatus.abandoned
             match.winner_user_id = winner_user_id
-            match.ended_at = datetime.utcnow()
+            match.ended_at = datetime.now(timezone.utc)
             db.add(match)
             db.commit()
 
@@ -433,7 +454,7 @@ class MatchSession:
         if winner.connected:
             await winner.socket.send_text(message.model_dump_json())
 
-    async def rebind_socket(self, user_id: int, socket: WebSocket) -> None:
+    def rebind_socket(self, user_id: int, socket: WebSocket) -> None:
         player = self.players.get(user_id)
         if player is None:
             raise ValueError(f"No player {user_id} in match {self.match_id}")

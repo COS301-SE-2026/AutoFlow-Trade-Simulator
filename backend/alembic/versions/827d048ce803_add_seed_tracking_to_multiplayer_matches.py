@@ -1,7 +1,7 @@
 """add seed tracking to multiplayer matches
 
 Revision ID: 827d048ce803
-Revises: 52db084f8400
+Revises: b7d3f2a91c4e
 Create Date: 2026-09-19 11:56:57.029201
 """
 from alembic import op
@@ -13,7 +13,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '827d048ce803'
-down_revision = '52db084f8400'
+down_revision = 'b7d3f2a91c4e'
 branch_labels = None
 depends_on = None
 
