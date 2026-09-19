@@ -6,7 +6,9 @@ import { useLearning } from '@/context/LearningContext';
 import { LearningNavbar } from '@/components/LearningNavbar';
 
 export default function LearningPage() {
-    const { activeTab, setActiveTab } = useLearning();
+    const { strategy } = useLearning();
+
+    console.log(strategy);
 
     return (
         <>

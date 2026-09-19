@@ -1,26 +1,20 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-
-type TabId = 'strategies' | 'greeks' | 'events';
+import { StrategyDetail } from '@/hooks/useStrategy';
 
 interface LearningContextType {
-    activeTab: TabId;
-    setActiveTab: (tab: TabId) => void;
-    switchToEvents: () => void;
+    strategy: StrategyDetail | null;
+    setStrategyId: (strategy: StrategyDetail) => void;
 }
 
 const LearningContext = createContext<LearningContextType | undefined>(undefined);
 
 export function LearningProvider({ children }: { readonly children: ReactNode }) {
-    const [activeTab, setActiveTab] = useState<TabId>('strategies');
-
-    const switchToEvents = () => {
-        setActiveTab('events');
-    }
+    const [strategy, setStrategyId] = useState<StrategyDetail | null>(null);
 
     return (
-        <LearningContext.Provider value={{ activeTab, setActiveTab, switchToEvents }}>
+        <LearningContext.Provider value={{ strategy, setStrategyId }}>
             {children}
         </LearningContext.Provider>
     )
@@ -29,7 +23,7 @@ export function LearningProvider({ children }: { readonly children: ReactNode })
 export function useLearning() {
     const context = useContext(LearningContext);
     if (!context) {
-        throw new Error('userLearning must be used inside LearningProvider')
+        throw new Error('useLearning must be used inside LearningProvider')
     }
     return context;
 }
