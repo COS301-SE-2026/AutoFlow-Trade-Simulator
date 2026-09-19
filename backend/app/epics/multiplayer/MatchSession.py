@@ -398,7 +398,7 @@ class MatchSession:
         )
         await player.socket.send_text(ack.model_dump_json())
 
-    async def handle_disconnect(self, user_id: int) -> None:
+    def handle_disconnect(self, user_id: int) -> None:
         player = self.players.get(user_id)
         if player is None:
             return
@@ -449,7 +449,7 @@ class MatchSession:
         if winner.connected:
             await winner.socket.send_text(message.model_dump_json())
 
-    async def rebind_socket(self, user_id: int, socket: WebSocket) -> None:
+    def rebind_socket(self, user_id: int, socket: WebSocket) -> None:
         player = self.players.get(user_id)
         if player is None:
             raise ValueError(f"No player {user_id} in match {self.match_id}")
