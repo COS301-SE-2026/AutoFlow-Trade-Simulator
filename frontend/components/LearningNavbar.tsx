@@ -41,7 +41,7 @@ export function LearningNavbar() {
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium mt-2 ml-2
                             ${isActive
                                     ? 'bg-[var(--background)] text-[var(--blue)] border rounded-xl border-[var(--border)]'
-                                    : 'bg-[var(--blue)/50 hover:text-[var(--blue)] hover-bg-muted/30'}`}
+                                    : 'bg-[var(--blue)]/50 hover:text-[var(--blue)] hover-bg-muted/30'}`}
                         >
                             <Icon className='w-4 h-4' />
                             {tab.label}
