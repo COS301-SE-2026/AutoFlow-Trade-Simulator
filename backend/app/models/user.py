@@ -1,5 +1,5 @@
 from typing import Optional
-
+from typing import List
 from sqlmodel import Field, SQLModel
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import ARRAY
