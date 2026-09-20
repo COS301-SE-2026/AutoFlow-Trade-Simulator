@@ -1,3 +1,4 @@
+from .progression_grant import ProgressionGrant, ProgressionSource
 from .user import User
 from .asset import Asset
 from .currency import Currency
@@ -54,4 +55,6 @@ __all__ = [
 	"QTEQuestion",
 	"MatchStatus",
 	"QuestionType",
+	"ProgressionGrant",
+	"ProgressionSource",
 ]
