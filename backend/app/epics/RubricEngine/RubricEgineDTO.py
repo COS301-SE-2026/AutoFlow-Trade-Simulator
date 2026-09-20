@@ -19,7 +19,7 @@ class Grade(str, Enum):
 class CategoryScoreDTO(SQLModel):
     score: float = Field(..., ge=0.0, le=100, description="Score out of 100")
     weight: float = Field(..., ge=0.0, le=1.0, description="Weighting factor")
-    feedback: str = Field(..., description="Targeted performace feedback")
+    feedback: str = Field(..., description="Targeted performance feedback")
 
 class ExecutionMetricDTO(SQLModel):
     total_return_pct: float = Field(
@@ -45,7 +45,7 @@ class ExecutionMetricDTO(SQLModel):
         ...,
         ge=0.0,
         le=1.0,
-        description="Ration of profitable trade to total trades (0.0 to 1.0)"
+        description="Ratio of profitable trade to total trades (0.0 to 1.0)"
     )
     avg_holding_period_sec: float = Field (
         ...,
@@ -70,6 +70,6 @@ class EvaluationResultDTO(SQLModel):
     )
     grade: Grade
     detail_breakdown: Dict[str, CategoryScoreDTO] = Field (
-        ...,
-        description="Detailed feedback and score breakdown per evaulation category"
+        default_factory=dict,
+        description="Detailed feedback and score breakdown per evaluation category"
     )
