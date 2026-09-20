@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
@@ -6,7 +7,10 @@ from sqlmodel import Session
 from ...core.security import get_current_user_ws
 from ...database import engine
 from ...models.user import User
+from .MultiplayerDTOs import ErrorMessage
 from .MultiplayerService import MultiplayerService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/multiplayer", tags=["Multiplayer"])
 
@@ -33,10 +37,16 @@ async def open_socket(
             await service.find_match(connection)
 
         while True:
-            data = await service.recieve_text(socket)
+            data = await service.receive_text(socket)
             match = service.get_match(connection.match_id) if connection.match_id else None
             if match is None:
                 continue
-            await match.handle_client_message(current_user.id, data)
+            try:
+                await match.handle_client_message(current_user.id, data)
+            except WebSocketDisconnect:
+                raise
+            except Exception:
+                logger.exception("Failed handling message from user %s", current_user.id)
+                await socket.send_text(ErrorMessage(detail="internal error handling message").model_dump_json())
     except WebSocketDisconnect:
         await service.disconnect(current_user.id)

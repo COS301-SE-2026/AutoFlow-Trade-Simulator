@@ -8,6 +8,8 @@ from sqlmodel import Column, Field, JSON, SQLModel
 
 JSONVariant = JSONB().with_variant(JSON, "sqlite")
 
+USER_PK = "user.id"
+
 
 class MatchStatus(str, Enum):
     in_progress = "in_progress"
@@ -20,22 +22,6 @@ class QuestionType(str, Enum):
     scenario = "scenario"
 
 
-class QteAttempt(SQLModel):
-    question_id: int
-    answer: Optional[str] = None
-    correct: bool
-    cash_delta: float
-
-
-class ActionLogEntry(SQLModel):
-    day_index: int
-    date: date
-    type: str
-    qty: float
-    price: float
-    qte: Optional[QteAttempt] = None
-
-
 class MultiplayerMatch(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     scenario_id: int = Field(foreign_key="scenario.id")
@@ -43,25 +29,34 @@ class MultiplayerMatch(SQLModel, table=True):
     start_date: date
     end_date: date
     initial_balance: Decimal = Field(max_digits=18, decimal_places=4)
+    perturbation_seed: int
+    perturbation_version: str = Field(default="v1", max_length=10)
+    data_snapshot_id: str = Field(default="demo", max_length=50)
     status: MatchStatus = Field(default=MatchStatus.in_progress, max_length=15)
-    player_one_id: int = Field(foreign_key="user.id")
-    player_two_id: int = Field(foreign_key="user.id")
-    winner_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    player_one_id: int = Field(foreign_key=USER_PK)
+    player_two_id: int = Field(foreign_key=USER_PK)
+    winner_user_id: Optional[int] = Field(default=None, foreign_key=USER_PK)
     current_day_index: int = Field(default=0)
     started_at: datetime = Field(default_factory=datetime.utcnow)
     ended_at: Optional[datetime] = Field(default=None)
 
 
 class MultiplayerParticipant(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    match_id: int = Field(foreign_key="multiplayermatch.id")
-    user_id: int = Field(foreign_key="user.id")
-    perturbation_seed: int
+    match_id: int = Field(foreign_key="multiplayermatch.id", primary_key=True)
+    user_id: int = Field(foreign_key=USER_PK, primary_key=True)
     cash_balance: Decimal = Field(max_digits=18, decimal_places=4)
     position_qty: Decimal = Field(default=Decimal("0"), max_digits=18, decimal_places=4)
-    final_balance: Optional[Decimal] = Field(default=None, max_digits=18, decimal_places=4)
-    action_log: List[Dict] = Field(default_factory=list, sa_column=Column(JSONVariant))
     disconnected_at: Optional[datetime] = Field(default=None)
+
+
+class MatchEventLog(SQLModel, table=True):
+    match_id: int = Field(foreign_key="multiplayermatch.id", primary_key=True)
+    seq: int = Field(primary_key=True)
+    user_id: int = Field(foreign_key=USER_PK)
+    day_index: int
+    event_type: str = Field(max_length=20)
+    payload: Dict = Field(default_factory=dict, sa_column=Column(JSONVariant))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class QTEQuestion(SQLModel, table=True):

@@ -1,6 +1,6 @@
 from typing import Optional
-from sqlalchemy.dialects.postgresql import ARRAY
-from sqlmodel import Field, SQLModel, Column
+
+from sqlmodel import Field, SQLModel
 import sqlalchemy as sa
 
 
@@ -10,7 +10,11 @@ class User(SQLModel, table=True):
     password_hash: Optional[str] = Field(default=None, nullable=True)
     full_name: str = Field(nullable=False)
     google_sub: Optional[str] = Field(default=None, index=True, nullable=True, sa_column_kwargs={"unique": True})
-    upgrades: list[str] = Field(
-        default_factory=list,
-        sa_column=Column(ARRAY(sa.String), nullable=False, server_default="{}")
+    experience_points: int = Field(
+        default=0,
+        sa_column=sa.Column(sa.Integer, nullable=False, server_default=sa.text("0")),
+    )
+    elo_rating: int = Field(
+        default=500,
+        sa_column=sa.Column(sa.Integer, nullable=False, server_default=sa.text("500")),
     )
