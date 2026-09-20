@@ -6,7 +6,7 @@ from ..database import get_session
 
 from ..settings import settings
 from passlib.hash import bcrypt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, WebSocket, WebSocketException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
@@ -52,6 +52,27 @@ def get_current_user(token: str = Depends(oauth2_scheme),session:Session = Depen
 
     if user is None:
         raise credentials_exception
+
+    return user
+
+
+def get_current_user_ws(
+    token: str,
+    session: Session = Depends(get_session),
+) -> User:
+    # like get current user but for websockets
+    try:
+        payload = decode_access_token(token)
+        user_id_raw: str | None = payload.get('sub')
+        if user_id_raw is None:
+            raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+        user_id: int = int(user_id_raw)
+    except (JWTError, ValueError):
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+
+    user: User | None = session.get(User, user_id)
+    if user is None:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
     return user
 

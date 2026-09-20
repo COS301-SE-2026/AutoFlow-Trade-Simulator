@@ -12,10 +12,19 @@ from .daily_OHLCV import DailyOHLCV
 from .greeks import Greeks
 from .market_condition import MarketCondition
 from .strategies import Strategies
-from .practice_simulation import PraticeSimulation
+from .practice_simulation import PracticeSimulation
 from .options import Options
 from .news import News
 from .back_test_results import BackTestResults
+from .scenario import Scenario
+from .multiplayer_match import (
+    MultiplayerMatch,
+    MultiplayerParticipant,
+    MatchEventLog,
+    QTEQuestion,
+    MatchStatus,
+    QuestionType,
+)
 
 __all__ = [
     "User",
@@ -34,8 +43,15 @@ __all__ = [
 	"Greeks",
 	"MarketCondition",
 	"Strategies",
-	"PraticeSimulation",
+	"PracticeSimulation",
 	"Options",
 	"News",
-	"BackTestResults"
+	"BackTestResults",
+	"Scenario",
+	"MultiplayerMatch",
+	"MultiplayerParticipant",
+	"MatchEventLog",
+	"QTEQuestion",
+	"MatchStatus",
+	"QuestionType",
 ]
