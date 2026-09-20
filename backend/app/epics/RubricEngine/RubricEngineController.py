@@ -22,5 +22,6 @@ router = APIRouter(prefix="/rubric", tags=["Rubric Engine"])
 def health_check(service: ServiceDep) -> EpicStatusDTO:
     return service.get_status()
 
-
-
+@router.post("/evaluate/{strat_key}", response_model=EvaluationResultDTO, status_code=status.HTTP_200_OK)
+def evaluate_strategy(strat_key: str, metrics: ExecutionMetricDTO, service: RubricServiceDep, current_user: UserDep) -> EvaluationResultDTO:
+    return service.evaluate_strategy(start_key=strat_key, metrics=metrics)
