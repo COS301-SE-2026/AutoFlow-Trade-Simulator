@@ -8,7 +8,7 @@ from sqlmodel import   Session, col, select
 from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
-from ...models.practice_simulation import PraticeSimulation
+from ...models.practice_simulation import PracticeSimulation
 from .SimulationDTOs import OHLCVBar,SimulationCreateResponse,PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO, StrategyDetail, StrategySummary
 
 MAX_SYMBOLS = 20
@@ -121,7 +121,7 @@ class SimulationService:
 
         float_positions:Dict[str,float]={s:float(v) for [s,v] in positions.items()}
         float_allocations:Dict[str,float]={s:float(v) for [s,v] in allocations.items()}
-        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=float_allocations,current_balance=cash,positions=float_positions,actions=actions_log)
+        sim=PracticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=float_allocations,current_balance=cash,positions=float_positions,actions=actions_log)
         self.session.add(sim)
         self.session.commit()
         self.session.refresh(sim)
@@ -132,7 +132,7 @@ class SimulationService:
 
     def append_simulation_actions(self,req:SimulationAppendRequest,user_id:int)->SimulationSessionResponse:
         # check if simulation_id is valid
-        sim:PraticeSimulation= self.session.exec(select(PraticeSimulation).where(PraticeSimulation.id==req.simulation_id)).one()
+        sim:PracticeSimulation= self.session.exec(select(PracticeSimulation).where(PracticeSimulation.id==req.simulation_id)).one()
         if sim.user_id != user_id:
             raise  HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This simulation does not belong to the current user")
         positions:Dict[str,Decimal]= dict({s:Decimal(str(v)) for s,v in sim.positions.items()} or {})
@@ -189,7 +189,7 @@ class SimulationService:
         return SimulationSessionResponse(simulation_id=sim.id, status=sim.status, positions=positions, nav=nav)
 
     def finalize_simulation(self,simulation_id:int,user_id:int)->SimulationFinishResponse:
-        sim:PraticeSimulation=self.session.exec(select(PraticeSimulation).where(PraticeSimulation.id==simulation_id)).one()
+        sim:PracticeSimulation=self.session.exec(select(PracticeSimulation).where(PracticeSimulation.id==simulation_id)).one()
         if sim.user_id != user_id:
             raise  HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This simulation does not belong to the current user")
         #load bars and check rows
