@@ -8,7 +8,7 @@ from sqlmodel import   Session, col, select
 from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
-from ...models.practice_simulation import PraticeSimulation
+from ...models.practice_simulation import PracticeSimulation
 from .SimulationDTOs import OHLCVBar,SimulationCreateResponse,PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO, StrategyDetail, StrategySummary
 
 MAX_SYMBOLS = 20

@@ -14,6 +14,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.10",
     "@recharts/devtools": "^0.0.13",
+    "animejs": "^4.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "fuse.js": "^7.5.0",
