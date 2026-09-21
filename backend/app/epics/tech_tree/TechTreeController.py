@@ -34,7 +34,7 @@ def get_status(
 @router.get("/tree")
 def get_tree(
     service: Annotated[TechTreeService, Depends(get_tech_tree_service)],
-    user: User = Depends(get_current_user),
+    user: Annotated[User, Depends(get_current_user)],
 ) -> TechTreeResponseDTO:
     return service.get_tree(user)
 
@@ -43,7 +43,7 @@ def get_tree(
 def check_unlock(
     tech_name: str,
     service: Annotated[TechTreeService, Depends(get_tech_tree_service)],
-    user: User = Depends(get_current_user),
+    user: Annotated[User, Depends(get_current_user)],
 ) -> UnlockCheckDTO:
     return service.check_unlock(user, tech_name)
 
@@ -52,6 +52,6 @@ def check_unlock(
 def purchase_tech(
     request: PurchaseRequestDTO,
     service: Annotated[TechTreeService, Depends(get_tech_tree_service)],
-    user: User = Depends(get_current_user),
+    user: Annotated[User, Depends(get_current_user)],
 ) -> PurchaseResponseDTO:
     return service.purchase_tech(user, request.tech_name)
