@@ -1,4 +1,5 @@
 from .progression_grant import ProgressionGrant, ProgressionSource
+from .tech_tree import TechTree
 from .user import User
 from .asset import Asset
 from .currency import Currency
@@ -57,4 +58,5 @@ __all__ = [
 	"QuestionType",
 	"ProgressionGrant",
 	"ProgressionSource",
+	"TechTree",
 ]
