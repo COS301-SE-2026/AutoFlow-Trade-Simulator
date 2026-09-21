@@ -51,7 +51,7 @@ def award_match_progression(
             score_a = 1.0
         else:
             score_a = 0.0
-        delta_a = compute_elo_delta(users[player_a].rating, users[player_b].rating, score_a)
+        delta_a = compute_elo_delta(users[player_a].elo_rating, users[player_b].elo_rating, score_a)
         elo_deltas[player_a] = delta_a
         elo_deltas[player_b] = -delta_a
 
@@ -72,8 +72,8 @@ def award_match_progression(
             continue
 
         user = users[user_id]
-        user.xp += xp
-        user.rating += elo_delta
+        user.experience_points += xp
+        user.elo_rating += elo_delta
         db.add(
             ProgressionGrant(
                 user_id=user_id,
@@ -107,7 +107,7 @@ def award_puzzle_progression(
 
     xp = XP_PUZZLE_BASE + rubric_score * XP_PUZZLE_PER_RUBRIC_POINT
 
-    user.xp += xp
+    user.experience_points += xp
     db.add(
         ProgressionGrant(
             user_id=user_id,
