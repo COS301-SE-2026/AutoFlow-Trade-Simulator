@@ -1,7 +1,7 @@
 from typing import Dict
 from sqlmodel import Session
 from fastapi import HTTPException, status
-from .RubricDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO
+from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO
 from .base_strategy import BaseRubricStrategy
 from .mean_reversion_strategy import MeanReversionStrategy
 

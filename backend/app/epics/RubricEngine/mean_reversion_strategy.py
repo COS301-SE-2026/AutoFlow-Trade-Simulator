@@ -1,5 +1,5 @@
 from .base_strategy import BaseRubricStrategy
-from .RubricEngineDTOs import CategoryScoreDTO, EvaluationResultDTO, ExecutionMetricDTO, Grade
+from .RubricEngineDTO import CategoryScoreDTO, EvaluationResultDTO, ExecutionMetricDTO, Grade
 
 class MeanReversionStrategy(BaseRubricStrategy):
 
