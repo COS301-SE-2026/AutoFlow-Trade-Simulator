@@ -16,6 +16,10 @@ class Grade(str, Enum):
     E = "E"
     F = "F"
 
+class EvaluateMatchRequestDTO(SQLModel):
+    match_id: int = Field(..., description="This is the match id e.x. 123")
+    user_id: int = Field(..., description="This is the user id e.x. 123")
+
 class CategoryScoreDTO(SQLModel):
     score: float = Field(..., ge=0.0, le=100, description="Score out of 100")
     weight: float = Field(..., ge=0.0, le=1.0, description="Weighting factor")
