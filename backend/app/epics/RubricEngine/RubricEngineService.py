@@ -2,7 +2,6 @@ import math
 from decimal import Decimal
 from datetime import datetime, time
 
-from typing import Dict
 from sqlmodel import Session, select
 from fastapi import HTTPException, status
 from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO, EvaluateMatchRequestDTO
@@ -13,7 +12,6 @@ from typing import Dict, List, Optional
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch
 from ...models.asset import Asset
-from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO
 
 class RubricEngineService:
 
@@ -90,9 +88,6 @@ class RubricEngineService:
                     earliest_buy["qty"] -= matched_qty
                     qty_to_match -= matched_qty
 
-                    if earliest_buy["qty"] <= matched_qty:
-                        buy_queue.pop(0)
-
                     if earliest_buy["qty"] <= 0:
                         buy_queue.pop(0)
 
@@ -109,15 +104,15 @@ class RubricEngineService:
 
         bars = []
         if asset_id:
-        bars = list(
-        self.session.exec(
-                select(DailyOHLCV)
-                .where(DailyOHLCV.asset_id == asset_id)
-                .where(DailyOHLCV.timestamp >= start_dt)
-                .where(DailyOHLCV.timestamp <= end_dt)
-                .order_by(DailyOHLCV.timestamp)
-            ).all()
-        )
+            bars = list(
+                self.session.exec(
+                    select(DailyOHLCV)
+                    .where(DailyOHLCV.asset_id == asset_id)
+                    .where(DailyOHLCV.timestamp >= start_dt)
+                    .where(DailyOHLCV.timestamp <= end_dt)
+                    .order_by(DailyOHLCV.timestamp)
+                ).all()
+            )
 
         nav_series: List[Decimal] = []
         daily_returns: List[float] = []
