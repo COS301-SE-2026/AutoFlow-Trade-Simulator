@@ -1,13 +1,16 @@
 from typing import Any, Dict, Optional
 from uuid import UUID
 
-from sqlalchemy import Column
+from sqlalchemy import Column, Index, text as sa_text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlmodel import Field, SQLModel
 
 
 class TechTree(SQLModel, table=True):
     __tablename__ = "techtree"
+    __table_args__ = (
+        Index("techtree_node_name_key", sa_text("(node->>'name')"), unique=True),
+    )
 
     node_id: Optional[UUID] = Field(
         default=None,
