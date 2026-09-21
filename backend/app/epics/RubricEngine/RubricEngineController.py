@@ -6,7 +6,7 @@ from ...database import get_session
 from ...core.security import get_current_user
 from ...models import User
 
-from .RubricEngineDTO import EpicStatusDTO, CategoryScoreDTO, ExecutionMetricDTO, EvaluationResultDTO
+from .RubricEngineDTO import EpicStatusDTO, CategoryScoreDTO, ExecutionMetricDTO, EvaluationResultDTO, EvaluateMatchRequestDTO
 from .RubricEngineService import RubricEngineService
 
 UserDep = Annotated[User, Depends(get_current_user)]
@@ -23,5 +23,5 @@ def health_check(service: ServiceDep) -> EpicStatusDTO:
     return service.get_status()
 
 @router.post("/evaluate/{strat_key}", status_code=status.HTTP_200_OK)
-def evaluate_strategy(strat_key: str, metrics: ExecutionMetricDTO, service: ServiceDep, current_user: UserDep) -> EvaluationResultDTO:
-    return service.evaluate_strategy(strat_key=strat_key, metrics=metrics)
+def evaluate_strategy(strat_key: str, req: EvaluateMatchRequestDTO, service: ServiceDep, current_user: UserDep) -> EvaluationResultDTO:
+    return service.evaluate_strategy(strat_key=strat_key, match_id=req.match_id, user_id=req.user_id)
