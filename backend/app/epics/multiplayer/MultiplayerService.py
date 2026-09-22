@@ -79,10 +79,10 @@ class MultiplayerService:
         # print(f"find_match ENTER user={connection.user_id}", flush=True)
         async with self.queue_lock:
             # print(
-                "find_match: user=%s active=%s",
-                connection.user_id,
-                [(c.user_id, c.match_id) for c in self.active_connections],
-            )
+            #     "find_match: user=%s active=%s",
+            #     connection.user_id,
+            #     [(c.user_id, c.match_id) for c in self.active_connections],
+            # )
             waiting = [
                 c for c in self.active_connections
                 if c.match_id is None and c.user_id != connection.user_id
