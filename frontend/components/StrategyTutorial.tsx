@@ -2,7 +2,7 @@
 
 import { useStrategy } from '@/hooks/useStrategy'
 import { STRATEGY_TUTORIALS } from '@/lib/strategyTutorials';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function StrategyTutorial({ id, onClose }: { id: number, onClose: () => void }) {
     const { strategy, loading } = useStrategy(id);
@@ -13,6 +13,16 @@ export function StrategyTutorial({ id, onClose }: { id: number, onClose: () => v
     const [stepIndex, setStepIndex] = useState(0);
     const step = tutorial.steps[stepIndex];
     const isLast = stepIndex === tutorial.steps.length - 1;
+
+    useEffect(() => {
+        const el = document.getElementById(step.elementId);
+        if (!el) return;
+
+        el.classList.add('tutorial-highlight');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        return () => el.classList.remove('tutorial-highlight');
+    }, [step.elementId]);
 
     return (
         <div className='flex items-center justify-center bg-[var(--ui-background)]'>
@@ -31,6 +41,9 @@ export function StrategyTutorial({ id, onClose }: { id: number, onClose: () => v
                 <button onClick={onClose}>
                     Close
                 </button>
+            </div>
+            <div className='bg-green-950 p-4' id={"summary"}>
+                SUMMARY BLOCK
             </div>
         </div>
     )

@@ -268,3 +268,8 @@ h1 {
   animation: slowGradient 20s ease infinite;
 }
 
+.tutorial-highlight {
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
