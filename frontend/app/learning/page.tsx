@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { BookOpen, Activity, History } from 'lucide-react';
 import { StrategyList } from '@/components/StrategyList';
 import { useLearning } from '@/context/LearningContext';
+import { StrategyTutorial } from '@/components/StrategyTutorial';
 
 type TabId = 'strategies' | 'greeks' | 'events';
 
@@ -57,11 +58,16 @@ export default function LearningPage() {
                 </div>
             </div>
 
+            <div>
+                <StrategyTutorial id={1} onClose={() => {}} />
+            </div>
+
             <div className='flex-1 p-6'>
                 {activeTab === 'strategies' && <StrategyList />}
                 {activeTab === 'greeks' && <GreeksDisplay />}
                 {activeTab === 'events' && <HistoricalEventsTab />}
             </div>
+            
         </>
     );
 }
