@@ -136,6 +136,7 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
     }, []);
 
     const handleMessage = useCallback((msg: ServerMsg) => {
+        console.log("[ws] HANDLE", msg.type);
         switch (msg.type) {
             case "match_found": {
                 setMatch(msg);
@@ -210,15 +211,19 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
         wsRef.current = ws;
 
         ws.onopen = () => {
+            console.log("[ws] OPEN");
             reconnectAttemptRef.current = 0;
             setStatus((s) => (s === "playing" ? s : "queued"));
         };
 
         ws.onmessage = (ev) => {
+            console.log("[ws] RAW", ev.data);
             try {
                 const parsed = JSON.parse(ev.data) as ServerMsg;
+                console.log("[ws] PARSED", parsed.type);
                 handleMessage(parsed);
-            } catch {
+            } catch (err) {
+                console.log("[ws] parse failed", err, ev.data);
                 setError("malformed frame from server");
             }
         };
@@ -227,7 +232,8 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
             setError("websocket error");
         };
 
-        ws.onclose = () => {
+        ws.onclose = (ev) => {
+            console.log("[ws] CLOSE", ev.code, ev.reason, "manual: ", manualCloseRef.current);
             if (manualCloseRef.current) {
                 setStatus("closed");
                 return;
