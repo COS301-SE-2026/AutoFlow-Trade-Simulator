@@ -99,7 +99,7 @@ export type UseMultiplayerMatch = {
 const RECONNECT_BASE_MS = 500;
 const RECONNECT_MAX_MS = 5000;
 
-export function useMultiplayerMatch(wsBase: string): UseMultiplayerMatch {
+export function useMultiplayerMatch(wsBase: string, token: string | null): UseMultiplayerMatch {
     const [status, setStatus] = useState<MatchStatus>("idle");
     const [match, setMatch] = useState<MatchFoundMsg | null>(null);
     const [day, setDay] = useState<DayMsg | null>(null);
@@ -187,6 +187,10 @@ export function useMultiplayerMatch(wsBase: string): UseMultiplayerMatch {
     }, []);
 
     const connect = useCallback(() => {
+        if (!token) {
+            return;
+        }
+
         shouldReconnectRef.current = true;
         manualCloseRef.current = false;
 
@@ -200,8 +204,6 @@ export function useMultiplayerMatch(wsBase: string): UseMultiplayerMatch {
 
         setStatus((s) => (s === "idle" ? "connecting" : s));
         setError(null);
-
-        const token = typeof window !== "undefined" ? localStorage.getItem("access_token") ?? "" : "";
 
         const url = `${wsBase}/multiplayer/ws?token=${encodeURIComponent(token)}`;
         const ws = new WebSocket(url);
@@ -233,7 +235,7 @@ export function useMultiplayerMatch(wsBase: string): UseMultiplayerMatch {
             setStatus("closed");
             scheduleReconnect();
         };
-    }, [wsBase, handleMessage, scheduleReconnect]);
+    }, [wsBase, handleMessage, scheduleReconnect, token]);
 
     useEffect(() => { connectRef.current = connect; }, [connect]);
 
@@ -304,11 +306,14 @@ export function useMultiplayerMatch(wsBase: string): UseMultiplayerMatch {
     // auto connect
 
     useEffect(() => {
+        if (!token) {
+            return;
+        }
         connect();
         return () => {
             disconnect();
         };
-    }, []);
+    }, [token, connect, disconnect]);
 
     return {
         status,
