@@ -32,7 +32,7 @@ async def open_socket(
         existing = service.find_active_match_for_user(current_user.id)
         if existing is not None:
             connection.match_id = existing.match_id
-            await existing.rebind_socket(current_user.id, socket)
+            existing.rebind_socket(current_user.id, socket)
         else:
             await service.find_match(connection)
 

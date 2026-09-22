@@ -52,7 +52,7 @@ class MultiplayerService:
         if connection.match_id is not None:
             match = self.active_matches.get(connection.match_id)
             if match is not None:
-                await match.handle_disconnect(user_id)
+                match.handle_disconnect(user_id)
         self.active_connections.remove(connection)
 
     async def receive_text(self, websocket: WebSocket) -> str:
@@ -76,11 +76,18 @@ class MultiplayerService:
         return rng.choice(scenarios)
 
     async def find_match(self, connection: Connection) -> Optional[MatchSession]:
+        # print(f"find_match ENTER user={connection.user_id}", flush=True)
         async with self.queue_lock:
+            # print(
+                "find_match: user=%s active=%s",
+                connection.user_id,
+                [(c.user_id, c.match_id) for c in self.active_connections],
+            )
             waiting = [
                 c for c in self.active_connections
                 if c.match_id is None and c.user_id != connection.user_id
             ]
+            # print("find_match: waiting=%s", [c.user_id for c in waiting])
             if not waiting:
                 return None
 
@@ -139,9 +146,12 @@ class MultiplayerService:
                 session_factory=self.session_factory,
             )
             await session.announce()
+            # print(f"find_match: announce returned for match={match_id}", flush=True)
 
             connection.match_id = match_id
             peer.match_id = match_id
             self.active_matches[match_id] = session
+            # print(f"find_match: about to start match={match_id}", flush=True)
             session.start()
+            # print(f"find_match: started match={match_id}", flush=True)
             return session
