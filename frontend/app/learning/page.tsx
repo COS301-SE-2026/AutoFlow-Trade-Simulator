@@ -59,7 +59,7 @@ export default function LearningPage() {
             </div>
 
             <div>
-                <StrategyTutorial id={1} onClose={() => {}} />
+                <StrategyTutorial id={0} onClose={() => {}} />
             </div>
 
             <div className='flex-1 p-6'>
