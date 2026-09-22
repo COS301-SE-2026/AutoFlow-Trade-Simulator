@@ -101,6 +101,7 @@ class MatchSession:
         self.actions_event = asyncio.Event()
 
     async def announce(self) -> None:
+        # print(f"announce START: match={self.match_id} players={[p.user_id for p in self.players.values()]}", flush=True)
         players = list(self.players.values())
         player_one, player_two = players[0], players[1]
         for player in players:
@@ -113,7 +114,10 @@ class MatchSession:
                 opponent_user_id=opponent.user_id,
                 total_days=self.total_days,
             )
+            # print(f"announce: sending to user={player.user_id}", flush=True)
             await player.socket.send_text(message.model_dump_json())
+            # print(f"announce: sent to user={player.user_id}", flush=True)
+        # print(f"announce DONE: match={self.match_id}", flush=True)
 
     def log_event(self, user_id: int, event_type: str, payload: Dict) -> None:
         self.pending_events.append({
@@ -274,6 +278,7 @@ class MatchSession:
             pass
 
     async def send_day(self, player: PlayerState, bar: DailyOHLCV, current_date: date) -> None:
+        # print("send_day: match=%s user=%s day=%s close=%s", self.match_id, player.user_id, self.day_index, bar.close)
         qte_offer: Optional[QteOfferDTO] = None
         if self.current_qte is not None:
             qte_offer = QteOfferDTO(
@@ -379,7 +384,9 @@ class MatchSession:
             await player.socket.send_text(message.model_dump_json())
 
     def start(self) -> None:
+        # print(f"start: creating task for match={self.match_id}", flush=True)
         self.task = asyncio.create_task(self.run())
+        # print(f"start: task created for match={self.match_id}", flush=True)
 
     async def handle_client_message(self, user_id: int, raw: str) -> None:
         player = self.players.get(user_id)
