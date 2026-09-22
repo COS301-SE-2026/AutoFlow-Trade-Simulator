@@ -172,6 +172,8 @@ export function useMultiplayerMatch(wsBase: string): UseMultiplayerMatch {
         }
     }, []);
 
+    const connectRef = useRef<() => void | undefined>(undefined);
+
     const scheduleReconnect = useCallback(() => {
         if (!shouldReconnectRef.current) {
             return;
@@ -233,7 +235,6 @@ export function useMultiplayerMatch(wsBase: string): UseMultiplayerMatch {
         };
     }, [wsBase, handleMessage, scheduleReconnect]);
 
-    const connectRef = useRef<() => void | undefined>(undefined);
     useEffect(() => { connectRef.current = connect; }, [connect]);
 
     const disconnect = useCallback(() => {
