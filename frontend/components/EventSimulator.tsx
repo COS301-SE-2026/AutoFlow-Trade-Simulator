@@ -427,6 +427,7 @@ export function EventSimulator({
                     </div>
                     <div className='flex items-center justify-center'>
                         <button
+                            
                             type='button'
                             onClick={onBack}
                             className='flex self-center px-4 py-2 bg-blue-900 text-white rounded-xl'
@@ -459,6 +460,7 @@ export function EventSimulator({
                     <span className='font-semibold'>{event.title}</span>
                 </div>
                 <button
+                    id='tut-play'
                     type='button'
                     onClick={() => { setIsPlaying(b => !b) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
@@ -488,6 +490,7 @@ export function EventSimulator({
                 </div>
 
                 <button
+                    id='tut-skip'
                     type='button'
                     onClick={() => { setDayIndex(d => Math.min(d + 1, allPrices.length)) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
@@ -499,6 +502,7 @@ export function EventSimulator({
                 </button>
 
                 <button
+                    id='tut-finish'
                     type='button'
                     onClick={finish}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
@@ -509,15 +513,25 @@ export function EventSimulator({
                     </div>
                 </button>
             </div>
-            <NewsTicker
-                items={visibleNews}
-                currentDate={currentBarTimestamp ?? startDate}
-            />
-            {newsError && (
-                <p className='text-xs text-[var(--red)]'>Couldn&apos;t load news for {event.ticker}.</p>
+
+            {!isStrategy && (
+                <>
+                    <NewsTicker
+                        items={visibleNews}
+                        currentDate={currentBarTimestamp ?? startDate}
+                        />
+                    {newsError && (
+                        <p className='text-xs text-[var(--red)]'>Couldn&apos;t load news for {event.ticker}.</p>
+                    )}
+                </>
             )}
+
             <div className='flex gap-4 flex-1 min-h-0'>
-                <div className='flex-1 rounded-xl border border-[var(--border)] p-4'>
+                <div
+                    id='tut-chart' 
+                    onClick={() => { if (step?.elementId === 'tut-chart') advanceStep(); }}
+                    className='flex-1 rounded-xl border border-[var(--border)] p-4'
+                >
                     <div className='flex justify-between'>
                         <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
                         <div className='text-xl font-bold'>COST: R{Number.parseFloat(currentPrice).toFixed(2)}</div>
@@ -564,7 +578,11 @@ export function EventSimulator({
                 </div>
 
                 <div className='w-64 space-y-4'>
-                    <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'>
+                    <div
+                        id='tut-portfolio' 
+                        onClick={() => { if (step?.elementId === 'tut-portfolio') advanceStep(); }}
+                        className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'
+                    >
                         <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
                         <div className='flex justify-between'>
                             <span>Cash</span>
@@ -588,10 +606,16 @@ export function EventSimulator({
                     <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
                         <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
                         <input
+                            id='tut-qty'
                             type='number'
                             min="1"
+                            step='1'
                             value={qty}
                             onChange={e => setQty(e.target.value)}
+                            onBlur={() => {
+                                const n = Number.parseFloat(qty);
+                                if (Number.isNaN(n) || n < 1) setQty('1');
+                            }}
                             placeholder='Quantity'
                             className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
                         />
@@ -607,6 +631,7 @@ export function EventSimulator({
                         )}
                         <div className='flex gap-2 justify-evenly'>
                             <button
+                                id='tut-buy'
                                 type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
                                 onClick={() => setPendingTrade({ type: 'buy' })}
@@ -620,7 +645,15 @@ export function EventSimulator({
                             >
                                 Sell
                             </button>
-                            {pendingTrade && (<TradeConfirmModal side={pendingTrade.type} quantity={Number.parseFloat(qty)} price={Number.parseFloat(currentPrice)} onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }} onCancel={() => { setPendingTrade(null) }} orderType="market" />)}
+                            {pendingTrade && (
+                                <TradeConfirmModal 
+                                    side={pendingTrade.type} 
+                                    quantity={Number.parseFloat(qty)} 
+                                    price={Number.parseFloat(currentPrice)} 
+                                    onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }}
+                                    onCancel={() => { setPendingTrade(null) }} orderType="market" 
+                                />
+                            )}
                         </div>
                     </div>
 
