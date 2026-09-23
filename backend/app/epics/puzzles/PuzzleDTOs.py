@@ -30,9 +30,9 @@ MAX_PUZZLE_ACTIONS = 100
 
 
 class PuzzleActionDTO(SQLModel):
-    day_index:int = Field(ge=0)
+    day_index:int
     action:Literal["buy","sell"]
-    qty:float = Field(gt=0)
+    qty:float
 
 
 class PuzzleSubmitRequest(SQLModel):

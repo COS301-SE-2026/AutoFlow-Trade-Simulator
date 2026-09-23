@@ -1,3 +1,4 @@
+import math
 import secrets
 from datetime import datetime
 from decimal import Decimal
@@ -60,8 +61,10 @@ class PuzzleService:
         previous_day = 0
 
         for position, action in enumerate(actions):
-            if action.day_index >= len(bars):
+            if action.day_index < 0 or action.day_index >= len(bars):
                 raise self.invalid_action(position, f"day {action.day_index} is outside the puzzle")
+            if not math.isfinite(action.qty) or action.qty <= 0:
+                raise self.invalid_action(position, "quantity must be a positive number")
             if action.day_index < previous_day:
                 raise self.invalid_action(position, "actions must be in day order")
             previous_day = action.day_index
