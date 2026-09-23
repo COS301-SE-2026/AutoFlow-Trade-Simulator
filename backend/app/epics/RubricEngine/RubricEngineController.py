@@ -24,4 +24,4 @@ def health_check(service: ServiceDep) -> EpicStatusDTO:
 
 @router.post("/evaluate/{strat_key}", status_code=status.HTTP_200_OK)
 def evaluate_strategy(strat_key: str, req: EvaluateMatchRequestDTO, service: ServiceDep, current_user: UserDep) -> EvaluationResultDTO:
-    return service.evaluate_match_for_user(strat_key=strat_key, match_id=req.match_id, user_id=current_user.user_id)
+    return service.evaluate_match_for_user(strat_key=strat_key, match_id=req.match_id, user_id=current_user.id)
