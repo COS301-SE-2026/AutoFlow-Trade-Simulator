@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react';
 
 interface Ctx {
     currentXp: number;
-    purchasing: number;
+    purchasing: boolean;
     onPurchase: (name: string) => void;
 }
 
