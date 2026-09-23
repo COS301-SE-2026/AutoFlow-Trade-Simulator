@@ -5,6 +5,7 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import {AccountProvider} from "@/lib/hooks/accountContext";
+import 'driver.js/dist/driver.css'
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 

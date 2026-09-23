@@ -22,6 +22,9 @@ import {NewsTicker} from "@/components/news/newsScroll";
 import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
 import next from 'next';
 
+import { driver, type Driver } from 'driver.js';
+import 'driver.js/dist/driver.css'
+
 interface EventDefinition {
     id: string;
     title: string;
@@ -75,6 +78,8 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
+const INTERACTION_STEPS = ['tut-play', 'tut-qty', 'tut-buy', 'tut-skip'];
+
 export function EventSimulator({ 
     event,
     mode = 'event',
@@ -105,10 +110,71 @@ export function EventSimulator({
     const [stepIndex, setStepIndex] = useState(0);
     const step = tutorial?.steps[stepIndex];
 
+    const stepIndexRef = useRef(stepIndex);
+    useEffect(() => { stepIndexRef.current = stepIndex; }, [stepIndex]);
+
+    const driverRef = useRef<Driver | null>(null);
+
+    const onBackRef = useRef(onBack);
+    useEffect(() => { onBackRef.current = onBack; }, [onBack]);
+
     const advanceStep = useCallback(() => {
         if (!tutorial) return;
         setStepIndex(i => Math.min(i + 1, tutorial.steps.length - 1));
+        driverRef.current?.moveNext();
     }, [tutorial]);
+
+    useEffect(() => {
+        if (!isStrategy || !tutorial || !simData) return;
+        
+        if (pendingTrade) {
+            driverRef.current?.destroy();
+            driverRef.current = null;
+            return;
+        }
+
+        const d = driver({
+            showProgress: true,
+            progressText: '{{current}} of {{total}}',
+            allowClose: true,
+            overlayOpacity: 0.72,
+            stagePadding: 6,
+            stageRadius: 12,
+            steps: tutorial.steps.map(s => ({
+                element: `#${s.elementId}`,
+                popover: {
+                    title: s.title,
+                    description: s.instruction,
+                    side: 'bottom',
+                    align: 'center',
+                    showButtons: INTERACTION_STEPS.includes(s.elementId)
+                        ? ['close']
+                        : ['next', 'close']
+                }
+            })),
+            onHighlightStarted: (_el: any, _step: any, opts: any) => {
+                const idx = opts?.state?.activeIndex;
+                if (typeof idx === 'number') {
+                    setStepIndex(prev => (prev === idx ? prev : idx));
+                }
+            },
+            onCloseClick: () => {
+                d.destroy();
+                onBackRef.current();
+            },
+            onDestroyed: () => {
+                driverRef.current = null;
+            },
+        });
+
+        driverRef.current = d;
+        d.drive(stepIndexRef.current);
+
+        return () => {
+            d.destroy();
+            driverRef.current = null;
+        };
+    }, [isStrategy, tutorial, simData, pendingTrade]);
 
     const prevQty = useRef(qty);
     const prevTradesLength = useRef(trades.length);
@@ -139,6 +205,26 @@ export function EventSimulator({
         prevTradesLength.current = trades.length;
         prevDayIndex.current = dayIndex
     }, [qty, trades.length, dayIndex, step, advanceStep]);
+
+    useEffect(() => {
+        if (!step || step.elementId !== 'tut-play' || !isPlaying) return;
+        const id = setTimeout(advanceStep, 3500);
+        return () => clearTimeout(id);
+    }, [step, isPlaying, advanceStep]);
+
+    const [pausedByTutorial, setPausedByTutorial] = useState(false);
+
+    useEffect(() => {
+        if (!step) return;
+        const isFocusStep = step.elementId === 'tut-qty' || step.elementId === 'tut-buy';
+
+        if (isFocusStep && isPlaying) {
+            setIsPlaying(false);
+            setPausedByTutorial(true);
+        } else if (!isFocusStep) {
+            setPausedByTutorial(false);
+        }
+    }, [step, isPlaying]);
 
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
     const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
