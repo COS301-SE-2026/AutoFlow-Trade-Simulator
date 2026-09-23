@@ -15,7 +15,7 @@ export interface TechNode {
 export interface TechTree {
     experience_points: number;
     upgrades: string[];
-    nodes: node[];
+    nodes: TechNode[];
 }
 
 export function useTechTree() {
