@@ -55,7 +55,7 @@ class MeanReversionStrategy(BaseRubricStrategy):
         if metrics.total_trades < 3:
             acc_score = final_score
             final_score = min(final_score, 45.0)
-            hold_fb += f" [SCORE CAPPED]: Minimum 3 trades required (made {metrics.total_trades}). Raw score was {acc_score}."
+            hold_fb += f" [SCORE CAPPED]: Minimum of 3 trades is required (made {metrics.total_trades}). Raw score was {acc_score}."
 
         grade = self._compute_grade(final_score)
         passed = final_score >= 60.0 #Idk maybe we should make it 50
