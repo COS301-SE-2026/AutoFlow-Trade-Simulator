@@ -11,6 +11,7 @@ import ReactFlow, {
     MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import styles from './TechTreeFlow.module.css';
 
 import { TechTreeResponseDTO } from "@/lib/types/techTree";
 import { buildGraph } from "./layout";
@@ -41,7 +42,7 @@ export function TechTreeFlow({ tree, purchasing, onPurchase }: Props) {
             },
         }));
 
-        const fixedNodes: Node[] = nodes.map(n => ({ ...n, draggable: false }));
+        const fixedNodes: Node[] = nodes.map(n => ({ ...n, draggable: true }));
 
         return { nodes: fixedNodes, edges: styledEdges };
     }, [tree.nodes, tree.upgrades]);
@@ -54,7 +55,7 @@ export function TechTreeFlow({ tree, purchasing, onPurchase }: Props) {
 
     return (
         <TechTreeContext.Provider value={ctx}>
-            <div className="h-[70vh] w-full rounded-xl border border-slate-700/60 bg-slate-900/40">
+            <div className={`${styles.flow} h-[70vh] w-full rounded-xl border border-slate-700/60 bg-slate-900/40`}>
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}

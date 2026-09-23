@@ -1,0 +1,23 @@
+.flow :global(.react-flow__controls) {
+    background: transparent;
+    box-shadow: none;
+}
+.flow :global(.react-flow__controls-button) {
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    color: #cbd5e1;
+    fill: #cbd5e1;
+}
+.flow :global(.react-flow__controls-button:hover) {
+    background: #334155;
+}
+.flow :global(.react-flow__minimap) {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+.flow :global(.react-flow__minimap-mask) {
+    fill: rgba(15, 23, 42, 0.6);
+    stroke: #475569;
+}
