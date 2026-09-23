@@ -53,8 +53,9 @@ class MeanReversionStrategy(BaseRubricStrategy):
 
         # Idk my closet model to this is an afk timer. You need x a mount of trades to pass
         if metrics.total_trades < 3:
+            acc_score = final_score
             final_score = min(final_score, 45.0)
-            hold_fb += " You are expected to make more than 3 trades."
+            hold_fb += f" [SCORE CAPPED]: Minimum 3 trades required (made {metrics.total_trades}). Raw score was {acc_score}."
 
         grade = self._compute_grade(final_score)
         passed = final_score >= 60.0 #Idk maybe we should make it 50

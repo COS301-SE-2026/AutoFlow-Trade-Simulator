@@ -10,8 +10,8 @@ from .mean_reversion_strategy import MeanReversionStrategy
 
 from typing import Dict, List, Optional
 from ...models.daily_OHLCV import DailyOHLCV
-from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch
 from ...models.asset import Asset
+from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch, MultiplayerParticipant
 
 class RubricEngineService:
 
@@ -33,6 +33,18 @@ class RubricEngineService:
         if not match:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Match {match_id} not found")
 
+        participants = self.session.exec(
+            select(MultiplayerParticipant)
+            .where(MultiplayerParticipant.match_id == match_id)
+            .where(MultiplayerParticipant.user_id == user_id)
+        ).first()
+
+        if not participants:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You where not a valid participant in this match."
+            )
+
         events = list (
             self.session.exec(
                 select(MatchEventLog)
@@ -41,12 +53,6 @@ class RubricEngineService:
                 .order_by(MatchEventLog.seq)
             ).all()
         )
-
-        if not events:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You where not a valid participant in this match."
-            )
 
         trade_events = [e for e in events if e.event_type in ("buy", "sell")]
         total_trades = len(trade_events)
