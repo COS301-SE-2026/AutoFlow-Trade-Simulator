@@ -63,13 +63,13 @@ export function TechTreeFlow({ tree, purchasing, onPurchase }: Props) {
                     fitViewOptions={{ padding: 0.2 }}
                     minZoom={0.3}
                     maxZoom={1.5}
-                    propOptions={{ hideAttribution: true }}
+                    proOptions={{ hideAttribution: true }}
                 >
                     <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#334155" />
-                    <Controls class="!bg-slate-800 !border-slate-700" />
+                    <Controls className="!bg-slate-800 !border-slate-700" />
                     <MiniMap
                         className="bg-slate-800"
-                        nodeColor={(n) => {
+                        nodeColor={(n: Node) => {
                             const d = n.data as { unlocked?: boolean; available?: boolean };
                             if (d.unlocked) {
                                 return '#34d399';

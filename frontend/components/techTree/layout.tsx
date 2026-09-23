@@ -55,6 +55,7 @@ export function buildGraph(tree: { nodes: TechNode[] }): {
                 y: y - nodeHeight / 2,
             },
             data: n,
+            style: { width: nodeWidth, height: nodeHeight },
             sourcePosition: Position.Bottom,
             targetPosition: Position.Top,
         };
