@@ -45,7 +45,7 @@ export function TechTreeFlow({ tree, purchasing, onPurchase }: Props) {
         const fixedNodes: Node[] = nodes.map(n => ({ ...n, draggable: true }));
 
         return { nodes: fixedNodes, edges: styledEdges };
-    }, [tree.nodes, tree.upgrades]);
+    }, [tree]);
 
     const ctx = useMemo(() => ({
         currentXp: tree.experience_points,
