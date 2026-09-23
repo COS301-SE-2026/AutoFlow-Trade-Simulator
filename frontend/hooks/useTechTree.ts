@@ -1,20 +1,15 @@
 'use client';
 import { apiClient } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
-import { PurchaseResponseSchema, TechTree, TechTreeSchema, UnlockCheckSchema } from "@/lib/types/techTree";
-
-export interface TechNode {
-    name: string;
-    description: string;
-    cost: number;
-    prerequisites: string[];
-    unlocks: string[];
-    unlocked: boolean;
-    available: boolean;
-}
+import {
+    PurchaseResponseDTOSchema,
+    TechTreeResponseDTO,
+    TechTreeResponseDTOSchema,
+    UnlockCheckDTOSchema,
+} from "@/lib/types/techTree";
 
 export function useTechTree() {
-    const [tree, setTechTree] = useState<TechTree | null>(null);
+    const [tree, setTechTree] = useState<TechTreeResponseDTO | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +18,7 @@ export function useTechTree() {
         setError(null);
         try {
             const response = await apiClient(`/tech_tree/tree`);
-            setTechTree(TechTreeSchema.parse(response));
+            setTechTree(TechTreeResponseDTOSchema.parse(response));
         } catch (error: any) {
             setError(error.message);
         } finally {
@@ -39,7 +34,7 @@ export function useTechTree() {
                 method: "POST",
                 body: { tech_name: techName },
             });
-            PurchaseResponseSchema.parse(response);
+            PurchaseResponseDTOSchema.parse(response);
             await getTree();
         } catch (e: any) {
             setError(e.message);
@@ -53,7 +48,7 @@ export function useTechTree() {
         setError(null);
         try {
             const response = await apiClient(`/tech_tree/unlocked/${encodeURIComponent(techName)}`);
-            return UnlockCheckSchema.parse(response).unlocked;
+            return UnlockCheckDTOSchema.parse(response).unlocked;
         } catch (error: any) {
             setError(error.message);
         } finally {
