@@ -2,7 +2,7 @@
 import { apiClient } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 
-export interface node {
+export interface TechNode {
     name: string;
     description: string;
     cost: number;
@@ -16,17 +16,6 @@ export interface TechTree {
     experience_points: number;
     upgrades: string[];
     nodes: node[];
-}
-
-interface PurchaseResponse {
-    experience_points: number;
-    upgrades: string[];
-    purchased: string;
-}
-
-interface CheckUnlockResponse {
-    tech_name: string;
-    unlocked: boolean;
 }
 
 export function useTechTree() {
@@ -78,5 +67,5 @@ export function useTechTree() {
 
     useEffect(() => { getTree(); }, [getTree]);
 
-    return { tree, loading, error, refetch: getTree, purchaseTech, isUnlocked }
+    return { tree, loading, error, refetch: getTree, purchaseTech, isUnlocked };
 }
