@@ -4,6 +4,7 @@ import { BookOpen, Activity, History } from 'lucide-react';
 import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
+import { useTechTree } from '@/hooks/useTechTree';
 
 type TabId = 'strategies' | 'greeks' | 'events';
 
@@ -17,17 +18,27 @@ const tabs: { id: TabId, label: string, icon: typeof BookOpen, href: string }[] 
 export function LearningNavbar() {
     const pathname = usePathname();
 
+    const { tree, loading, error } = useTechTree();
+    const xp = tree?.experience_points;
+
     return (
         <>
-            <div className='border-b border-[var(--border)] px-6 py-4'>
-                <div className='w-8 h-8 rounded-xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center'>
-                    <BookOpen className='w-4 h-4' />
-                </div>
+            <div className='flex items-center justify-between w-full border-b border-[var(--border)] px-6 py-4'>
                 <div>
-                    <h2 className='text-lg font-bold'>Learning Center</h2>
-                    <p className='text-sm'>
-                        Master strategies, understand the greeks, and replay real market history.
-                    </p>
+                    <div className='w-8 h-8 rounded-xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center'>
+                        <BookOpen className='w-4 h-4' />
+                    </div>
+                    <div>
+                        <h2 className='text-lg font-bold'>Learning Center</h2>
+                        <p className='text-sm'>
+                            Master strategies, understand the greeks, and replay real market history.
+                        </p>
+                    </div>
+
+                </div>
+                <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 px-4 py-2">
+                    <span className="text-xs uppercase tracking-wider text-slate-500">XP</span>
+                    <span className="ml-3 text-lg font-semibold text-sky-300">{xp}</span>
                 </div>
             </div>
 
