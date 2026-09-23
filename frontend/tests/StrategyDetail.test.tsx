@@ -16,6 +16,7 @@ const mockStrategy = {
 
 const mockOnClose = jest.fn();
 const mockSwitchToEvents = jest.fn();
+const mockSetStrategyId = jest.fn();
 
 jest.mock('@/hooks/useStrategy', () => ({
     useStrategy: jest.fn(),
@@ -41,18 +42,13 @@ describe('StrategyDetail', () => {
         useLearning.mockReturnValue({
             activeTab: 'strategies',
             setActiveTab: jest.fn(),
-            switchToEvents: mockSwitchToEvents,
+            setStrategyId: mockSetStrategyId,
+            switchToEvents: mockSwitchToEvents
         })
     })
 
     describe('StrategyDetail content present', () => {
         it('renders strategy content', async () => {
-            jest.spyOn(require('@/hooks/useStrategy'), 'useStrategy').mockReturnValue({
-                strategy: mockStrategy,
-                loading: false,
-                error: null,
-            });
-
             render(
                 <StrategyDetail
                     id={mockStrategy.id}
@@ -93,7 +89,7 @@ describe('StrategyDetail', () => {
             expect(mockOnClose).toHaveBeenCalled();
         });
 
-        it('try it now button clicked', () => {
+        it('try it now button clicked', async () => {
             render(
                 <StrategyDetail
                     id={mockStrategy.id}
@@ -101,9 +97,10 @@ describe('StrategyDetail', () => {
                 />
             );
 
-            fireEvent.click(screen.getByTestId('Try it now button'));
+            await screen.findByText(mockStrategy.name);
 
-            expect(mockSwitchToEvents).toHaveBeenCalled();
+            const link = screen.getByTestId('Try it now button');
+            expect(link).toHaveAttribute('href', '/learning/events');
         });
     });
 })

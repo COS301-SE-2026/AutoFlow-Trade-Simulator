@@ -107,7 +107,7 @@ describe('PortfolioPage', () => {
         expect(screen.getByTestId('navbar-mock')).toBeInTheDocument()
 
         const authPrompts = screen.getAllByTestId('auth-prompt-mock')
-        expect(authPrompts).toHaveLength(2)
+        expect(authPrompts).toHaveLength(1)
 
         expect(screen.queryByTestId('cash-balance-mock')).not.toBeInTheDocument()
         expect(screen.queryByTestId('invested-mock')).not.toBeInTheDocument()
@@ -115,7 +115,7 @@ describe('PortfolioPage', () => {
         expect(screen.queryByTestId('holdings-mock')).not.toBeInTheDocument()
         expect(screen.queryByTestId('performance-chart-mock')).not.toBeInTheDocument()
 
-        expect(screen.getByTestId('asset-summary-mock')).toHaveTextContent('(no holding)')
+        expect(screen.queryByTestId('asset-summary-mock')).not.toBeInTheDocument();
     })
 
     it('renders portfolio balances when an active account exists', () => {
