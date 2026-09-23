@@ -19,7 +19,7 @@ import TradeConfirmModal from './TradeConfirmModal';
 import { Button } from '@/components/ui/button';
 import { useNews } from '@/hooks/useNews';
 import {NewsTicker} from "@/components/news/newsScroll";
-import { STRATEGY_TUTORIALS } from '@/lib/strategyTutorials';
+import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
 
 interface EventDefinition {
     id: string;
@@ -152,6 +152,11 @@ export function EventSimulator({
     );
 
     useEffect(() => {
+        if (isStrategy) {
+            const bars = MOCK_AAPL_BARS;
+            setSimData({ simulation_id: -1, bars: { [event.ticker]: bars } } as unknown as SimCreateResponse);
+            return;
+        }
         const initialize = async () => {
             try {
                 const res = await startSimulation(
