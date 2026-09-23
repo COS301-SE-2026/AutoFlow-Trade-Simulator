@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { calc_greeks, calc_realized_volatility } from '@/lib/greeks';
 import {
     ResponsiveContainer,
@@ -19,6 +19,7 @@ import TradeConfirmModal from './TradeConfirmModal';
 import { Button } from '@/components/ui/button';
 import { useNews } from '@/hooks/useNews';
 import {NewsTicker} from "@/components/news/newsScroll";
+import { STRATEGY_TUTORIALS } from '@/lib/strategyTutorials';
 
 interface EventDefinition {
     id: string;
@@ -29,7 +30,7 @@ interface EventDefinition {
     period: string;
     narrative: string;
     context: string;
-    timeframe: string; // 3m or 1y or maybe even 1m for some event.
+    timeframe: string;
     startYear: number;
     startMonth: number;
     startDay: number;
@@ -73,8 +74,15 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
-export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinition; onBack: () => void }>) {
-
+export function EventSimulator({ 
+    event,
+    mode = 'event',
+    onBack,
+}: Readonly<{ 
+    event: EventDefinition;
+    mode?: 'event' | 'strategy';
+    onBack: () => void 
+}>) {
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -90,6 +98,47 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
 
     const [speed, setSpeed] = useState(1);
 
+    const isStrategy = mode === 'strategy';
+
+    const tutorial = isStrategy ? STRATEGY_TUTORIALS.dca : null;
+    const [stepIndex, setStepIndex] = useState(0);
+    const step = tutorial?.steps[stepIndex];
+
+    const advanceStep = useCallback(() => {
+        if (!tutorial) return;
+        setStepIndex(i => Math.min(i + 1, tutorial.steps.length - 1));
+    }, [tutorial]);
+
+    const prevQty = useRef(qty);
+    const prevTradesLength = useRef(trades.length);
+    const prevDayIndex = useRef(dayIndex);
+
+    useEffect(() => {
+        if (!step) return;
+
+        switch (step.elementId) {
+            case 'tut-qty':
+                if (qty !== prevQty.current && parseFloat(qty) >= 1) {
+                    advanceStep();
+                }
+                break;
+            case 'tut-buy':
+                if (trades.length > prevTradesLength.current) {
+                    advanceStep();
+                }
+                break;
+            case 'tut-skip':
+                if (dayIndex !== prevDayIndex.current) {
+                    advanceStep();
+                }
+                break;
+        }
+
+        prevQty.current = qty;
+        prevTradesLength.current = trades.length;
+        prevDayIndex.current = dayIndex
+    }, [qty, trades.length, dayIndex, step, advanceStep]);
+
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
     const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
 
@@ -97,7 +146,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
     const endDateObj = useMemo(() => new Date(endDate), [endDate]);
 
     const { newsItems, error: newsError } = useNews(
-        event.ticker,
+        isStrategy ? '' : event.ticker,
         startDateObj,
         endDateObj,
     );

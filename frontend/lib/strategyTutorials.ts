@@ -2,6 +2,8 @@ export interface TutorialStep {
     title: string;
     instruction: string;
     elementId: string;
+    hint?: string;
+    needsClick?: boolean;
 }
 
 export interface TutorialDef {
@@ -14,29 +16,46 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
         scenario: "You have R2,000/month to invest and want to build a long-term AAPL position without trying to time the market.",
     steps: [
         { 
-            title: "Select Your Asset",
-            instruction: "Choose the stock or ETF you want to accumulate over time. For DCA, pick a broad-market ETF or blue-chip you are comfortable holding through volatility.",
-            elementId: "asset",
+            title: "Press Play",
+            instruction: "Start the replay. Each tick is one trading day of SHN.",
+            elementId: "tut-play",
+            hint: "Click the Play button",
         },
         {
-            title: "Set the Monthly Amount", 
+            title: "Watch the Price", 
             instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
-            elementId: "amount",
+            elementId: "tut-chart",
+            needsClick: true,
         },
         {
-            title: "Choose Frequency", 
-            instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
-            elementId: "frequency",
+            title: "Choose Quantity", 
+            instruction: "DCA uses a fixed rand amount each period. Because price changes, share count varies. Enter 10 shares for this purchase.",
+            elementId: "tut-qty",
+            hint: "Change the quantity to continue",
         },
         {
-            title: "Review the Plan", 
-            instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
-            elementId: "summary",
+            title: "Place Your Purchase", 
+            instruction: "Click Buy. This is your scheduled purchase - same time, same amount, every period.",
+            elementId: "tut-buy",
+            hint: "Click the Buy button",
         },
         {
-            title: "Activate Recurring Buy", 
-            instruction: "Submit the schedule.",
-            elementId: "action",
+            title: "See Your Position", 
+            instruction: "Your cash drops, your shares rise. This is what disciplined accumulation looks like.",
+            elementId: "tut-chart",
+            needsClick: true,
+        },
+        {
+            title: "Advance Time", 
+            instruction: "Skip forward to your next buy window and repeat the process.",
+            elementId: "tut-skip",
+            hint: "Click Skip Forward",
+        },
+        {
+            title: "Wrap Up", 
+            instruction: "That's DCA. Consistent purchases, no market timing, compounding over time.",
+            elementId: "tut-finish",
+            needsClick: true,
         },
     ],
 },

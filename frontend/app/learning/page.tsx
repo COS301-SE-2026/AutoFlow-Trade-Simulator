@@ -41,6 +41,7 @@ export default function LearningPage() {
             <>
                 <EventSimulator
                     event={DCA_PRACTICE_EVENT}
+                    mode='strategy'
                     onBack={closeStrategyTutorial}
                 />
             </>
