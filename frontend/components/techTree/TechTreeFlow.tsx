@@ -12,7 +12,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import { TechTree } from "@/lib/types/techTree";
+import { TechTreeResponseDTO } from "@/lib/types/techTree";
 import { buildGraph } from "./layout";
 import { TechNode } from "./TechNode";
 import { TechTreeContext } from "@/context/TechTreeContext";
@@ -20,7 +20,7 @@ import { TechTreeContext } from "@/context/TechTreeContext";
 const nodeTypes: NodeTypes = { techNode: TechNode };
 
 interface Props {
-    tree: TechTree;
+    tree: TechTreeResponseDTO;
     purchasing: boolean;
     onPurchase: (name: string) => void;
 }

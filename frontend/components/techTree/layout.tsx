@@ -27,19 +27,21 @@ export function buildGraph(tree: { nodes: TechNode[] }): {
 
     const edges: Edge[] = [];
     for (const n of tree.nodes) {
-        for (const prereq of n.prerequisites) {
-            if (!nodeNames.has(prereq)) {
-                continue;
+        if (n.prerequisites) {
+            for (const prereq of n.prerequisites) {
+                if (!nodeNames.has(prereq)) {
+                    continue;
+                }
+                g.setEdge(prereq, n.name);
+                edges.push({
+                    id: `${prereq}->${n.name}`,
+                    source: prereq,
+                    target: n.name,
+                    type: 'smoothstep',
+                    animated: false,
+                    style: { strokeWidth: 1.5 }
+                });
             }
-            g.setEdge(prereq, n.name);
-            edges.push({
-                id: `${prereq}->${n.name}`,
-                source: prereq,
-                target: n.name,
-                type: 'smoothstep',
-                animated: false,
-                style: { strokeWidth: 1.5 }
-            });
         }
     }
 

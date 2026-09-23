@@ -8,6 +8,16 @@ import {
     UnlockCheckDTOSchema,
 } from "@/lib/types/techTree";
 
+export interface TechNode {
+    name: string;
+    description: string;
+    cost: number;
+    prerequisites: string[] | null;
+    unlocks: string[] | null;
+    unlocked: boolean;
+    available: boolean;
+}
+
 export function useTechTree() {
     const [tree, setTechTree] = useState<TechTreeResponseDTO | null>(null);
     const [loading, setLoading] = useState(false);
