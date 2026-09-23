@@ -42,6 +42,12 @@ class RubricEngineService:
             ).all()
         )
 
+        if not events:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You where not a valid participant in this match."
+            )
+
         trade_events = [e for e in events if e.event_type in ("buy", "sell")]
         total_trades = len(trade_events)
 
