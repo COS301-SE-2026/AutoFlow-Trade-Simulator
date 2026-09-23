@@ -1,7 +1,17 @@
 'use client';
 import { apiClient } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
-import {PurchaseResponseSchema, TechTree, TechTreeSchema, UnlockCheckSchema} from "@/lib/types/techTree";
+import { PurchaseResponseSchema, TechTree, TechTreeSchema, UnlockCheckSchema } from "@/lib/types/techTree";
+
+export interface TechNode {
+    name: string;
+    description: string;
+    cost: number;
+    prerequisites: string[];
+    unlocks: string[];
+    unlocked: boolean;
+    available: boolean;
+}
 
 export function useTechTree() {
     const [tree, setTechTree] = useState<TechTree | null>(null);
