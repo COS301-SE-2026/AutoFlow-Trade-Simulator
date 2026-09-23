@@ -3,22 +3,49 @@
 import { Navbar } from '@/components/navbar';
 import GreeksDisplay from '@/components/GreeksDisplay';
 import { HistoricalEventsTab } from '@/components/HistoricalEventsTab';
-import { useState } from 'react';
 import { BookOpen, Activity, History } from 'lucide-react';
 import { StrategyList } from '@/components/StrategyList';
 import { useLearning } from '@/context/LearningContext';
-import { StrategyTutorial } from '@/components/StrategyTutorial';
+import { EventSimulator } from '@/components/EventSimulator';
 
 type TabId = 'strategies' | 'greeks' | 'events';
 
+const DCA_PRACTICE_EVENT = {
+    id: 'dca-practice',
+    title: 'Dollar Cost Averaging Practice',
+    ticker: 'SNH',
+    company: 'Steinhoff International Holdings N.V.',
+    sector: 'Retail',
+    period: 'Practice',
+    narrative: `Practice accumulating a long term SNH position.`,
+    context: `Set a monthly amount, pick some frequency, and let the plan run.`,
+    timeframe: '1y',
+    startYear: 2017,
+    startMonth: 1,
+    startDay: 1,
+    tradingDays: 252,
+    initialBalance: 200000
+}
+
 export default function LearningPage() {
-    const { activeTab, setActiveTab } = useLearning();
+    const { activeTab, setActiveTab, strategyTutorialOpen, closeStrategyTutorial } = useLearning();
 
     const tabs = [
         { id: 'strategies' as TabId, label: 'Strategies', icon: BookOpen },
         { id: 'greeks' as TabId, label: 'Options Greeks', icon: Activity },
         { id: 'events' as TabId, label: 'Historical Events', icon: History },
     ];
+
+    if (strategyTutorialOpen) {
+        return (
+            <>
+                <EventSimulator
+                    event={DCA_PRACTICE_EVENT}
+                    onBack={closeStrategyTutorial}
+                />
+            </>
+        )
+    }
 
     return (
         <>
@@ -57,11 +84,6 @@ export default function LearningPage() {
                     })}
                 </div>
             </div>
-
-            <div>
-                <StrategyTutorial id={0} onClose={() => {}} />
-            </div>
-
             <div className='flex-1 p-6'>
                 {activeTab === 'strategies' && <StrategyList />}
                 {activeTab === 'greeks' && <GreeksDisplay />}

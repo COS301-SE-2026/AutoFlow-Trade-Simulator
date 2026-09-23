@@ -8,7 +8,7 @@ import { useLearning } from '@/context/LearningContext';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
     const { strategy, loading, error } = useStrategy(id);
-    const { switchToEvents } = useLearning();
+    const { openStrategyTutorial } = useLearning();
 
     // Loading State
     if (loading) {
@@ -143,15 +143,15 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 <div className='border-b border-[var(--border)] mb-4'></div>
 
                 {/* Try it now button */}
-                <Button
-                    data-testid="Try it now button"
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
-                    onClick={() => {
-                        switchToEvents();
-                    }}
-                >
-                    Try it now!
-                </Button>
+                <div className='flex flex-col gap-3 mt-4'>
+                    <Button
+                        data-testid="Try it now button"
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
+                        onClick={openStrategyTutorial}
+                        >
+                        Try it now!
+                    </Button>
+                </div>
             </div>
         </div>
     );

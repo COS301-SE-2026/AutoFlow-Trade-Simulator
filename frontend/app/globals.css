@@ -272,4 +272,6 @@ h1 {
   outline: 2px solid var(--blue);
   outline-offset: 4px;
   border-radius: 12px;
+  position: relative;
+  z-index: 50;
 }
