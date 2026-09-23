@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { useNews } from '@/hooks/useNews';
 import {NewsTicker} from "@/components/news/newsScroll";
 import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
+import next from 'next';
 
 interface EventDefinition {
     id: string;
@@ -172,7 +173,7 @@ export function EventSimulator({
             }
         };
         initialize();
-    }, [event, startDate, endDate]);
+    }, [event, startDate, endDate, isStrategy]);
 
     const { allPrices, allDates, allTimestamps } = useMemo(() => {
         const prices: string[] = [];
@@ -284,6 +285,26 @@ export function EventSimulator({
         const bar = tickerBars?.[dayIndex];
         const timestamp = bar ? bar.timestamp : new Date().toISOString();
 
+        if (isStrategy) {
+            const price = Number.parseFloat(currentPrice);
+            const nextShares = type === 'buy' ? shares + qtyToTrade : shares - qtyToTrade;
+            const nextCash = type === 'buy' ? cash - qtyToTrade * price : cash + qtyToTrade * price;
+
+            setShares(nextShares);
+            setCash(nextCash);
+            setTrades(prev => [
+                ...prev,
+                { 
+                    type,
+                    symbol: event.ticker,
+                    qty: qtyToTrade,
+                    price: currentPrice,
+                    data: allDates[dayIndex]
+                },
+            ]);
+            return;
+        }
+
         const action = {
             type: type,
             symbol: event.ticker,
@@ -326,6 +347,40 @@ export function EventSimulator({
 
     const finish = async () => {
         if (!simData) return;
+
+        if (isStrategy) {
+            const finalBalance = cash + shares * Number.parseFloat(currentPrice);
+
+            let peak = event.initialBalance;
+            let maxDD = 0;
+            for (let i = 0; i < dayIndex; i++) {
+                const p = Number.parseFloat(allPrices[i] || '0');
+                const equity = cash + shares * p;
+
+                if (equity > peak) peak = equity;
+                const dd = peak > 0 ? ((peak - equity) / peak) * 100 : 0;
+                if (dd > maxDD) maxDD = dd;
+            }
+
+            const returnsPct = ((finalBalance - event.initialBalance) / event.initialBalance) * 100;
+
+            setFinalSummary({
+                simulation_id: -1,
+                status: 'finished',
+                start_date: startDate,
+                end_date: endDate,
+                initial_balance: String(event.initialBalance),
+                summary: {
+                    final_balance: finalBalance.toFixed(2),
+                    returns_pct: returnsPct.toFixed(2),
+                    max_drawdown: maxDD.toFixed(2),
+                    trades_count: trades.length,
+                    per_symbol_results: {},
+                }
+            });
+            return;
+        }
+
         try {
             const res = await apiClient(`/simulation/practice/simulate/${simData.simulation_id}/finish`, {
                 method: 'POST',
