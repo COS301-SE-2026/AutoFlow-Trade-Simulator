@@ -10,9 +10,6 @@ import { TechTreeFlow } from '@/components/techTree/TechTreeFlow';
 export default function LearningPage() {
     const { tree, loading, error, refetch, purchaseTech } = useTechTree();
 
-    console.log("error " + error);
-    console.log("tree" + tree);
-
     if (loading && !tree) {
         return (<>
             <Navbar />
