@@ -4,7 +4,7 @@ import { BookOpen, Activity, History } from 'lucide-react';
 import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
-import { useTechTree } from '@/hooks/useTechTree';
+import { useTechTreeContext } from '@/context/TechTreeContext';
 
 type TabId = 'strategies' | 'greeks' | 'events';
 
@@ -18,8 +18,7 @@ const tabs: { id: TabId, label: string, icon: typeof BookOpen, href: string }[] 
 export function LearningNavbar() {
     const pathname = usePathname();
 
-    const { tree, loading, error } = useTechTree();
-    const xp = tree?.experience_points;
+    const { xp } = useTechTreeContext();
 
     return (
         <>

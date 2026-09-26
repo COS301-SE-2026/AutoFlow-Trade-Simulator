@@ -48,11 +48,7 @@ export default function LearningPage() {
                     </div>
                 )}
 
-                <TechTreeFlow
-                    tree={tree}
-                    purchasing={loading}
-                    onPurchase={purchaseTech}
-                />
+                <TechTreeFlow />
             </main>
         </>
     );

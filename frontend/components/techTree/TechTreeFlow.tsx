@@ -13,21 +13,23 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import styles from './TechTreeFlow.module.css';
 
-import { TechTreeResponseDTO } from "@/lib/types/techTree";
 import { buildGraph } from "./layout";
 import { TechNode } from "./TechNode";
-import { TechTreeContext } from "@/context/TechTreeContext";
+import { TechFlowContext } from "@/context/TechFlowContext";
+import { useTechTreeContext } from "@/context/TechTreeContext";
 
 const nodeTypes: NodeTypes = { techNode: TechNode };
 
-interface Props {
-    tree: TechTreeResponseDTO;
-    purchasing: boolean;
-    onPurchase: (name: string) => void;
-}
+export function TechTreeFlow() {
+    const { tree, xp, loading, purchaseTech } = useTechTreeContext();
 
-export function TechTreeFlow({ tree, purchasing, onPurchase }: Props) {
     const { nodes, edges } = useMemo(() => {
+        if (!tree) {
+            return {
+                nodes: [], edges: []
+            }
+        }
+
         const { nodes, edges } = buildGraph(tree);
 
         const unlocked = new Set(tree.upgrades);
@@ -48,13 +50,13 @@ export function TechTreeFlow({ tree, purchasing, onPurchase }: Props) {
     }, [tree]);
 
     const ctx = useMemo(() => ({
-        currentXp: tree.experience_points,
-        purchasing,
-        onPurchase,
-    }), [tree.experience_points, purchasing, onPurchase]);
+        currentXp: xp,
+        purchasing: loading,
+        onPurchase: purchaseTech,
+    }), [xp, loading, purchaseTech]);
 
     return (
-        <TechTreeContext.Provider value={ctx}>
+        <TechFlowContext.Provider value={ctx}>
             <div className={`${styles.flow} h-[70vh] w-full rounded-xl border border-slate-700/60 bg-slate-900/40`}>
                 <ReactFlow
                     nodes={nodes}
@@ -83,6 +85,6 @@ export function TechTreeFlow({ tree, purchasing, onPurchase }: Props) {
                     />
                 </ReactFlow>
             </div>
-        </TechTreeContext.Provider>
+        </TechFlowContext.Provider>
     );
 }

@@ -2,10 +2,10 @@
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { TechNode as TechNodeData } from '@/hooks/useTechTree';
-import { useTechTreeCtx } from '@/context/TechTreeContext';
+import { useTechFlowCtx } from '@/context/TechFlowContext';
 
 export function TechNodeInner({ data }: NodeProps<TechNodeData>) {
-    const { currentXp, purchasing, onPurchase } = useTechTreeCtx();
+    const { currentXp, purchasing, onPurchase } = useTechFlowCtx();
 
     const canAfford = currentXp >= data.cost;
     const canBuy = data.available && canAfford && !purchasing;
