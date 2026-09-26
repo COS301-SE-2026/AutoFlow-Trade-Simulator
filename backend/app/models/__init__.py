@@ -1,4 +1,5 @@
 from .progression_grant import ProgressionGrant, ProgressionSource
+from .tech_tree import TechTree
 from .user import User
 from .asset import Asset
 from .currency import Currency
@@ -18,6 +19,7 @@ from .options import Options
 from .news import News
 from .back_test_results import BackTestResults
 from .scenario import Scenario
+from .puzzle_run import PuzzleRun
 from .multiplayer_match import (
     MultiplayerMatch,
     MultiplayerParticipant,
@@ -57,4 +59,6 @@ __all__ = [
 	"QuestionType",
 	"ProgressionGrant",
 	"ProgressionSource",
+	"PuzzleRun",
+	"TechTree",
 ]

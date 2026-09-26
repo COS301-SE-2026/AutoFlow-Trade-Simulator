@@ -6,6 +6,7 @@
 
 :root {
   color-scheme: dark;
+  --background: #08080f;
   --background-alt: #141420;
   --background-light: #17171a;
   --background-glass: rgba(20, 20, 32, 0.5);
@@ -36,7 +37,7 @@
   --ui-card-foreground: 0 0% 100%;
   --ui-popover: 240 23% 10%;
   --ui-popover-foreground: 0 0% 100%;
-  --ui-primary: 207 74% 42%;
+  --ui-primary: 245 50% 27%;
   --ui-primary-foreground: 0 0% 100%;
   --ui-secondary: 240 8% 18%;
   --ui-secondary-foreground: 0 0% 100%;
@@ -46,8 +47,8 @@
   --ui-accent-foreground: 0 0% 100%;
   --ui-destructive: 358 85% 52%;
   --ui-destructive-foreground: 0 0% 100%;
-  --ui-border: 0 0% 100% / 8%;
-  --ui-input: 0 0% 100% / 12%;
+  --ui-border: 0 0% 100%;
+  --ui-input: 0 0% 100%;
   --ui-ring: 207 74% 42%;
   --radius: 0.75rem;
 }
@@ -56,6 +57,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   html {
     @apply font-sans;
   }
@@ -78,7 +80,6 @@ body {
     radial-gradient(circle at top right, rgba(105, 80, 161, 0.18), transparent 30%),
     radial-gradient(circle at bottom left, rgba(28, 117, 188, 0.12), transparent 35%),
     linear-gradient(180deg, var(--background), var(--background-alt));
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
 a {

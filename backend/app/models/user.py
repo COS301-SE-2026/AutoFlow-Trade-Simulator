@@ -1,6 +1,8 @@
 from typing import Optional
-
+from typing import List
 from sqlmodel import Field, SQLModel
+from sqlalchemy import Column, String
+from sqlalchemy.dialects.postgresql import ARRAY
 import sqlalchemy as sa
 
 
@@ -17,4 +19,12 @@ class User(SQLModel, table=True):
     elo_rating: int = Field(
         default=500,
         sa_column=sa.Column(sa.Integer, nullable=False, server_default=sa.text("500")),
+    )
+    upgrades: List[str] = Field(
+        default_factory=list,
+        sa_column=Column(
+            ARRAY(String),
+            server_default="{}",
+            nullable=False
+        )
     )

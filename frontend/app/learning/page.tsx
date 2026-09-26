@@ -9,6 +9,7 @@ import { useLearning } from '@/context/LearningContext';
 import { EventSimulator } from '@/components/EventSimulator';
 
 type TabId = 'strategies' | 'greeks' | 'events';
+import { redirect } from "next/navigation";
 
 const DCA_PRACTICE_EVENT = {
     id: 'dca-practice',
@@ -93,4 +94,5 @@ export default function LearningPage() {
             
         </>
     );
+    redirect('/learning/strategies');
 }

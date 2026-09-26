@@ -4,9 +4,6 @@ import Image from 'next/image';
 import { Zap, ArrowRight, History, BookOpen, Shield, Triangle, ChartLine, BrainCircuit } from 'lucide-react';
 import Link from 'next/link';
 
-import Toast from '@/components/Toast';
-import { useState } from 'react';
-
 export default function SplashPage() {
 
     return (
@@ -22,7 +19,7 @@ export default function SplashPage() {
                                         alt='Autoflow'
                                         width={24}
                                         height={24}
-                                        className='w-6 w-6'
+                                        className='w-6'
                                     />
                                 </div>
                                 <p className='text-2xl font-bold flex self-center'>AutoFlow</p>
@@ -30,13 +27,13 @@ export default function SplashPage() {
                             <div className='flex items-center gap-3'>
                                 <Link
                                     href='/login'
-                                    className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
+                                    className='px-6 py-2 hover:backdrop-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
                                 >
                                     Sign In
                                 </Link>
                                 <Link
                                     href='/signup'
-                                    className='px-6 py-2 hover:bg-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
+                                    className='px-6 py-2 hover:backdrop-blur-md border rounded-xl border-[var(--border)] hover:border-[var(--blue)]'
                                 >
                                     Sign Up
                                 </Link>
@@ -45,17 +42,18 @@ export default function SplashPage() {
                     </div>
                 </nav>
 
-                <div className='mx-auto px-6 py-24'>
+                <div className='mx-auto px-6 py-24 max-w-7xl'>
                     <div className='text-center mx-auto'>
                         <div className='inline-flex items-center gap-2 px-4 py-2 border border-[var(--blue)] rounded-full text-[var(--seafoam)] text-sm font-medium mb-6'>
                             <Zap className='w-4 h-4' />
                             AI-Powered Educational Trading Platform
                         </div>
-                        <h2 className='text-5xl md:text-6xl font-bold text-white mb-6'>
-                            Master the markets with
-                            <span className='bg-gradient-to-r from-[var(--seafoam)] to-[var(--blue)] bg-clip-text text-transparent gap-1'> Confidence
+                        <h1 className='text-5xl md:text-6xl font-bold text-white mb-6'>
+                            Master the markets with{' '}
+                            <span className='bg-gradient-to-r from-[var(--seafoam)] to-[var(--blue)] bg-clip-text text-transparent gap-1'>
+                                Confidence
                             </span>
-                        </h2>
+                        </h1>
                         <p>
                             Learn trading strategies, understand options Greeks, and replay historical market events all in a risk-free environment designed to build real skills.
                         </p>
@@ -81,7 +79,7 @@ export default function SplashPage() {
                     </div>
 
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--blue)] transition-colors'>
+                        <div className='space-x-2 space-y-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--blue)] transition-colors'>
                             <History className='w-6 h-6 text-[var(--blue)]' />
                             <h4 className='text-xl font-bold mt-2 mb-2'>Historical Replay</h4>
                             <p>
@@ -89,7 +87,7 @@ export default function SplashPage() {
                             </p>
                         </div>
 
-                        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--green)] transition-colors'>
+                        <div className='space-x-2 space-y-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--green)] transition-colors'>
                             <BookOpen className='w-6 h-6 text-[var(--purple)]' />
                             <h4 className='text-xl font-bold mt-2 mb-2'>Strategy Library</h4>
                             <p>
@@ -97,7 +95,7 @@ export default function SplashPage() {
                             </p>
                         </div>
 
-                        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--green)] transition-colors'>
+                        <div className='space-x-2 space-y-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--green)] transition-colors'>
                             <Shield className='w-6 h-6 text-[var(--green)]' />
                             <h4 className='text-xl font-bold mt-2 mb-2'>Risk-Free Practice</h4>
                             <p>
@@ -105,15 +103,15 @@ export default function SplashPage() {
                             </p>
                         </div>
 
-                        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--red)] transition-colors'>
+                        <div className='space-x-2 space-y-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--red)] transition-colors'>
                             <Triangle className='w-6 h-6 text-[var(--red)]' />
                             <h4 className='text-xl font-bold mt-2 mb-2'>Options Greeks</h4>
                             <p>
-                                Master Delta, Gamma, Theta, Vega, and Rho with interactice charts and real-world examples.
+                                Master Delta, Gamma, Theta, Vega, and Rho with interactive charts and real-world examples.
                             </p>
                         </div>
 
-                        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--orange)] transition-colors'>
+                        <div className='space-x-2 space-y-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--orange)] transition-colors'>
                             <ChartLine className='w-6 h-6 text-[var(--orange)]' />
                             <h4 className='text-xl font-bold mt-2 mb-2'>Live Charts</h4>
                             <p>
@@ -121,7 +119,7 @@ export default function SplashPage() {
                             </p>
                         </div>
 
-                        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--seafoam)] transition-colors'>
+                        <div className='space-x-2 space-y-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--seafoam)] transition-colors'>
                             <BrainCircuit className='w-6 h-6 text-[var(--seafoam)]' />
                             <h4 className='text-xl font-bold mt-2 mb-2'>AI Insights</h4>
                             <p>
@@ -180,7 +178,7 @@ export default function SplashPage() {
                 <footer className='border-t border-[var(--border)] bg-[var(--background-glass)]'>
                     <div className='max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-3'>
                         <div className='flex items-center gap-3'>
-                            <div className='w-8 h-8 bg-gradient-br from-[var(--blue)] to-[var(--green)] flex items-center justify-center overflow-hidden'>
+                            <div className='w-8 h-8 bg-gradient-to-br from-[var(--blue)] to-[var(--green)] flex items-center justify-center overflow-hidden'>
                                 <Image
                                     src='/logo.svg'
                                     alt='AutoFlow'

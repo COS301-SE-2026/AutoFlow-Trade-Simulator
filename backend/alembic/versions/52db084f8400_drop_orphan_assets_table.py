@@ -18,7 +18,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.drop_table('assets')
+    op.execute("DROP TABLE IF EXISTS assets CASCADE;")
 
 
 def downgrade() -> None:
