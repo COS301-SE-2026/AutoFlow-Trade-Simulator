@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
 import { useTechTreeContext } from '@/context/TechTreeContext';
+import { XPindicator } from './XPindicator';
 
 type TabId = 'strategies' | 'greeks' | 'events';
 
@@ -35,10 +36,7 @@ export function LearningNavbar() {
                     </div>
 
                 </div>
-                <div className="rounded-lg border border-slate-700/60 bg-slate-800/40 px-4 py-2">
-                    <span className="text-xs uppercase tracking-wider text-slate-500">XP</span>
-                    <span className="ml-3 text-lg font-semibold text-sky-300">{xp}</span>
-                </div>
+                <XPindicator />
             </div>
 
             <div className='flex items-center gap-1'>
