@@ -20,8 +20,8 @@ module.exports = {
         'slow-gradient': 'slowGradient 20s ease infinite',
       },
       colors: {
-        border: "hsl(var(--ui-border))",
-        input: "hsl(var(--ui-input))",
+        border: "hsl(var(--ui-border / 0.08))",
+        input: "hsl(var(--ui-input / 0.12))",
         ring: "hsl(var(--ui-ring))",
         background: "hsl(var(--ui-background))",
         foreground: "hsl(var(--ui-foreground))",

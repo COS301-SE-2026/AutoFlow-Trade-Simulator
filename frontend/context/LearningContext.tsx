@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-
-type TabId = 'strategies' | 'greeks' | 'events';
+import { StrategyDetail } from '@/hooks/useStrategy';
 
 interface LearningContextType {
     activeTab: TabId;
@@ -43,7 +42,7 @@ export function LearningProvider({ children }: { readonly children: ReactNode })
 export function useLearning() {
     const context = useContext(LearningContext);
     if (!context) {
-        throw new Error('userLearning must be used inside LearningProvider')
+        throw new Error('useLearning must be used inside LearningProvider')
     }
     return context;
 }

@@ -1,10 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useStrategy } from '@/hooks/useStrategy';
-import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
-import { Button } from "./ui/button";
-import { X } from 'lucide-react';
 import { useLearning } from '@/context/LearningContext';
+import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
+import { X } from 'lucide-react';
+import Link from 'next/link';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
     const { strategy, loading, error } = useStrategy(id);
