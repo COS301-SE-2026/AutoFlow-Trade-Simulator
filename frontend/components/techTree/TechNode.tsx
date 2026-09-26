@@ -45,7 +45,7 @@ export function TechNodeInner({ data }: NodeProps<TechNodeData>) {
                     </span>
 
                     {state === 'unlocked' ? (
-                        <span className="-[11px] font-medium text-emerald-400"> Unlocked</span>
+                        <span className="text-[11px] font-medium text-emerald-400"> Unlocked</span>
                     ) : (
                         <button
                             type="button"
