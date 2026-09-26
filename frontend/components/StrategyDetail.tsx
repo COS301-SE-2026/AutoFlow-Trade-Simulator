@@ -145,13 +145,13 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
 
                 {/* Try it now button */}
                 <div className='flex flex-col gap-3 mt-4'>
-                    <Button
+                    <button
                         data-testid="Try it now button"
                         className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
                         onClick={openStrategyTutorial}
                         >
                         Try it now!
-                    </Button>
+                    </button>
                 </div>
             </div>
         </div>
