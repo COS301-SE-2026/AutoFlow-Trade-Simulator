@@ -9,13 +9,7 @@ import Link from 'next/link';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
     const { strategy, loading, error } = useStrategy(id);
-    const { setStrategyId } = useLearning();
-
-    useEffect(() => {
-        if (strategy) {
-            setStrategyId(strategy);
-        }
-    }, [strategy, setStrategyId])
+    const { openStrategyTutorial } = useLearning();
 
     // Loading State
     if (loading) {
@@ -150,13 +144,15 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 <div className='border-b border-[var(--border)] mb-4'></div>
 
                 {/* Try it now button */}
-                <Link
-                    data-testid="Try it now button"
-                    href='/learning/events'
-                    className="w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
-                >
-                    Try it now!
-                </Link>
+                <div className='flex flex-col gap-3 mt-4'>
+                    <button
+                        data-testid="Try it now button"
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
+                        onClick={openStrategyTutorial}
+                        >
+                        Try it now!
+                    </button>
+                </div>
             </div>
         </div>
     );
