@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { StrategyDetail } from '@/hooks/useStrategy';
+
+type TabId = 'strategies' | 'greeks' | 'events';
 
 interface LearningContextType {
     activeTab: TabId;
