@@ -180,7 +180,7 @@ export function EventSimulator({
     useEffect(() => {
         if (!step) return;
         if (step.elementId === 'tut-qty' && qty !== prevQty.current 
-            && parseFloat(qty) >= 1) {
+            && Number.parseFloat(qty) >= 1) {
             advanceStep();
         }
         prevQty.current = qty;
@@ -210,7 +210,7 @@ export function EventSimulator({
 
         switch (step.elementId) {
             case 'tut-qty':
-                if (qty !== prevQty.current && parseFloat(qty) >= 1) {
+                if (qty !== prevQty.current && Number.parseFloat(qty) >= 1) {
                     advanceStep();
                 }
                 break;
