@@ -21,7 +21,6 @@ import { useNews } from '@/hooks/useNews';
 import {NewsTicker} from "@/components/news/newsScroll";
 import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
 import next from 'next';
-
 import { driver, type Driver } from 'driver.js';
 import 'driver.js/dist/driver.css'
 
@@ -177,8 +176,34 @@ export function EventSimulator({
     }, [isStrategy, tutorial, simData, pendingTrade]);
 
     const prevQty = useRef(qty);
+
+    useEffect(() => {
+        if (!step) return;
+        if (step.elementId === 'tut-qty' && qty !== prevQty.current 
+            && parseFloat(qty) >= 1) {
+            advanceStep();
+        }
+        prevQty.current = qty;
+    }, [qty, step, advanceStep]);
+
     const prevTradesLength = useRef(trades.length);
+
+    useEffect(() => {
+        if (!step) return;
+        if (step.elementId === 'tut-buy' && trades.length > prevTradesLength.current) {
+            advanceStep();
+        }
+        prevTradesLength.current = trades.length;
+    }, [trades.length, step, advanceStep]);
+
     const prevDayIndex = useRef(dayIndex);
+    useEffect(() => {
+        if (!step) return;
+        if (step.elementId === 'tut-skip' && dayIndex !== prevDayIndex.current) {
+            advanceStep();
+        }
+        prevDayIndex.current = dayIndex;
+    }, [dayIndex, step, advanceStep]);
 
     useEffect(() => {
         if (!step) return;
