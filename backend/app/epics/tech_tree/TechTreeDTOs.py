@@ -1,4 +1,3 @@
-from decimal import Decimal
 from sqlmodel import SQLModel
 
 

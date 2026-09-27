@@ -4,11 +4,14 @@ import { BookOpen, Activity, History } from 'lucide-react';
 import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
+import { useTechTreeContext } from '@/context/TechTreeContext';
+import { XPindicator } from './XPindicator';
 
 type TabId = 'strategies' | 'greeks' | 'events';
 
 const tabs: { id: TabId, label: string, icon: typeof BookOpen, href: string }[] = [
     { id: 'strategies' as TabId, label: 'Strategies', icon: BookOpen, href: '/learning/strategies' },
+    { id: 'techTree' as TabId, label: 'Tech Tree', icon: History, href: '/learning/techTree' },
     { id: 'greeks' as TabId, label: 'Options Greeks', icon: Activity, href: '/learning/greeks' },
     { id: 'events' as TabId, label: 'Historical Events', icon: History, href: '/learning/events' },
 ];
@@ -16,18 +19,24 @@ const tabs: { id: TabId, label: string, icon: typeof BookOpen, href: string }[] 
 export function LearningNavbar() {
     const pathname = usePathname();
 
+    const { xp } = useTechTreeContext();
+
     return (
         <>
-            <div className='border-b border-[var(--border)] px-6 py-4'>
-                <div className='w-8 h-8 rounded-xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center'>
-                    <BookOpen className='w-4 h-4' />
-                </div>
+            <div className='flex items-center justify-between w-full border-b border-[var(--border)] px-6 py-4'>
                 <div>
-                    <h2 className='text-lg font-bold'>Learning Center</h2>
-                    <p className='text-sm'>
-                        Master strategies, understand the greeks, and replay real market history.
-                    </p>
+                    <div className='w-8 h-8 rounded-xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center'>
+                        <BookOpen className='w-4 h-4' />
+                    </div>
+                    <div>
+                        <h2 className='text-lg font-bold'>Learning Center</h2>
+                        <p className='text-sm'>
+                            Master strategies, understand the greeks, and replay real market history.
+                        </p>
+                    </div>
+
                 </div>
+                <XPindicator />
             </div>
 
             <div className='flex items-center gap-1'>

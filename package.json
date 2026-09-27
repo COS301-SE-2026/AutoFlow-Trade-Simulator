@@ -31,11 +31,14 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
+    "dagre": "^0.8.5",
     "fuse.js": "^7.5.0",
+    "reactflow": "^11.11.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
+    "@types/dagre": "^0.7.54",
     "autoprefixer": "^10.5.0",
     "dotenv-cli": "^11.0.0",
     "postcss": "^8.5.14",
