@@ -3,7 +3,9 @@ import type { ReactNode } from "react";
 import { AuthProvider } from '../context/AuthContext';
 import "./globals.css";
 import { Geist } from "next/font/google";
-import { AccountProvider } from "@/lib/hooks/accountContext";
+import { cn } from "@/lib/utils";
+import {AccountProvider} from "@/lib/hooks/accountContext";
+import 'driver.js/dist/driver.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
