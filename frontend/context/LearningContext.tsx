@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { StrategyDetail } from '@/hooks/useStrategy';
+import { type StrategyDetail } from '@/hooks/useStrategies';
 
 interface LearningContextType {
     strategy: StrategyDetail | null;
