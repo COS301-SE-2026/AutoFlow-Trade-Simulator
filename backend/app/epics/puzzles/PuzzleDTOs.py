@@ -4,7 +4,7 @@ from sqlmodel import Field, SQLModel
 
 
 class TutorialCompleteRequest(SQLModel):
-    tutorial_id:int
+    strategy_id:int
 
 
 class PuzzleStartRequest(SQLModel):
