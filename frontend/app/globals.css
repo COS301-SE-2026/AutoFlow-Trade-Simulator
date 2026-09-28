@@ -268,3 +268,10 @@ h1 {
   z-index: -1;
   animation: slowGradient 20s ease infinite;
 }
+
+@keyframes mpBlip {
+    0%   { opacity: 0; transform: translateY(-4px); }
+    8%   { opacity: 1; transform: translateY(0); }
+    80%  { opacity: 1; }
+    100% { opacity: 0; }
+}

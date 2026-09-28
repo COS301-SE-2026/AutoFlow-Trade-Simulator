@@ -37,6 +37,8 @@ class DayMessage(SQLModel):
     bar: BarDTO
     cash_balance: float
     position_qty: float
+    opponent_cash_balance: float
+    opponent_position_qty: float
     qte: Optional[QteOfferDTO] = None
 
 
@@ -80,3 +82,10 @@ class MatchEndMessage(SQLModel):
 class ErrorMessage(SQLModel):
     type: Literal["error"] = "error"
     detail: str
+
+
+class OpponentActionMessage(SQLModel):
+    type: Literal["opponent_action"] = "opponent_action"
+    day_index: int
+    action: Literal["buy", "sell"]
+    qty: float
