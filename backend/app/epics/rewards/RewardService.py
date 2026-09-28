@@ -125,14 +125,18 @@ def award_tutorial_progression(
         strategy_id: int,
         user_id: int,
 ) -> None:
-    existing = db.get(TutorialCompletion, (user_id, strategy_id))
+    existing = db.exec(
+        select(ProgressionGrant)
+        .where(ProgressionGrant.source_type == ProgressionSource.tutorial)
+        .where(ProgressionGrant.source_id == strategy_id)
+        .where(ProgressionGrant.user_id == user_id)
+    ).first()
+    if existing is not None:
+        return
 
     user = db.get(User, user_id)
     if user is None:
         raise ValueError(f"user {user_id} not found")
-
-    if existing is not None:
-        return
 
     user.experience_points += TUTORIAL_XP
     db.add(TutorialCompletion(user_id=user_id, strategy_id=strategy_id))

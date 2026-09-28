@@ -14,6 +14,7 @@ from ...models.daily_OHLCV import DailyOHLCV
 from ...models.puzzle_run import PuzzleRun
 from ...models.strategies import Strategies
 from ..market_data.generator import LCGPseudoRandomGenerator
+from ..rewards.RewardService import award_tutorial_progression
 from ..simulation.SimulationService import SimulationService
 from ..multiplayer.PerturbationService import perturb_bars
 from .PuzzleDTOs import PuzzleActionDTO, PuzzleBarDTO, PuzzleStartResponse, PuzzleSubmitResponse
@@ -110,6 +111,9 @@ class PuzzleService:
             trades_count=len(actions),
             rubric_score=puzzle.rubric_score,
         )
+
+    def complete_tutorial(self, strategy_id: int, user_id: int) -> None:
+        award_tutorial_progression(self.session, strategy_id, user_id)
 
     def invalid_action(self, position:int, reason:str) -> HTTPException:
         return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Action {position}: {reason}")
