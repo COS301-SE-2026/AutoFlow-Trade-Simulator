@@ -10,6 +10,11 @@ const CARD = 'rounded-2xl border border-white/10 bg-[rgba(20,20,32,0.6)]';
 const MUTED = 'text-[var(--muted)]';
 const BTN = 'rounded-lg px-4 py-2.5 text-sm font-bold disabled:opacity-50';
 
+function wsBaseFromApiUrl(): string {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+    return apiUrl.replace(/^http/, 'ws');
+}
+
 function opponentLabel(id: number | undefined): string {
     return id === undefined ? 'Opponent' : `Player #${id}`;
 }
@@ -34,7 +39,7 @@ function Sparkline({ values }: { values: number[] }) {
 export default function Multiplayer() {
     const { token, isLoading } = useAuth();
     const myUserId = useMemo(() => getUserIdFromToken(token), [token]);
-    const m = useMultiplayerMatch('ws://localhost:8000', token);
+    const m = useMultiplayerMatch(wsBaseFromApiUrl(), token);
     const { match, day } = m;
 
     const [qty, setQty] = useState(1);
