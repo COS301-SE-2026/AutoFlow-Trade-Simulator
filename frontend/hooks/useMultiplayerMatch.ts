@@ -37,6 +37,8 @@ export type DayMsg = {
     bar: Bar;
     cash_balance: number;
     position_qty: number;
+    opponent_cash_balance: number;
+    opponent_position_qty: number;
     qte?: QteOffer;
 };
 
@@ -68,7 +70,14 @@ export type ErrorMsg = {
     detail: string;
 };
 
-export type ServerMsg = MatchFoundMsg | DayMsg | ActionAckMsg | QteResultMsg | MatchEndMsg | ErrorMsg;
+export type OpponentActionMsg = {
+    type: "opponent_action";
+    day_index: number;
+    action: "buy" | "sell";
+    qty: number;
+}
+
+export type ServerMsg = MatchFoundMsg | DayMsg | ActionAckMsg | QteResultMsg | MatchEndMsg | ErrorMsg | OpponentActionMsg;
 
 // public state shape
 
@@ -79,6 +88,7 @@ export type UseMultiplayerMatch = {
     match: MatchFoundMsg | null;
     day: DayMsg | null;
     lastQteResult: QteResultMsg | null;
+    lastOpponentAction: OpponentActionMsg | null;
     end: MatchEndMsg | null;
     error: string | null;
     // true if current days action is acked/rejected
@@ -104,6 +114,7 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
     const [match, setMatch] = useState<MatchFoundMsg | null>(null);
     const [day, setDay] = useState<DayMsg | null>(null);
     const [lastQteResult, setLastQteResult] = useState<QteResultMsg | null>(null);
+    const [lastOpponentAction, setLastOpponentAction] = useState<OpponentActionMsg | null>(null);
     const [end, setEnd] = useState<MatchEndMsg | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [actionSettled, setActionSettled] = useState(false);
@@ -115,6 +126,7 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
     const reconnectAttemptRef = useRef(0);
     const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const manualCloseRef = useRef(false);
+    const opponentActionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => { dayRef.current = day; }, [day]);
     useEffect(() => { daySettledRef.current = actionSettled; }, [actionSettled]);
@@ -158,6 +170,16 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
             }
             case "qte_result": {
                 setLastQteResult(msg);
+                break;
+            }
+            case "opponent_action": {
+                setLastOpponentAction(msg);
+                if (opponentActionTimerRef.current) {
+                    clearTimeout(opponentActionTimerRef.current);
+                }
+                opponentActionTimerRef.current = setTimeout(() => {
+                    setLastOpponentAction((current) => (current === msg ? null : current));
+                }, 3500);
                 break;
             }
             case "match_end": {
@@ -315,23 +337,23 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
         actWithQte("hold", undefined, answer);
     }, [actWithQte]);
 
-    // auto connect
+    // user initiated connect
 
     useEffect(() => {
-        if (!token) {
-            return;
-        }
-        connect();
         return () => {
             disconnect();
+            if (opponentActionTimerRef.current) {
+                clearTimeout(opponentActionTimerRef.current)
+            }
         };
-    }, [token, connect, disconnect]);
+    }, [disconnect]);
 
     return {
         status,
         match,
         day,
         lastQteResult,
+        lastOpponentAction,
         end,
         error,
         actionSettled,
