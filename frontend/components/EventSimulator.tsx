@@ -14,10 +14,11 @@ import {
 import { apiClient } from '@/lib/api';
 import { startSimulation } from '@/lib/api/assets';
 import type { SimCreateResponse, OHLCVBar } from '@/lib/types/assets';
-import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, RotateCcw } from 'lucide-react';
+import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, RotateCcw, Lock } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
 import { Button } from '@/components/ui/button';
 import { useNews } from '@/hooks/useNews';
+import { useUnlockedGreeks } from '@/hooks/useUnlockedGreeks';
 import {NewsTicker} from "@/components/news/newsScroll";
 
 interface EventDefinition {
@@ -101,6 +102,8 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
         startDateObj,
         endDateObj,
     );
+
+    const { unlocked: unlockedGreeks } = useUnlockedGreeks();
 
     useEffect(() => {
         const initialize = async () => {
@@ -545,36 +548,11 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                         </div>
 
                         <div className='grid grid-cols-2 gap-2 text-xs pt-1'>
-                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
-                                <span className='text-gray-400 block text-[10px]'>Delta (Δ)</span>
-                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.delta.toFixed(3) : '0.000'}
-                                </span>
-                            </div>
-                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
-                                <span className='text-gray-400 block text-[10px]'>Gamma (Γ)</span>
-                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.gamma.toFixed(4) : '0.0000'}
-                                </span>
-                            </div>
-                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
-                                <span className='text-gray-400 block text-[10px]'>Theta (Θ)</span>
-                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.theta.toFixed(3) : '0.000'}
-                                </span>
-                            </div>
-                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
-                                <span className='text-gray-400 block text-[10px]'>Vega (ν)</span>
-                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.vega.toFixed(3) : '0.000'}
-                                </span>
-                            </div>
-                            <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
-                                <span className='text-gray-400 block text-[10px]'>Rho (ρ)</span>
-                                <span className={`font-mono font-bold text-sm ${greeksResult ? 'text-white' : 'text-gray-500'}`}>
-                                    {greeksResult ? greeksResult.rho.toFixed(3) : '0.000'}
-                                </span>
-                            </div>
+                            <GreekCell label="Delta (Δ)" value={greeksResult?.delta} decimals={3} unlocked={unlockedGreeks.delta} />
+                            <GreekCell label="Gamma (Γ)" value={greeksResult?.gamma} decimals={4} unlocked={unlockedGreeks.gamma} />
+                            <GreekCell label="Theta (Θ)" value={greeksResult?.theta} decimals={3} unlocked={unlockedGreeks.theta} />
+                            <GreekCell label="Vega (ν)" value={greeksResult?.vega} decimals={3} unlocked={unlockedGreeks.vega} />
+                            <GreekCell label="Rho (ρ)" value={greeksResult?.rho} decimals={3} unlocked={unlockedGreeks.rho} />
                         </div>
                     </div>
 
@@ -591,6 +569,33 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                     </div>
                 </div>
             </div>
+        </div>
+    );
+}
+
+function GreekCell({ label, value, decimals, unlocked }: {
+    label: string;
+    value: number | undefined;
+    decimals: number;
+    unlocked: boolean;
+}) {
+    if (!unlocked) {
+        return (
+            <div className='bg-gray-800/30 p-2 rounded-lg border border-gray-700/30'>
+                <span className='text-gray-500 block text-[10px]'>{label}</span>
+                <span className='inline-flex items-center gap-1 text-gray-500 font-bold text-sm'>
+                    <Lock className='w-3 h-3' />
+                    Locked
+                </span>
+            </div>
+        );
+    }
+    return (
+        <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
+            <span className='text-gray-400 block text-[10px]'>{label}</span>
+            <span className={`font-mono font-bold text-sm ${value !== undefined ? 'text-white' : 'text-gray-500'}`}>
+                {value !== undefined ? value.toFixed(decimals) : '0.000'}
+            </span>
         </div>
     );
 }
