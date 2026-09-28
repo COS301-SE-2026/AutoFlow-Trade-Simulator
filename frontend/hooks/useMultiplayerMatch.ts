@@ -170,6 +170,12 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
                 setError(msg.detail);
                 break;
             }
+            case "day": {
+                setDay(msg);
+                setActionSettled(false);
+                setLastQteResult(null);
+                break;
+            }
         }
     }, []);
 
