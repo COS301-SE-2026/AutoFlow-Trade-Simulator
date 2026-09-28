@@ -16,7 +16,6 @@ from ...epics.puzzles.PuzzleDTOs import PuzzleActionDTO
 from ...models.puzzle_run import PuzzleRun
 from ...epics.rewards.RewardService import award_match_progression, award_puzzle_progression
 
-
 GRADE_TO_RUBRIC_SCORE: Dict[Grade, int] = {
     Grade.S: 10,
     Grade.A: 8,
