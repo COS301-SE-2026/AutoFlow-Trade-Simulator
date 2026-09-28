@@ -12,8 +12,8 @@ from typing import Dict, List, Optional, Tuple
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch, MultiplayerParticipant
-from ..puzzle.PuzzleDTOs import PuzzleActionDTO
-from ..models.puzzle_run import PuzzleRun
+from ...epics.puzzles.PuzzleDTOs import PuzzleActionDTO
+from ...models.puzzle_run import PuzzleRun
 
 class RubricEngineService:
 
