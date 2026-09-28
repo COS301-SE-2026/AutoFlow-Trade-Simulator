@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { calc_greeks, calc_realized_volatility } from '@/lib/greeks';
 import {
     ResponsiveContainer,
@@ -19,6 +19,10 @@ import TradeConfirmModal from './TradeConfirmModal';
 import { Button } from '@/components/ui/button';
 import { useNews } from '@/hooks/useNews';
 import {NewsTicker} from "@/components/news/newsScroll";
+import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
+import next from 'next';
+import { driver, type Driver } from 'driver.js';
+import 'driver.js/dist/driver.css'
 
 interface EventDefinition {
     id: string;
@@ -29,7 +33,7 @@ interface EventDefinition {
     period: string;
     narrative: string;
     context: string;
-    timeframe: string; // 3m or 1y or maybe even 1m for some event.
+    timeframe: string;
     startYear: number;
     startMonth: number;
     startDay: number;
@@ -73,8 +77,17 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
-export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinition; onBack: () => void }>) {
+const INTERACTION_STEPS = ['tut-play', 'tut-qty', 'tut-buy', 'tut-skip'];
 
+export function EventSimulator({ 
+    event,
+    mode = 'event',
+    onBack,
+}: Readonly<{ 
+    event: EventDefinition;
+    mode?: 'event' | 'strategy';
+    onBack: () => void 
+}>) {
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -90,6 +103,154 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
 
     const [speed, setSpeed] = useState(1);
 
+    const isStrategy = mode === 'strategy';
+
+    const tutorial = isStrategy ? STRATEGY_TUTORIALS.dca : null;
+    const [stepIndex, setStepIndex] = useState(0);
+    const step = tutorial?.steps[stepIndex];
+
+    const stepIndexRef = useRef(stepIndex);
+    useEffect(() => { stepIndexRef.current = stepIndex; }, [stepIndex]);
+
+    const driverRef = useRef<Driver | null>(null);
+
+    const onBackRef = useRef(onBack);
+    useEffect(() => { onBackRef.current = onBack; }, [onBack]);
+
+    const advanceStep = useCallback(() => {
+        if (!tutorial) return;
+        setStepIndex(i => Math.min(i + 1, tutorial.steps.length - 1));
+        driverRef.current?.moveNext();
+    }, [tutorial]);
+
+    useEffect(() => {
+        if (!isStrategy || !tutorial || !simData) return;
+        
+        if (pendingTrade) {
+            driverRef.current?.destroy();
+            driverRef.current = null;
+            return;
+        }
+
+        const d = driver({
+            showProgress: true,
+            progressText: '{{current}} of {{total}}',
+            allowClose: true,
+            overlayOpacity: 0.72,
+            stagePadding: 6,
+            stageRadius: 12,
+            steps: tutorial.steps.map(s => ({
+                element: `#${s.elementId}`,
+                popover: {
+                    title: s.title,
+                    description: s.instruction,
+                    side: 'bottom',
+                    align: 'center',
+                    showButtons: INTERACTION_STEPS.includes(s.elementId)
+                        ? ['close']
+                        : ['next', 'close']
+                }
+            })),
+            onHighlightStarted: (_el: any, _step: any, opts: any) => {
+                const idx = opts?.state?.activeIndex;
+                if (typeof idx === 'number') {
+                    setStepIndex(prev => (prev === idx ? prev : idx));
+                }
+            },
+            onCloseClick: () => {
+                d.destroy();
+                onBackRef.current();
+            },
+            onDestroyed: () => {
+                driverRef.current = null;
+            },
+        });
+
+        driverRef.current = d;
+        d.drive(stepIndexRef.current);
+
+        return () => {
+            d.destroy();
+            driverRef.current = null;
+        };
+    }, [isStrategy, tutorial, simData, pendingTrade]);
+
+    const prevQty = useRef(qty);
+
+    useEffect(() => {
+        if (!step) return;
+        if (step.elementId === 'tut-qty' && qty !== prevQty.current 
+            && Number.parseFloat(qty) >= 1) {
+            advanceStep();
+        }
+        prevQty.current = qty;
+    }, [qty, step, advanceStep]);
+
+    const prevTradesLength = useRef(trades.length);
+
+    useEffect(() => {
+        if (!step) return;
+        if (step.elementId === 'tut-buy' && trades.length > prevTradesLength.current) {
+            advanceStep();
+        }
+        prevTradesLength.current = trades.length;
+    }, [trades.length, step, advanceStep]);
+
+    const prevDayIndex = useRef(dayIndex);
+    useEffect(() => {
+        if (!step) return;
+        if (step.elementId === 'tut-skip' && dayIndex !== prevDayIndex.current) {
+            advanceStep();
+        }
+        prevDayIndex.current = dayIndex;
+    }, [dayIndex, step, advanceStep]);
+
+    useEffect(() => {
+        if (!step) return;
+
+        switch (step.elementId) {
+            case 'tut-qty':
+                if (qty !== prevQty.current && Number.parseFloat(qty) >= 1) {
+                    advanceStep();
+                }
+                break;
+            case 'tut-buy':
+                if (trades.length > prevTradesLength.current) {
+                    advanceStep();
+                }
+                break;
+            case 'tut-skip':
+                if (dayIndex !== prevDayIndex.current) {
+                    advanceStep();
+                }
+                break;
+        }
+
+        prevQty.current = qty;
+        prevTradesLength.current = trades.length;
+        prevDayIndex.current = dayIndex
+    }, [qty, trades.length, dayIndex, step, advanceStep]);
+
+    useEffect(() => {
+        if (!step || step.elementId !== 'tut-play' || !isPlaying) return;
+        const id = setTimeout(advanceStep, 3500);
+        return () => clearTimeout(id);
+    }, [step, isPlaying, advanceStep]);
+
+    const [pausedByTutorial, setPausedByTutorial] = useState(false);
+
+    useEffect(() => {
+        if (!step) return;
+        const isFocusStep = step.elementId === 'tut-qty' || step.elementId === 'tut-buy';
+
+        if (isFocusStep && isPlaying) {
+            setIsPlaying(false);
+            setPausedByTutorial(true);
+        } else if (!isFocusStep) {
+            setPausedByTutorial(false);
+        }
+    }, [step, isPlaying]);
+
     const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
     const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
 
@@ -97,12 +258,17 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
     const endDateObj = useMemo(() => new Date(endDate), [endDate]);
 
     const { newsItems, error: newsError } = useNews(
-        event.ticker,
+        isStrategy ? '' : event.ticker,
         startDateObj,
         endDateObj,
     );
 
     useEffect(() => {
+        if (isStrategy) {
+            const bars = MOCK_AAPL_BARS;
+            setSimData({ simulation_id: -1, bars: { [event.ticker]: bars } } as unknown as SimCreateResponse);
+            return;
+        }
         const initialize = async () => {
             try {
                 const res = await startSimulation(
@@ -118,7 +284,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
             }
         };
         initialize();
-    }, [event, startDate, endDate]);
+    }, [event, startDate, endDate, isStrategy]);
 
     const { allPrices, allDates, allTimestamps } = useMemo(() => {
         const prices: string[] = [];
@@ -230,6 +396,26 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
         const bar = tickerBars?.[dayIndex];
         const timestamp = bar ? bar.timestamp : new Date().toISOString();
 
+        if (isStrategy) {
+            const price = Number.parseFloat(currentPrice);
+            const nextShares = type === 'buy' ? shares + qtyToTrade : shares - qtyToTrade;
+            const nextCash = type === 'buy' ? cash - qtyToTrade * price : cash + qtyToTrade * price;
+
+            setShares(nextShares);
+            setCash(nextCash);
+            setTrades(prev => [
+                ...prev,
+                { 
+                    type,
+                    symbol: event.ticker,
+                    qty: qtyToTrade,
+                    price: currentPrice,
+                    data: allDates[dayIndex]
+                },
+            ]);
+            return;
+        }
+
         const action = {
             type: type,
             symbol: event.ticker,
@@ -272,6 +458,40 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
 
     const finish = async () => {
         if (!simData) return;
+
+        if (isStrategy) {
+            const finalBalance = cash + shares * Number.parseFloat(currentPrice);
+
+            let peak = event.initialBalance;
+            let maxDD = 0;
+            for (let i = 0; i < dayIndex; i++) {
+                const p = Number.parseFloat(allPrices[i] || '0');
+                const equity = cash + shares * p;
+
+                if (equity > peak) peak = equity;
+                const dd = peak > 0 ? ((peak - equity) / peak) * 100 : 0;
+                if (dd > maxDD) maxDD = dd;
+            }
+
+            const returnsPct = ((finalBalance - event.initialBalance) / event.initialBalance) * 100;
+
+            setFinalSummary({
+                simulation_id: -1,
+                status: 'finished',
+                start_date: startDate,
+                end_date: endDate,
+                initial_balance: String(event.initialBalance),
+                summary: {
+                    final_balance: finalBalance.toFixed(2),
+                    returns_pct: returnsPct.toFixed(2),
+                    max_drawdown: maxDD.toFixed(2),
+                    trades_count: trades.length,
+                    per_symbol_results: {},
+                }
+            });
+            return;
+        }
+
         try {
             const res = await apiClient(`/simulation/practice/simulate/${simData.simulation_id}/finish`, {
                 method: 'POST',
@@ -318,6 +538,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                     </div>
                     <div className='flex items-center justify-center'>
                         <button
+                            
                             type='button'
                             onClick={onBack}
                             className='flex self-center px-4 py-2 bg-blue-900 text-white rounded-xl'
@@ -350,6 +571,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                     <span className='font-semibold'>{event.title}</span>
                 </div>
                 <button
+                    id='tut-play'
                     type='button'
                     onClick={() => { setIsPlaying(b => !b) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
@@ -379,6 +601,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                 </div>
 
                 <button
+                    id='tut-skip'
                     type='button'
                     onClick={() => { setDayIndex(d => Math.min(d + 1, allPrices.length)) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
@@ -390,6 +613,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                 </button>
 
                 <button
+                    id='tut-finish'
                     type='button'
                     onClick={finish}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
@@ -400,15 +624,25 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                     </div>
                 </button>
             </div>
-            <NewsTicker
-                items={visibleNews}
-                currentDate={currentBarTimestamp ?? startDate}
-            />
-            {newsError && (
-                <p className='text-xs text-[var(--red)]'>Couldn&apos;t load news for {event.ticker}.</p>
+
+            {!isStrategy && (
+                <>
+                    <NewsTicker
+                        items={visibleNews}
+                        currentDate={currentBarTimestamp ?? startDate}
+                        />
+                    {newsError && (
+                        <p className='text-xs text-[var(--red)]'>Couldn&apos;t load news for {event.ticker}.</p>
+                    )}
+                </>
             )}
+
             <div className='flex gap-4 flex-1 min-h-0'>
-                <div className='flex-1 rounded-xl border border-[var(--border)] p-4'>
+                <div
+                    id='tut-chart' 
+                    onClick={() => { if (step?.elementId === 'tut-chart') advanceStep(); }}
+                    className='flex-1 rounded-xl border border-[var(--border)] p-4'
+                >
                     <div className='flex justify-between'>
                         <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
                         <div className='text-xl font-bold'>COST: R{Number.parseFloat(currentPrice).toFixed(2)}</div>
@@ -455,7 +689,11 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                 </div>
 
                 <div className='w-64 space-y-4'>
-                    <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'>
+                    <div
+                        id='tut-portfolio' 
+                        onClick={() => { if (step?.elementId === 'tut-portfolio') advanceStep(); }}
+                        className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'
+                    >
                         <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
                         <div className='flex justify-between'>
                             <span>Cash</span>
@@ -479,10 +717,16 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                     <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
                         <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
                         <input
+                            id='tut-qty'
                             type='number'
                             min="1"
+                            step='1'
                             value={qty}
                             onChange={e => setQty(e.target.value)}
+                            onBlur={() => {
+                                const n = Number.parseFloat(qty);
+                                if (Number.isNaN(n) || n < 1) setQty('1');
+                            }}
                             placeholder='Quantity'
                             className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
                         />
@@ -498,6 +742,7 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                         )}
                         <div className='flex gap-2 justify-evenly'>
                             <button
+                                id='tut-buy'
                                 type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
                                 onClick={() => setPendingTrade({ type: 'buy' })}
@@ -511,7 +756,15 @@ export function EventSimulator({ event, onBack }: Readonly<{ event: EventDefinit
                             >
                                 Sell
                             </button>
-                            {pendingTrade && (<TradeConfirmModal side={pendingTrade.type} quantity={Number.parseFloat(qty)} price={Number.parseFloat(currentPrice)} onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }} onCancel={() => { setPendingTrade(null) }} orderType="market" />)}
+                            {pendingTrade && (
+                                <TradeConfirmModal 
+                                    side={pendingTrade.type} 
+                                    quantity={Number.parseFloat(qty)} 
+                                    price={Number.parseFloat(currentPrice)} 
+                                    onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }}
+                                    onCancel={() => { setPendingTrade(null) }} orderType="market" 
+                                />
+                            )}
                         </div>
                     </div>
 
