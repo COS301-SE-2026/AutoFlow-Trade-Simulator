@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict
 from sqlmodel import Session, select, col
 
-from app.models import User, TutorialCompletion
+from app.models import User
 from app.models.progression_grant import ProgressionGrant, ProgressionSource
 
 XP_WINNER = 100
