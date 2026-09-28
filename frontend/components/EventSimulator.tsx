@@ -20,7 +20,6 @@ import { Button } from '@/components/ui/button';
 import { useNews } from '@/hooks/useNews';
 import {NewsTicker} from "@/components/news/newsScroll";
 import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
-import next from 'next';
 import { driver, type Driver } from 'driver.js';
 import 'driver.js/dist/driver.css'
 
