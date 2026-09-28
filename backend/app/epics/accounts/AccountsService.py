@@ -5,6 +5,7 @@ from ...models import User, Portfolio
 from ...models.currency import Currency
 from .AccountsDTOs import AccountListResponse, AccountResponse, CreateAcountDTO
 from ...models import InternationalAccount
+from ..tech_tree.TechTreeService import TechTreeService
 
 
 class AccountsService:
@@ -58,13 +59,18 @@ class AccountsService:
         return AccountResponse(id=account.id,portfolio_id=account.portfolio_id,currency_id=account.currency_id,balance=account.balance,created_at=account.created_at,currency_code=self.find_currency_code(account.currency_id))
 
 
-    
-    def create(self,data:CreateAcountDTO,current_user:User)->AccountResponse:
 
+    def create(self, data: CreateAcountDTO, current_user: User) -> AccountResponse:
+        cap = TechTreeService.max_sandbox_balance(current_user)
+        if data.initial_balance > cap:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Starting balance of {data.initial_balance} exceeds your unlocked maximum of {cap}",
+            )
         #get portfolio
         portfolio= self.session.exec(select(Portfolio).where(Portfolio.user_id==current_user.id)).first()
         assert portfolio is not None,"There is no connected portfolio"
-        
+
         # there should be an id if there isnt there a big problem somewhere
         assert portfolio.id is not None
 
@@ -73,7 +79,7 @@ class AccountsService:
         currency= self.session.exec(select(Currency).where(Currency.code==data.currency_code)).first()
 
         if currency is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Unknown currency") 
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Unknown currency")
 
         # there should be an id if there isnt there a big problem somewhere
         assert currency.id is not None

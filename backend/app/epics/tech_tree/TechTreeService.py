@@ -114,3 +114,12 @@ class TechTreeService:
     def strategy_tech_name(strategy_name: str) -> str:
         slug = strategy_name.strip().lower().replace(" ", "_").replace("-", "_")
         return f"strategy_{slug}"
+
+    @staticmethod
+    def max_sandbox_balance(user: User) -> Decimal:
+        unlocked = set(user.upgrades or [])
+        if "sandbox_balance_500k" in unlocked:
+            return Decimal("500000")
+        if "sandbox_balance_200k" in unlocked:
+            return Decimal("200000")
+        return Decimal("100000")
