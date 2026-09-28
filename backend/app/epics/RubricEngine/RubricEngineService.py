@@ -8,7 +8,7 @@ from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetric
 from .base_strategy import BaseRubricStrategy
 from .mean_reversion_strategy import MeanReversionStrategy
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch, MultiplayerParticipant
@@ -30,7 +30,7 @@ class RubricEngineService:
         events = self._get_match_event_logs(match_id, user_id)
         trade_events = [e for e in events if e.event_type in ("buy", "sell")]
 
-        win_rate, avg_holding_sec = self._process_fifo_trades(trades_events)
+        win_rate, avg_holding_sec = self._process_fifo_trades(trade_events)
 
         bars = self._get_match_bars(match.symbol, match.start_date, match.end_date)
 
@@ -58,13 +58,13 @@ class RubricEngineService:
         actions_raw = puzzle.actions or []
         actions = [PuzzleActionDTO(**act) for act in actions_raw]
 
-        sythetic_events = self._puzzle_actions_to_event_logs(actions, bars)
-        trade_events = [e for e in sythetic_events if e.event_type in ("buy", "sell")]
+        synthetic_events = self._puzzle_actions_to_event_logs(actions, bars)
+        trade_events = [e for e in synthetic_events if e.event_type in ("buy", "sell")]
 
         win_rate, avg_holding_sec = self._process_fifo_trades(trade_events)
 
         init_bal = puzzle.initial_balance
-        nav_series, daily_returns = self._build_nav_series_and_returns(init_bal, sythetic_events, bars)
+        nav_series, daily_returns = self._build_nav_series_and_returns(init_bal, synthetic_events, bars)
 
         fin_bal = puzzle.final_balance  or init_bal
         total_return_pct = self._calculate_total_return(init_bal, nav_series) if nav_series else float(((fin_bal - init_bal) / init_bal) * 100)
@@ -82,9 +82,9 @@ class RubricEngineService:
             benchmark_return_pct=benchmark_return_pct,
         )
 
-    def evaluate_puzzle_for_user(self, start_key: str, puzzle_id: int, user_id: int)
+    def evaluate_puzzle_for_user(self, strat_key: str, puzzle_id: int, user_id: int):
         metrics = self.map_metrics_from_puzzle_run(puzzle_id=puzzle_id, user_id=user_id)
-        result = self.evaluate_strategy(start_key=start_key, metrics=metrics)
+        result = self.evaluate_strategy(strat_key=strat_key, metrics=metrics)
 
         puzzle = self._get_puzzle_or_404(puzzle_id, user_id)
         puzzle.rubric_score = result.final_score
@@ -95,7 +95,7 @@ class RubricEngineService:
         return result
 
     def _get_match_or_404(self, match_id: int) -> MultiplayerMatch:
-        match = self.session.exe(
+        match = self.session.exec(
             select(MultiplayerMatch).where(
                 (MultiplayerMatch.id == match_id)
                 if hasattr(MultiplayerMatch, "id")
@@ -132,7 +132,7 @@ class RubricEngineService:
         if not participant:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You where not a valid participant in the match"
+                detail="You were not a valid participant in the match"
             )
         
     def _get_match_event_logs(self, match_id: int, user_id: int) -> List[MatchEventLog]:
@@ -161,6 +161,7 @@ class RubricEngineService:
         end_dt = (
             datetime.combine(end_date, time.max)
             if isinstance(end_date, type(datetime.now().date()))
+            else end_date
         )
 
         return list(
@@ -200,25 +201,30 @@ class RubricEngineService:
             price = Decimal(str(payload.get("price", 0)))
             event_time = e.created_at or datetime.utcnow()
 
-            if qty <= = or price <= 0:
+            if qty <= 0 or price <= 0:
                 continue
 
-            if e.event_type == "sell":
-                qty_to_match > 0 and buy_queue:
-                match_qty = min(qty_to_match, earliest_buy["qty"])
+            if e.event_type == "buy":
+                buy_queue.append({"qty": qty, "price": price, "timestamp": event_time})
 
-                profit = match_qty * (price - earliest_buy["price"])
-                trade_profits.append(profit)
+            elif e.event_type == "sell":
+                qty_to_match = qty
+                while qty_to_match > 0 and buy_queue:
+                    earliest_buy = buy_queue[0]
+                    match_qty = min(qty_to_match, earliest_buy["qty"])
 
-                duration = (event_time - earliest_buy["timestamp"]).total_seconds()
-                holding_times_sec.append(max(0.0, duration))
+                    profit = match_qty * (price - earliest_buy["price"])
+                    trade_profits.append(profit)
 
-                earliest_buy["qty"] -= match_qty
-                qty_to_match -= match_qty
+                    duration = (event_time - earliest_buy["timestamp"]).total_seconds()
+                    holding_times_sec.append(max(0.0, duration))
 
-                if earliest_buy["qty"] <= 0:
-                    buy_queue.pop(0)
-            
+                    earliest_buy["qty"] -= match_qty
+                    qty_to_match -= match_qty
+
+                    if earliest_buy["qty"] <= 0:
+                        buy_queue.pop(0)
+
         winning_trades = sum(1 for p in trade_profits if p > 0)
         closed_trades_count = len(trade_profits)
 
