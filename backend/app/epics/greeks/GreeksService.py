@@ -8,6 +8,8 @@ from ...models.market_condition import MarketCondition, Condition
 from ...models.greeks import Greeks
 from .GreeksDTOs import EpicStatusDTO, HistPriceHistoryItem, HistPriceHistoryResponse, GreekValues, MarketConditionResponse, TimePeriod
 from datetime import datetime,timedelta
+from ...models.user import User
+from ..tech_tree.TechTreeService import TechTreeService
 
 class GreeksService:
 
@@ -104,7 +106,7 @@ class GreeksService:
         raise ValueError(GreeksService.DIRECTION_ERROR)
 
     
-    def get_greeks(self, symbol: str) -> GreekValues:
+    def get_greeks(self, symbol: str, user: User) -> GreekValues:
         normalized_symbol = symbol.upper()
 
         greek_rows = self.session.exec(
@@ -119,13 +121,15 @@ class GreeksService:
                 detail=f"No greeks data found for symbol '{normalized_symbol}'",
             )
 
-        return GreekValues(
+        full = GreekValues(
             delta=float(greek_row.delta),
             gamma=float(greek_row.gamma),
             theta=float(greek_row.theta),
             vega=float(greek_row.vega),
             rho=float(greek_row.rho),
         )
+        return self._filter_greeks(full, user)
+
 
     def get_history(self, symbol: str, period: TimePeriod) -> HistPriceHistoryResponse:
         normalized_symbol = symbol.upper()
@@ -273,18 +277,28 @@ class GreeksService:
 
         return MarketConditionResponse(market_condition=inferred.value)
     
-    def calc_greeks(self,current_price: float, strike_price: float, time_to_expire: float, interest_rate: float, sigma: float, option_type: str = "call") -> GreekValues:
+    def calc_greeks(self, user:User, current_price: float, strike_price: float, time_to_expire: float, interest_rate: float, sigma: float, option_type: str = "call") -> GreekValues:
         delta = GreeksService.delta(current_price, strike_price, time_to_expire, interest_rate, sigma, option_type)
         gamma = GreeksService.gamma(current_price, strike_price, time_to_expire, interest_rate, sigma)
         theta = GreeksService.theta(current_price, strike_price, time_to_expire, interest_rate, sigma, option_type)
         vega = GreeksService.vega(current_price, strike_price, time_to_expire, interest_rate, sigma)
         rho = GreeksService.rho(current_price, strike_price, time_to_expire, interest_rate, sigma, option_type)
 
-        return GreekValues(
+        full = GreekValues(
             delta=delta,
             gamma=gamma,
             theta=theta,
             vega=vega,
             rho=rho)
+        return self._filter_greeks(full, user)
 
-
+    @staticmethod
+    def _filter_greeks(values: GreekValues, user: User) -> GreekValues:
+        unlocked = TechTreeService.unlocked_greeks(user)
+        return GreekValues(
+            delta=values.delta if "delta" in unlocked else None,
+            gamma=values.gamma if "gamma" in unlocked else None,
+            theta=values.theta if "theta" in unlocked else None,
+            vega=values.vega if "vega" in unlocked else None,
+            rho=values.rho if "rho" in unlocked else None,
+        )

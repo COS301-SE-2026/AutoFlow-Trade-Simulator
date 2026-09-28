@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
 from ...models.user import User
+from decimal import Decimal
 from ...models.tech_tree import TechTree
 from .TechTreeDTOs import (
     EpicStatusDTO,
@@ -11,6 +12,13 @@ from .TechTreeDTOs import (
     UnlockCheckDTO,
 )
 
+GREEK_TECH_NAMES = {
+    "delta": "greeks_delta",
+    "gamma": "greeks_gamma",
+    "theta": "greeks_theta",
+    "vega":  "greeks_vega",
+    "rho":   "greeks_rho",
+}
 
 class TechTreeService:
     def __init__(self, session: Session) -> None:
@@ -96,3 +104,8 @@ class TechTreeService:
             upgrades=user.upgrades,
             purchased=tech_name,
         )
+
+    @staticmethod
+    def unlocked_greeks(user: User) -> set[str]:
+        unlocked = set(user.upgrades or [])
+        return {g for g, tech in GREEK_TECH_NAMES.items() if tech in unlocked}
