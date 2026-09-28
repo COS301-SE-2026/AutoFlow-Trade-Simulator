@@ -1,40 +1,20 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-
-type TabId = 'strategies' | 'greeks' | 'events';
+import { StrategyDetail } from '@/hooks/useStrategy';
 
 interface LearningContextType {
-    activeTab: TabId;
-    setActiveTab: (tab: TabId) => void;
-    switchToEvents: () => void;
-
-    strategyTutorialOpen: boolean;
-    openStrategyTutorial: () => void;
-    closeStrategyTutorial: () => void;
+    strategy: StrategyDetail | null;
+    setStrategyId: (strategy: StrategyDetail) => void;
 }
 
 const LearningContext = createContext<LearningContextType | undefined>(undefined);
 
 export function LearningProvider({ children }: { readonly children: ReactNode }) {
-    const [activeTab, setActiveTab] = useState<TabId>('events');
-    const [strategyTutorialOpen, setStrategyTutorialOpen] = useState(false);
-
-    const switchToEvents = () => {
-        setActiveTab('events');
-    };
-    const openStrategyTutorial = () => setStrategyTutorialOpen(true);
-    const closeStrategyTutorial = () => setStrategyTutorialOpen(false);
+    const [strategy, setStrategyId] = useState<StrategyDetail | null>(null);
 
     return (
-        <LearningContext.Provider value={{ 
-            activeTab,
-            setActiveTab,
-            switchToEvents,
-            strategyTutorialOpen,
-            openStrategyTutorial,
-            closeStrategyTutorial 
-        }}>
+        <LearningContext.Provider value={{ strategy, setStrategyId }}>
             {children}
         </LearningContext.Provider>
     )
