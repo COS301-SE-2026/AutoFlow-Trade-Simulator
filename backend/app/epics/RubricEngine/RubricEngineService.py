@@ -4,7 +4,7 @@ from datetime import datetime, time
 
 from sqlmodel import Session, select
 from fastapi import HTTPException, status
-from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO, EvaluateMatchRequestDTO
+from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO, EvaluateMatchRequestDTO, Grade
 from .base_strategy import BaseRubricStrategy
 from .mean_reversion_strategy import MeanReversionStrategy
 
@@ -14,6 +14,18 @@ from ...models.asset import Asset
 from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch, MultiplayerParticipant
 from ...epics.puzzles.PuzzleDTOs import PuzzleActionDTO
 from ...models.puzzle_run import PuzzleRun
+from ...epics.rewards.RewardService import award_match_progression, award_puzzle_progression
+
+
+GRADE_TO_RUBRIC_SCORE: Dict[Grade, int] = {
+    Grade.S: 10,
+    Grade.A: 8,
+    Grade.B: 6,
+    Grade.C: 4,
+    Grade.D: 2,
+    Grade.E: 1,
+    Grade.F: 0
+}
 
 class RubricEngineService:
 
@@ -91,6 +103,15 @@ class RubricEngineService:
         self.session.add(puzzle)
         self.session.commit()
         self.session.refresh(puzzle)
+
+        rubric_score = GRADE_TO_RUBRIC_SCORE.get(result.grade, 0)
+
+        award_puzzle_progression(
+            db=self.session,
+            puzzle_run_id=puzzle_id,
+            user_id=user_id,
+            rubric_score=rubric_score
+        )
 
         return result
 
@@ -313,8 +334,31 @@ class RubricEngineService:
 
     def evaluate_match_for_user(self, strat_key: str, match_id: int, user_id: int) -> EvaluationResultDTO:
         metrics = self.map_metrics_from_match_log(match_id=match_id, user_id=user_id)
-        return self.evaluate_strategy(strat_key=strat_key, metrics=metrics)
+        result = self.evaluate_strategy(strat_key=strat_key, metrics=metrics)
 
+        match = self._get_match_or_404(match_id)
+
+        participants = list (
+            self.session.exec(
+                select(MultiplayerParticipant).where(MultiplayerParticipant.match_id == match_id)
+            ).all()
+        )
+        user_ids = [p.user_id for p in participants]
+
+        actions_by_user = {}
+        for uid in user_ids:
+            event_count = len(self._get_match_event_logs(match_id, uid))
+            actions_by_user[uid] = event_count
+
+        award_match_progression(
+            db=self.session,
+            match_id=match_id,
+            winner_user_id=match.winner_user_id,
+            user_ids=user_ids,
+            actions_by_user=actions_by_user
+        )
+
+        return result
 
     def get_status(self) -> EpicStatusDTO:
         return EpicStatusDTO(

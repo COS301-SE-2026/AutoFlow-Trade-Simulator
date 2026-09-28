@@ -1,6 +1,5 @@
 from typing import Optional, List, Dict
-from sqlmodel import Session, select
-from sqlalchemy import col
+from sqlmodel import Session, select, col
 
 from app.models import User, TutorialCompletion
 from app.models.progression_grant import ProgressionGrant, ProgressionSource
