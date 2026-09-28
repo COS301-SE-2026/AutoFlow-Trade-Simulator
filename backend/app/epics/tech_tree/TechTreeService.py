@@ -109,3 +109,8 @@ class TechTreeService:
     def unlocked_greeks(user: User) -> set[str]:
         unlocked = set(user.upgrades or [])
         return {g for g, tech in GREEK_TECH_NAMES.items() if tech in unlocked}
+
+    @staticmethod
+    def strategy_tech_name(strategy_name: str) -> str:
+        slug = strategy_name.strip().lower().replace(" ", "_").replace("-", "_")
+        return f"strategy_{slug}"
