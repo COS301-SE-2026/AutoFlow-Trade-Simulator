@@ -1,15 +1,30 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useStrategy } from '@/hooks/useStrategy';
+import { useEffect, useState } from 'react';
+import { useStrategies, type StrategyDetail as StrategyDetailData } from '@/hooks/useStrategies';
 import { useLearning } from '@/context/LearningContext';
 import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
-import { X } from 'lucide-react';
+import { X, Lock } from 'lucide-react';
 import Link from 'next/link';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
-    const { strategy, loading, error } = useStrategy(id);
+    const { fetchDetail } = useStrategies();
     const { setStrategyId } = useLearning();
+
+    const [strategy, setStrategy] = useState<StrategyDetailData | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!id) return;
+        setLoading(true);
+        setError(null);
+        setStrategy(null);
+        fetchDetail(id)
+            .then(setStrategy)
+            .catch((e: any) => setError(e?.message ?? 'Failed to load strategy'))
+            .finally(() => setLoading(false));
+    }, [id, fetchDetail]);
 
     useEffect(() => {
         if (strategy) {
@@ -150,13 +165,31 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 <div className='border-b border-[var(--border)] mb-4'></div>
 
                 {/* Try it now button */}
-                <Link
-                    data-testid="Try it now button"
-                    href='/learning/events'
-                    className="w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
-                >
-                    Try it now!
-                </Link>
+                {strategy.unlocked ? (
+                    <Link
+                        data-testid="Try it now button"
+                        href='/learning/events'
+                        className="w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
+                    >
+                        Try it now!
+                    </Link>
+                ) : (
+                    <div className='w-full text-center bg-[var(--background)] border border-[var(--border)] rounded-xl py-6 px-6 mb-4'>
+                        <p className='font-bold text-sm inline-flex items-center justify-center gap-2'>
+                            <Lock className='w-4 h-4' />
+                            Locked
+                        </p>
+                        <p className='text-sm mt-1' style={{ color: 'var(--muted)' }}>
+                            Unlock this strategy in the Tech Tree to try it out.
+                        </p>
+                        <Link
+                            href='/learning/techTree'
+                            className='inline-block mt-3 text-sm font-bold text-[var(--blue)] hover:underline'
+                        >
+                            Go to Tech Tree →
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );
