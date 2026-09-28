@@ -4,7 +4,12 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
 from .PuzzleService import PuzzleService
-from .PuzzleDTOs import PuzzleStartRequest, PuzzleSubmitRequest, PuzzleSubmitResponse
+from .PuzzleDTOs import (
+    PuzzleStartRequest,
+    PuzzleSubmitRequest,
+    PuzzleSubmitResponse,
+    TutorialCompleteRequest,
+)
 
 from ...core.security import get_current_user
 from ...database import get_session
@@ -35,3 +40,13 @@ def submit_puzzle (
     user: Annotated[User, Depends(get_current_user)]
 ):
     return service.submit_puzzle(puzzle_id, user.id, req.actions)
+
+
+@router.post("/tutorial/complete")
+def complete_tutorial (
+    req: TutorialCompleteRequest,
+    service: Annotated[PuzzleService, Depends(get_puzzle_service)],
+    user: Annotated[User, Depends(get_current_user)]
+):
+    service.complete_tutorial(req.strategy_id, user.id)
+    return {"status": "ok"}
