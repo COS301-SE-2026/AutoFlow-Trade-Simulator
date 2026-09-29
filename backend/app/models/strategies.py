@@ -3,6 +3,7 @@ from sqlmodel import Column, Field, SQLModel, JSON
 from typing import List, Optional
 
 JSONVariant = JSONB().with_variant(JSON, "sqlite")
+
 class Strategies(SQLModel, table=True):
     strat_id:Optional[int]=Field(default=None, primary_key=True)
     name:str=Field(nullable=False, max_length=50)
@@ -12,3 +13,5 @@ class Strategies(SQLModel, table=True):
     steps:List[str]=Field(default_factory=list, sa_column=Column(JSONVariant))
     pros:List[str]=Field(default_factory=list, sa_column=Column(JSONVariant))
     cons:List[str]=Field(default_factory=list, sa_column=Column(JSONVariant))
+    slug: Optional[str] = Field(default=None, nullable=True, max_length=50, unique=True, index=True)
+    tech_tree_node: Optional[str] = Field(default=None, nullable=True, max_length=50, index=True)
