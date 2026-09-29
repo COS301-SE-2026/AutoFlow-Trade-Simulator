@@ -14,7 +14,7 @@ from ...models.asset import Asset
 from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch, MultiplayerParticipant
 from ...epics.puzzles.PuzzleDTOs import PuzzleActionDTO
 from ...models.puzzle_run import PuzzleRun
-from ...epics.rewards.RewardService import award_match_progression, award_puzzle_progression
+from ...epics.rewards.RewardService import award_match_progression
 
 GRADE_TO_RUBRIC_SCORE: Dict[Grade, int] = {
     Grade.S: 10,
@@ -27,12 +27,12 @@ GRADE_TO_RUBRIC_SCORE: Dict[Grade, int] = {
 }
 
 class RubricEngineService:
+    strategies: Dict[str, BaseRubricStrategy] = {
+        "mean_reversion": MeanReversionStrategy()
+    }
 
     def __init__(self, session: Session):
         self.session = session
-        self._strategies: Dict[str, BaseRubricStrategy] = {
-            "mean_reversion": MeanReversionStrategy()
-        }
 
     def map_metrics_from_match_log(self, match_id: int, user_id: int) -> ExecutionMetricDTO:
         match = self._get_match_or_404(match_id)
@@ -93,24 +93,15 @@ class RubricEngineService:
             benchmark_return_pct=benchmark_return_pct,
         )
 
-    def evaluate_puzzle_for_user(self, strat_key: str, puzzle_id: int, user_id: int):
+    def evaluate_puzzle_for_user(self, strat_key: str, puzzle_id: int, user_id: int) -> EvaluationResultDTO:
         metrics = self.map_metrics_from_puzzle_run(puzzle_id=puzzle_id, user_id=user_id)
         result = self.evaluate_strategy(strat_key=strat_key, metrics=metrics)
 
         puzzle = self._get_puzzle_or_404(puzzle_id, user_id)
-        puzzle.rubric_score = result.final_score
+        puzzle.rubric_score = int(round(result.final_score))
         self.session.add(puzzle)
         self.session.commit()
         self.session.refresh(puzzle)
-
-        rubric_score = GRADE_TO_RUBRIC_SCORE.get(result.grade, 0)
-
-        award_puzzle_progression(
-            db=self.session,
-            puzzle_run_id=puzzle_id,
-            user_id=user_id,
-            rubric_score=rubric_score
-        )
 
         return result
 
@@ -365,7 +356,7 @@ class RubricEngineService:
         )
     
     def evaluate_strategy(self, strat_key: str, metrics: ExecutionMetricDTO) -> EvaluationResultDTO:
-        strategy = self._strategies.get(strat_key)
+        strategy = self.strategies.get(strat_key)
         if not strategy:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Strategy '{strat_key}' is not supported")
 

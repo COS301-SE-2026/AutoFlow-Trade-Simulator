@@ -7,7 +7,7 @@ from app.models.progression_grant import ProgressionGrant, ProgressionSource
 XP_WINNER = 100
 XP_LOSER = 40
 XP_PUZZLE_BASE = 50
-XP_PUZZLE_PER_RUBRIC_POINT = 10
+XP_PUZZLE_PER_RUBRIC_POINT = 1
 ELO_K = 32
 ELO_DEFAULT = 500
 TUTORIAL_XP = 25
