@@ -48,7 +48,7 @@ export default function PortfolioPage() {
                 selectedTicker={ticker}
                 onSelectAction={(selected) => setTicker(selected)}
               />
-              <AssetSummaryBar ticker={ticker || 'null'} holding={selectedHolding} />
+              <AssetSummaryBar ticker={ticker} holding={selectedHolding} />
             </div>
 
           </>
