@@ -97,10 +97,10 @@ export default function Multiplayer() {
         return (
             <>
                 <Navbar />
-                <div>
-                    <h2>{title}</h2>
+                <div className="mx-auto max-w-md p-8 text-center">
+                    <h2 className="text-3xl font-extrabold mb-2">{title}</h2>
                     {m.end.reason === 'opponent_disconnected' && <p>Opponent disconnected.</p>}
-                    <div>
+                    <div className={`${CARD} p-4 mb-6 text-sm space-y-1`}>
                         {Object.entries(m.end.final_balances).map(([id, bal]) => (
                             <>
                                 <div>
@@ -110,7 +110,7 @@ export default function Multiplayer() {
                             </>
                         ))}
                     </div>
-                    <div>
+                    <div className="flex gap-2 justify-center">
                         <button className={`${BTN} border border-white/10`} onClick={m.disconnect}>Back to Lobby</button>
                         <button className={`${BTN} border border-white/10`} onClick={() => { m.disconnect(); m.connect(); }}>Play again</button>
                     </div>
