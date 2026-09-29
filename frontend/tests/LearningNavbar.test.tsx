@@ -2,10 +2,18 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { LearningNavbar } from '@/components/LearningNavbar';
 import { usePathname } from 'next/navigation';
-import { Activity } from 'react';
+import { useTechTreeContext } from '@/context/TechTreeContext';
 
 jest.mock('next/navigation', () => ({
     usePathname: jest.fn()
+}));
+
+jest.mock('@/context/TechTreeContext', () => ({
+    useTechTreeContext: jest.fn()
+}));
+
+jest.mock('@/components/XPindicator', () => ({
+    XPindicator: () => <div data-testid="xp-indicator">XP Indicator goes here</div>
 }));
 
 jest.mock('lucide-react', () => ({
@@ -16,9 +24,13 @@ jest.mock('lucide-react', () => ({
 
 describe('LearningNavbar', () => {
     const mockUsePathname = usePathname as jest.Mock;
+    const mockUseTechTreeContext = useTechTreeContext as jest.Mock;
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseTechTreeContext.mockReturnValue({
+            xp: 150
+        });
     });
 
     it('renders the header title and description', () => {
@@ -34,10 +46,12 @@ describe('LearningNavbar', () => {
         render(<LearningNavbar/>);
 
         const strategiesLink = screen.getByRole('link', { name: /strategies/i });
+        const techTreeLink = screen.getByRole('link', { name: /tech tree/i });
         const greeksLink = screen.getByRole('link', { name: /options greeks/i});
         const eventsLink = screen.getByRole('link', { name: /historical events/i });
 
         expect(strategiesLink).toHaveAttribute('href', '/learning/strategies');
+        expect(techTreeLink).toHaveAttribute('href', '/learning/techTree');
         expect(greeksLink).toHaveAttribute('href', '/learning/greeks');
         expect(eventsLink).toHaveAttribute('href', '/learning/events');
     });
@@ -63,6 +77,7 @@ describe('LearningNavbar', () => {
 
         expect(screen.getAllByTestId('book-open-icon')).toHaveLength(2);
         expect(screen.getByTestId('activity-icon')).toBeInTheDocument();
-        expect(screen.getByTestId('history-icon')).toBeInTheDocument();
+
+        expect(screen.getAllByTestId('history-icon')).toHaveLength(2);
     });
 });
