@@ -23,7 +23,7 @@ export default function PortfolioPage() {
   const { activeAccount } = useAccount();
   const { holdings, loading: holdingsLoading, error: holdingsError } = useHoldings(activeAccount?.id ?? null)
 
-  const [ticker, setTicker] = useState<string | null>('AAPL');
+  const [ticker, setTicker] = useState<string | null>(null);
 
   const selectedHolding = holdings.find(h => h.ticker === ticker) ?? null;
 
@@ -48,7 +48,7 @@ export default function PortfolioPage() {
                 selectedTicker={ticker}
                 onSelectAction={(selected) => setTicker(selected)}
               />
-              <AssetSummaryBar ticker={ticker || 'AAPL'} holding={selectedHolding} />
+              <AssetSummaryBar ticker={ticker || 'null'} holding={selectedHolding} />
             </div>
 
           </>
