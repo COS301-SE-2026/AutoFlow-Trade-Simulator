@@ -6,6 +6,8 @@ from typing import List
 from fastapi import HTTPException, WebSocket, status
 from sqlalchemy import func
 from sqlmodel import Session, select
+from ...models.user import User
+from ..tech_tree.TechTreeService import TechTreeService
 
 from ...models.asset import Asset
 from ...models.daily_OHLCV import DailyOHLCV
@@ -26,8 +28,19 @@ class PuzzleService:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_puzzle(self,asset:str,user_id:int,strat_id:int) -> PuzzleStartResponse:
-        puzzle = self.generate_random_puzzle(asset,user_id,strat_id)
+    def get_puzzle(self, asset: str, user: User, strat_id: int) -> PuzzleStartResponse:
+        strategy = self.session.get(Strategies, strat_id)
+        if strategy is None:
+            raise HTTPException(status_code=404, detail="Strategy not found")
+
+        tech_name = TechTreeService.strategy_tech_name(strategy.name)
+        if not TechTreeService.is_unlocked(user, tech_name):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Strategy '{strategy.name}' is not unlocked",
+            )
+
+        puzzle = self.generate_random_puzzle(asset, user.id, strat_id)
         bars = self.build_bars(puzzle)
         return PuzzleStartResponse(
             puzzle_id=puzzle.id,

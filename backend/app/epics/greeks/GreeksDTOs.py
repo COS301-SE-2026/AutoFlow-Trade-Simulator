@@ -20,11 +20,11 @@ class CalculateGreeksRequest(SQLModel):
     option_type: str = Field("call", regex="^(call|put)$", description="'call' or 'put'")
 
 class GreekValues(SQLModel):
-    delta: float
-    gamma: float
-    theta: float
-    vega: float
-    rho: float
+    delta: float | None = None
+    gamma: float | None = None
+    theta: float | None = None
+    vega:  float | None = None
+    rho:   float | None = None
 
 
 class HistPriceHistoryItem(SQLModel):
