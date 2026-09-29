@@ -24,7 +24,7 @@ const CustomTooltip = ({ active, payload }: any) => {
                 padding: '8px',
                 borderRadius: '4px',
             }}>
-                <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Data: {data.date}</p>
+                <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Data: {data.day}</p>
                 <p style={{ margin: '2px 0', fontSize: '12px' }}>Price {data.price}</p>
             </div>
         );
@@ -49,11 +49,12 @@ export function MultiplayerArena({
         if (!m.day) {
             return;
         }
-        setChartData((prev) => [...prev, {
-            day: m.day!.day_index,
-            price: m.day!.bar.close
-        }])
-    })
+        setChartData((prev) => {
+            const last = prev[prev.length - 1];
+            if (last && last.day === m.day!.day_index) return prev;
+            return [...prev, { day: m.day!.day_index, price: m.day!.bar.close }];
+        });
+    }, [m.day?.day_index]);
 
     if (!m.day || !m.match) {
         return null;
@@ -69,6 +70,18 @@ export function MultiplayerArena({
 
     const qtyNum = Number.parseFloat(qty) || 0;
     const total = qtyNum * currentPrice;
+
+    const handleConfirm = () => {
+        if (!pendingTrade) {
+            return;
+        }
+        if (pendingTrade.type === 'buy') {
+            m.buy(qtyNum);
+        } else {
+            m.sell(qtyNum);
+        }
+        setPendingTrade(null);
+    }
 
     return (
         <div className='flex flex-col p-4 h-full'>
@@ -116,7 +129,7 @@ export function MultiplayerArena({
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                                <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }} />
+                                <XAxis dataKey="day" stroke="#ffffff" tick={{ fontSize: 10 }} />
                                 <YAxis
                                     domain={['auto', 'auto']}
                                     stroke="#ffffff"
@@ -147,6 +160,132 @@ export function MultiplayerArena({
                 </div>
 
                 <div className='w-64 space-y-4'>
+                    {/* side bar */}
+
+                    {m.day.qte && (
+                        <>
+                            <div className="p-3 rounded-xl border border-[var(--orange)] bg-[var(--background)] space-y-2">
+                                <div className="flex justify-between items-center text-xs font-bold text-[var(--orange)] uppercase tracking-wider">
+                                    <span>Quick Question</span>
+                                    <span className="text-gray-400 font-normal">{m.day.qte.timeout_seconds}s</span>
+                                </div>
+                                <p className="text-sm font-semibold">{m.day.qte.prompt}</p>
+                                <div className="flex flex-col gap-1.5">
+                                    {m.day.qte.options.map((option) => (
+                                        <button
+                                            key={option}
+                                            type='button'
+                                            disabled={m.actionSettled}
+                                            onClick={() => { m.answerQte(option) }}
+                                            className='text-left text-xs rounded-lg px-3 py-2 disabled:opacity-50 bg-gray-800/60 border border-gray-700/50'>
+                                            {option}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    <div className="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+                        <div className="font-bold mb-3">PORTFOLIO</div>
+                        <div className="flex justify-between">
+                            <span>Cash</span>
+                            <span className="text-lg font-bold text-[var(--green)]">$ {cash.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>{m.match.symbol}</span>
+                            <span>{shares}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Total</span>
+                            <span className="text-lg font-bold text-[var(--green)]">${portfolioValue.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Profit &amp; Loss</span>
+                            <span className={totalProfit >= 0 ? 'text-[var(--green)]' : 'text-[var(--red)]'}>${totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)} ({profitPct >= 0 ? '+' : ''}{profitPct.toFixed(1)}%)</span>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]">
+                        <div className="text-xs font-bold mb-2">
+                            TRADE AT {currentPrice.toFixed(2)} / sh
+                        </div>
+                        <input
+                            type='number'
+                            min={1}
+                            step={1}
+                            value={qty}
+                            onChange={(e) => setQty(e.target.value)}
+                            onBlur={() => {
+                                const n = Number.parseFloat(qty);
+                                if (Number.isNaN(n) || n < 1) {
+                                    setQty('1');
+                                }
+                            }}
+                            placeholder='Quantity'
+                            className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
+                        />
+                        {total > 0 && (
+                            <>
+                                <div className="text-xs mb-2 mt-2 text-center">
+                                    Cost: <span> ${total.toFixed(2)}</span>
+                                </div>
+                            </>
+                        )}
+                        {m.error && (
+                            <>
+                                <div className="text-xs mb-2 mt-2 text-[var(--red)]">
+                                    {m.error}
+                                </div>
+                            </>
+                        )}
+                        <div className="flex gap-2 justify-evenly">
+                            <button
+                                type='button'
+                                disabled={m.actionSettled}
+                                className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)] disabled:opacity-50'
+                                onClick={() => setPendingTrade({ type: 'buy' })}
+                            >
+                                Buy
+                            </button>
+                            <button
+                                type='button'
+                                disabled={m.actionSettled}
+                                className='w-full py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)] disabled:opacity-50'
+                                onClick={() => setPendingTrade({ type: 'sell' })}
+                            >
+                                Sell
+                            </button>
+                            {pendingTrade && (
+                                <TradeConfirmModal
+                                    side={pendingTrade?.type}
+                                    quantity={qtyNum}
+                                    price={currentPrice}
+                                    onConfirm={handleConfirm}
+                                    onCancel={() => setPendingTrade(null)}
+                                    orderType='market'
+                                />
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-3">
+                        <div className="text-xs font-bold mb-2">Opponent Activity</div>
+                        {m.lastOpponentAction ? (
+                            <>
+                                <div className="text-xs rounded-lg px-3 py-2 bg-gray-800/60 border border-gray-700/50">
+                                    {m.lastOpponentAction.action === 'buy' ? 'Bought' : 'Sold'}{' '}
+                                    x{m.lastOpponentAction.qty} {m.match.symbol}
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-xs text-gray-500 text-center py-2">
+                                    Watching for moves…
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
