@@ -13,13 +13,13 @@ import {
 import { apiClient } from '@/lib/api';
 import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, Brain, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { 
+import type { 
     PuzzleBar,
     PuzzleStartResponse,
     PuzzleAction,
     PuzzleSubmitResponse,
- } from '@/lib/types/puzzle';
- import { usePuzzle } from '@/hooks/usePuzzle';
+} from '@/lib/types/puzzle';
+import { usePuzzle } from '@/hooks/usePuzzle';
 
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload?.length) {
