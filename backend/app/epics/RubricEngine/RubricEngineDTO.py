@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Dict, Optional
 from sqlmodel import SQLModel
@@ -18,6 +20,7 @@ class Grade(str, Enum):
 
 class EvaluateMatchRequestDTO(SQLModel):
     match_id: int = Field(..., description="This is the match id e.x. 123")
+    grading_type: str = Field (..., description="Evaluation type: 'match' or 'puzzle'")
 
 class CategoryScoreDTO(SQLModel):
     score: float = Field(..., ge=0.0, le=100, description="Score out of 100")

@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session
 
 from ...database import get_session
@@ -24,4 +24,20 @@ def health_check(service: ServiceDep) -> EpicStatusDTO:
 
 @router.post("/evaluate/{strat_key}", status_code=status.HTTP_200_OK)
 def evaluate_strategy(strat_key: str, req: EvaluateMatchRequestDTO, service: ServiceDep, current_user: UserDep) -> EvaluationResultDTO:
-    return service.evaluate_match_for_user(strat_key=strat_key, match_id=req.match_id, user_id=current_user.id)
+    if req.grading_type == "match":
+        return service.evaluate_match_for_user(
+            strat_key=strat_key,
+            match_id=req.match_id,
+            user_id=current_user.id
+        )
+    elif req.grading_type == "puzzle":
+        return service.evaluate_puzzle_for_user(
+            strat_key=strat_key,
+            puzzle_id=req.match_id,
+            user_id=current_user.id
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid evaluation type '{req.grading_type}'. Must be 'match' or 'puzzle' "
+        )
