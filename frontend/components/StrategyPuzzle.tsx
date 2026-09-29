@@ -11,37 +11,15 @@ import {
     Tooltip,
 } from 'recharts';
 import { apiClient } from '@/lib/api';
-import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, RotateCcw, Lock } from 'lucide-react';
+import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, Brain, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface PuzzleBar {
-    day_index: number;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-}
-
-interface PuzzleStartResponse {
-    puzzle_id: number;
-    bars: PuzzleBar[];
-}
-
-interface PuzzleAction {
-    day_index: number;
-    action: 'buy' | 'sell';
-    qty: number;
-}
-
-interface PuzzleSubmitResponse {
-    puzzle_id: number;
-    initial_balance: number;
-    final_balance: number;
-    return_pct: number;
-    trades_count: number;
-    rubric_score?: number | null;
-}
+import { 
+    PuzzleBar,
+    PuzzleStartResponse,
+    PuzzleAction,
+    PuzzleSubmitResponse,
+ } from '@/lib/types/puzzle';
+ import { usePuzzle } from '@/hooks/usePuzzle';
 
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload?.length) {
@@ -61,6 +39,8 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
+const SPEEDS = [1, 2, 4] as const;
+const BASE_INTERVAL_MS = 3000;
 const PUZZLE_STARTING_BALANCE = 100000;
 
 export function StrategyPuzzle({ 
@@ -90,57 +70,46 @@ export function StrategyPuzzle({
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
-            try {
-                const res = (await apiClient('/puzzle/start', {
-                    method: 'POST',
-                    body: { strategy_id: strategyId, asset: assetSymbol },
-                })) as PuzzleStartResponse;
-                if (!cancelled) setPuzzle(res);
-            } catch (e: any) {
-                if (!cancelled) setLoadError(e.message ?? 'Failed to load puzzle.');
-            }
+            const res = await StrategyPuzzle(strategyId, asset);
+            if (cancelled) return;
+            if (res) setPuzzle(res);
+            else setLoadError('Failed to load puzzle. Please try again.')
         };
         load();
         return () => { cancelled = true; };
-    }, [strategyId, assetSymbol]);
+    }, [strategyId, asset, startPuzzle]);
 
     const bars = puzzle?.bars ?? [];
     const totalDays = bars.length;
     const currentBar = bars[dayIndex];
     const currentPrice = currentBar?.close ?? 0;
     const startPrice = bars[0]?.close ?? 0;
+    const isFinished = totalDays > 0 && dayIndex >= totalDays - 1;
+
+    const portfolioValue = cash + shares * currentPrice;
+    const totalProfit = portfolioValue - PUZZLE_STARTING_BALANCE;
+    const profitPct = (PUZZLE_STARTING_BALANCE > 0 ? (totalProfit / PUZZLE_STARTING_BALANCE) * 100 : 0);
+    const priceChangePct = startPrice > 0 ? (((currentPrice - startPrice) / startPrice) * 100) : 0;
 
     const chartData = useMemo(() => 
         bars.slice(0, dayIndex + 1).map((p, i) => ({
             date: `Day ${i + 1}`,
             price: p.close,
-            day: i,
         })),
         [bars, dayIndex],
     );
 
     useEffect(() => {
-        if (!isPlaying || dayIndex >= totalDays - 1) {
+        if (!isPlaying || isFinished) {
             setIsPlaying(false);
             return;
         }
 
-        const oldInterval = 2000;
-        const newInterval = oldInterval / speed;
+        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, totalDays - 1)), BASE_INTERVAL_MS / speed );
+    return () => clearInterval(id);
+    }, [isPlaying, isFinished, totalDays, speed]);
 
-        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, totalDays - 1)), newInterval);
-        return () => clearInterval(id);
-    }, [isPlaying, dayIndex, totalDays, speed]);
-
-
-    const portfolioValue = cash + shares * Number.parseFloat(currentPrice);
-    const totalProfit = portfolioValue - event.initialBalance;
-    const profitPct = ((totalProfit / event.initialBalance) * 100);
-    const priceChangePct = startPrice ? (((Number.parseFloat(currentPrice) - Number.parseFloat(startPrice)) / Number.parseFloat(startPrice)) * 100) : 0;
-
-    const currentBarTimestamp = allTimestamps[dayIndex];
-
-    const total = Number.parseFloat(qty) > 0 ? Number.parseFloat(qty) * Number.parseFloat(currentPrice) : 0;
+    const stepForward = () => setDayIndex(d => Math.min(d + 1, totalDays - 1));
 
     return (
         <div className='flex flex-col p-4 h-full'>
@@ -156,10 +125,11 @@ export function StrategyPuzzle({
                             <span>Back</span>
                         </div>
                     </button>
+                    <Brain className='w-4 h-4' />
                 </div>
                 <button
-                    id='tut-play'
                     type='button'
+                    disabled={isFinished}
                     onClick={() => { setIsPlaying(b => !b) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
