@@ -2,7 +2,7 @@ from typing import Optional, List, Dict
 from sqlmodel import Session, select
 from sqlalchemy import col
 
-from app.models import User
+from app.models import User, TutorialCompletion
 from app.models.progression_grant import ProgressionGrant, ProgressionSource
 
 XP_WINNER = 100
@@ -10,7 +10,8 @@ XP_LOSER = 40
 XP_PUZZLE_BASE = 50
 XP_PUZZLE_PER_RUBRIC_POINT = 10
 ELO_K = 32
-ELO_DEFAULT = 1000
+ELO_DEFAULT = 500
+TUTORIAL_XP = 25
 
 
 def compute_elo_delta(rating_a: int, rating_b: int, score_a: float) -> int:
@@ -114,6 +115,33 @@ def award_puzzle_progression(
             source_type=ProgressionSource.puzzle,
             source_id=puzzle_run_id,
             xp_awarded=xp,
+            elo_delta=0,
+        )
+    )
+    db.commit()
+
+def award_tutorial_progression(
+        db: Session,
+        strategy_id: int,
+        user_id: int,
+) -> None:
+    existing = db.get(TutorialCompletion, (user_id, strategy_id))
+
+    user = db.get(User, user_id)
+    if user is None:
+        raise ValueError(f"user {user_id} not found")
+
+    if existing is not None:
+        return
+
+    user.experience_points += TUTORIAL_XP
+    db.add(TutorialCompletion(user_id=user_id, strategy_id=strategy_id))
+    db.add(
+        ProgressionGrant(
+            user_id=user_id,
+            source_type=ProgressionSource.tutorial,
+            source_id=strategy_id,
+            xp_awarded=TUTORIAL_XP,
             elo_delta=0,
         )
     )

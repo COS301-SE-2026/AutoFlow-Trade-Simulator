@@ -8,6 +8,7 @@ import sqlalchemy as sa
 class ProgressionSource(str, Enum):
     match = "match"
     puzzle = "puzzle"
+    tutorial = "tutorial"
 
 
 class ProgressionGrant(SQLModel, table=True):
