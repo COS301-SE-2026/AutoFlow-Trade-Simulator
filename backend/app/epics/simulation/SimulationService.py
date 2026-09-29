@@ -46,26 +46,36 @@ class SimulationService:
         strategies = self.session.exec(select(Strategies)).all()
         summaries = []
         for s in strategies:
-            assert s.strat_id is not None
-            tech = TechTreeService.strategy_tech_name(s.name)
+            assert s.strat_id is not None, "Strategy ID should not be None"
+            tech = TechTreeService.strategy_tech_name(s)
+            unlocked = TechTreeService.is_unlocked(user, tech) if tech else True
             summaries.append(StrategySummary(
-                id=s.strat_id, name=s.name, level=s.level, category=s.category,
+                id=s.strat_id,
+                name=s.name,
+                level=s.level,
+                category=s.category,
                 description=s.description,
-                unlocked=TechTreeService.is_unlocked(user, tech),
+                unlocked=unlocked,
             ))
         return StrategiesResponse(strategies=summaries)
-    
+
     def get_strategy_detail(self, strategy_id: int, user: User) -> StrategyDetail:
-        strategy = self.session.get(Strategies, strategy_id)
+        strategy: Strategies | None = self.session.get(Strategies, strategy_id)
         if strategy is None:
             raise HTTPException(status_code=404, detail="Strategy not found")
-        assert strategy.strat_id is not None
-        tech = TechTreeService.strategy_tech_name(strategy.name)
+        assert strategy.strat_id is not None, "Strategy ID should not be None"
+        tech = TechTreeService.strategy_tech_name(strategy)
+        unlocked = TechTreeService.is_unlocked(user, tech) if tech else True
         return StrategyDetail(
-            id=strategy.strat_id, name=strategy.name, level=strategy.level,
-            category=strategy.category, description=strategy.description,
-            steps=strategy.steps, pros=strategy.pros, cons=strategy.cons,
-            unlocked=TechTreeService.is_unlocked(user, tech),
+            id=strategy.strat_id,
+            name=strategy.name,
+            level=strategy.level,
+            category=strategy.category,
+            description=strategy.description,
+            steps=strategy.steps,
+            pros=strategy.pros,
+            cons=strategy.cons,
+            unlocked=unlocked,
         )
     
     def validate_limits(self,symbol:List[str],start:date,end:date):
