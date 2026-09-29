@@ -6,6 +6,7 @@ import { LearningNavbar } from '@/components/LearningNavbar';
 
 import { useLearning } from '@/context/LearningContext';
 import { EventSimulator } from '@/components/EventSimulator';
+import { StrategyPuzzle } from '@/components/StrategyPuzzle';
 
 const DCA_PRACTICE_EVENT = {
     id: 'dca-practice',
@@ -25,7 +26,22 @@ const DCA_PRACTICE_EVENT = {
 }
 
 export default function LearningPage() {
-    const { strategyTutorialOpen, closeStrategyTutorial } = useLearning();
+    const { 
+            strategyTutorialOpen, 
+            closeStrategyTutorial,
+            puzzleStrategy,
+            closeStrategyPuzzle 
+        } = useLearning();
+
+    if (puzzleStrategy) {
+        return (
+            <StrategyPuzzle
+                strategyId={puzzleStrategy.id}
+                strategyName={puzzleStrategy.name}
+                onBack={closeStrategyPuzzle}
+            ></StrategyPuzzle>
+        )
+    }
 
     if (strategyTutorialOpen) {
         return (
