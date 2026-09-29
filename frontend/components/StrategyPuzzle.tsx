@@ -61,237 +61,66 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
-export function EventSimulator({ 
-    event,
-    mode = 'event',
+const PUZZLE_STARTING_BALANCE = 100000;
+
+export function StrategyPuzzle({ 
+    strategyId,
+    asset,
     onBack,
-}: Readonly<{ 
-    event: EventDefinition;
-    mode?: 'event' | 'strategy';
-    onBack: () => void 
-}>) {
-    const [simData, setSimData] = useState<SimCreateResponse | null>(null);
+}: {
+    strategyId: number;
+    asset?: string;
+    onBack: () => void;
+}) {
+    const [puzzle, setPuzzle] = useState<PuzzleStartResponse | null>(null);
+    const assetSymbol = asset ?? 'AAPL';
+    const [loadError, setLoadError] = useState<string | null>(null);
+
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [finalSummary, setFinalSummary] = useState<SimulationFinishResponse | null>(null);
-    const [pendingTrade, setPendingTrade] = useState<{ type: 'buy' | 'sell' } | null>(null);
 
     const [shares, setShares] = useState(0);
     const [qty, setQty] = useState('1');
-    const [cash, setCash] = useState(event.initialBalance);
+    const [cash, setCash] = useState(PUZZLE_STARTING_BALANCE);
     const [trades, setTrades] = useState<any[]>([]);
     const [tradeError, setTradeError] = useState<string | null>(null);
-    const [strikeManuallySet, setStrikeManuallySet] = useState(false);
 
     const [speed, setSpeed] = useState(1);
 
-    const isStrategy = mode === 'strategy';
-
-    const tutorial = isStrategy ? STRATEGY_TUTORIALS.dca : null;
-    const [stepIndex, setStepIndex] = useState(0);
-    const step = tutorial?.steps[stepIndex];
-
-    const stepIndexRef = useRef(stepIndex);
-    useEffect(() => { stepIndexRef.current = stepIndex; }, [stepIndex]);
-
-    const driverRef = useRef<Driver | null>(null);
-
-    const onBackRef = useRef(onBack);
-    useEffect(() => { onBackRef.current = onBack; }, [onBack]);
-
-    const advanceStep = useCallback(() => {
-        if (!tutorial) return;
-        setStepIndex(i => Math.min(i + 1, tutorial.steps.length - 1));
-        driverRef.current?.moveNext();
-    }, [tutorial]);
-
     useEffect(() => {
-        if (!isStrategy || !tutorial || !simData) return;
-        
-        if (pendingTrade) {
-            driverRef.current?.destroy();
-            driverRef.current = null;
-            return;
-        }
-
-        const d = driver({
-            showProgress: true,
-            progressText: '{{current}} of {{total}}',
-            allowClose: true,
-            overlayOpacity: 0.72,
-            stagePadding: 6,
-            stageRadius: 12,
-            steps: tutorial.steps.map(s => ({
-                element: `#${s.elementId}`,
-                popover: {
-                    title: s.title,
-                    description: s.instruction,
-                    side: 'bottom',
-                    align: 'center',
-                    showButtons: INTERACTION_STEPS.includes(s.elementId)
-                        ? ['close']
-                        : ['next', 'close']
-                }
-            })),
-            onHighlightStarted: (_el: any, _step: any, opts: any) => {
-                const idx = opts?.state?.activeIndex;
-                if (typeof idx === 'number') {
-                    setStepIndex(prev => (prev === idx ? prev : idx));
-                }
-            },
-            onCloseClick: () => {
-                d.destroy();
-                onBackRef.current();
-            },
-            onDestroyed: () => {
-                driverRef.current = null;
-            },
-        });
-
-        driverRef.current = d;
-        d.drive(stepIndexRef.current);
-
-        return () => {
-            d.destroy();
-            driverRef.current = null;
-        };
-    }, [isStrategy, tutorial, simData, pendingTrade]);
-
-    const prevQty = useRef(qty);
-
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-qty' && qty !== prevQty.current 
-            && Number.parseFloat(qty) >= 1) {
-            advanceStep();
-        }
-        prevQty.current = qty;
-    }, [qty, step, advanceStep]);
-
-    const prevTradesLength = useRef(trades.length);
-
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-buy' && trades.length > prevTradesLength.current) {
-            advanceStep();
-        }
-        prevTradesLength.current = trades.length;
-    }, [trades.length, step, advanceStep]);
-
-    const prevDayIndex = useRef(dayIndex);
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-skip' && dayIndex !== prevDayIndex.current) {
-            advanceStep();
-        }
-        prevDayIndex.current = dayIndex;
-    }, [dayIndex, step, advanceStep]);
-
-    useEffect(() => {
-        if (!step) return;
-
-        switch (step.elementId) {
-            case 'tut-qty':
-                if (qty !== prevQty.current && Number.parseFloat(qty) >= 1) {
-                    advanceStep();
-                }
-                break;
-            case 'tut-buy':
-                if (trades.length > prevTradesLength.current) {
-                    advanceStep();
-                }
-                break;
-            case 'tut-skip':
-                if (dayIndex !== prevDayIndex.current) {
-                    advanceStep();
-                }
-                break;
-        }
-
-        prevQty.current = qty;
-        prevTradesLength.current = trades.length;
-        prevDayIndex.current = dayIndex
-    }, [qty, trades.length, dayIndex, step, advanceStep]);
-
-    useEffect(() => {
-        if (!step || step.elementId !== 'tut-play' || !isPlaying) return;
-        const id = setTimeout(advanceStep, 3500);
-        return () => clearTimeout(id);
-    }, [step, isPlaying, advanceStep]);
-
-    const [pausedByTutorial, setPausedByTutorial] = useState(false);
-
-    useEffect(() => {
-        if (!step) return;
-        const isFocusStep = step.elementId === 'tut-qty' || step.elementId === 'tut-buy';
-
-        if (isFocusStep && isPlaying) {
-            setIsPlaying(false);
-            setPausedByTutorial(true);
-        } else if (!isFocusStep) {
-            setPausedByTutorial(false);
-        }
-    }, [step, isPlaying]);
-
-    const startDate = `${event.startYear}-${String(event.startMonth).padStart(2, '0')}-${String(event.startDay).padStart(2, '0')}`;
-    const endDate = new Date(event.startYear, event.startMonth - 1, event.startDay + event.tradingDays * 2).toISOString().split('T')[0];
-
-    const startDateObj = useMemo(() => new Date(startDate), [startDate]);
-    const endDateObj = useMemo(() => new Date(endDate), [endDate]);
-
-    const { newsItems, error: newsError } = useNews(
-        isStrategy ? '' : event.ticker,
-        startDateObj,
-        endDateObj,
-    );
-
-    const { unlocked: unlockedGreeks } = useUnlockedGreeks();
-
-    useEffect(() => {
-        if (isStrategy) {
-            const bars = MOCK_AAPL_BARS;
-            setSimData({ simulation_id: -1, bars: { [event.ticker]: bars } } as unknown as SimCreateResponse);
-            return;
-        }
-        const initialize = async () => {
+        let cancelled = false;
+        const load = async () => {
             try {
-                const res = await startSimulation(
-                    [event.ticker],
-                    { [event.ticker]: 0 },
-                    startDate,
-                    endDate,
-                    String(event.initialBalance),
-                );
-                setSimData(res);
-            } catch (e) {
-                console.error('Failed to create simulation', e);
+                const res = (await apiClient('/puzzle/start', {
+                    method: 'POST',
+                    body: { strategy_id: strategyId, asset: assetSymbol },
+                })) as PuzzleStartResponse;
+                if (!cancelled) setPuzzle(res);
+            } catch (e: any) {
+                if (!cancelled) setLoadError(e.message ?? 'Failed to load puzzle.');
             }
         };
-        initialize();
-    }, [event, startDate, endDate, isStrategy]);
+        load();
+        return () => { cancelled = true; };
+    }, [strategyId, assetSymbol]);
 
-    const { allPrices, allDates, allTimestamps } = useMemo(() => {
-        const prices: string[] = [];
-        const dates: string[] = [];
-        const timestamps: string[] = [];
-        if (simData?.bars) {
-            const tickerBars = simData.bars[event.ticker];
-            tickerBars.forEach((bar: OHLCVBar) => {
-                prices.push((bar.close).toString());
-                dates.push(new Date(bar.timestamp).toLocaleDateString());
-                timestamps.push(bar.timestamp);
-            });
-        }
-        return { allPrices: prices, allDates: dates, allTimestamps: timestamps };
-    }, [simData, event.ticker]);
+    const bars = puzzle?.bars ?? [];
+    const totalDays = bars.length;
+    const currentBar = bars[dayIndex];
+    const currentPrice = currentBar?.close ?? 0;
+    const startPrice = bars[0]?.close ?? 0;
 
-    const chartData = allPrices.slice(0, dayIndex + 1).map((p, i) => ({
-        date: allDates[i],
-        price: p,
-    }))
+    const chartData = useMemo(() => 
+        bars.slice(0, dayIndex + 1).map((p, i) => ({
+            date: `Day ${i + 1}`,
+            price: p.close,
+            day: i,
+        })),
+        [bars, dayIndex],
+    );
 
     useEffect(() => {
-        if (!isPlaying || dayIndex >= allPrices.length - 1) {
+        if (!isPlaying || dayIndex >= totalDays - 1) {
             setIsPlaying(false);
             return;
         }
@@ -299,241 +128,17 @@ export function EventSimulator({
         const oldInterval = 2000;
         const newInterval = oldInterval / speed;
 
-        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, allPrices.length - 1)), newInterval);
+        const id = setInterval(() => setDayIndex(d => Math.min(d + 1, totalDays - 1)), newInterval);
         return () => clearInterval(id);
-    }, [isPlaying, dayIndex, allPrices.length, speed]);
+    }, [isPlaying, dayIndex, totalDays, speed]);
 
-    const currentPrice = allPrices[dayIndex] ?? "0";
+
     const portfolioValue = cash + shares * Number.parseFloat(currentPrice);
     const totalProfit = portfolioValue - event.initialBalance;
-    const startPrice = allPrices[0];
     const profitPct = ((totalProfit / event.initialBalance) * 100);
     const priceChangePct = startPrice ? (((Number.parseFloat(currentPrice) - Number.parseFloat(startPrice)) / Number.parseFloat(startPrice)) * 100) : 0;
 
-    //State for greeks
-    const [strikePrice, setStrikePrice] = useState<number>(Number.parseFloat(allPrices[0] || '0'));
-    const daysToExpiration = Math.max(1, allPrices.length - dayIndex);
-
-    useEffect(() => {
-        if (allPrices.length === 0) return;
-
-        const current = Number.parseFloat(allPrices[dayIndex] || allPrices[0]);
-        if (!current || current <= 0) return;
-
-        if (!strikeManuallySet) {
-            setStrikePrice(Math.round(current));
-        }
-
-    }, [allPrices, dayIndex, strikeManuallySet]);
-
-    const greeksResult = useMemo(() => {
-        const price = Number.parseFloat(currentPrice);
-        if (!price || price <= 0 || !strikePrice || strikePrice <= 0) return null;
-
-        // Realized volatility from the price history the sim has actually
-        // played through so far — never looks ahead past dayIndex.
-        const pricesSoFar = allPrices.slice(0, dayIndex + 1).map(Number.parseFloat);
-        const sigma = calc_realized_volatility(pricesSoFar);
-
-        return calc_greeks({
-            current_price: price,
-            strike_price: strikePrice,
-            time_to_expire: daysToExpiration / 365,
-            interest_rate: 0.05,
-            sigma,
-            option_type: 'call',
-        });
-    }, [allPrices, dayIndex, currentPrice, strikePrice, daysToExpiration]);
-
     const currentBarTimestamp = allTimestamps[dayIndex];
-    const visibleNews = currentBarTimestamp
-        ? newsItems.filter(n => new Date(n.timestamp).getTime() <= new Date(currentBarTimestamp).getTime())
-        : [];
-
-    const execute = async (type: 'buy' | 'sell') => {
-        if (!simData || Number.parseFloat(currentPrice) <= 0) return;
-
-        const simId = simData.simulation_id;
-        let quantity = Number.parseFloat(qty);
-        if (!quantity || quantity < 1) quantity = 1;
-        let qtyToTrade = quantity;
-
-        if (type === 'sell') {
-            if (shares <= 0) {
-                setTradeError('You have no shares to sell.');
-                return;
-            }
-            if (qtyToTrade > shares) {
-                qtyToTrade = shares;
-            }
-        }
-
-        if (type === 'buy') {
-            const cost = qtyToTrade * Number.parseFloat(currentPrice);
-            if (cost > cash) {
-                setTradeError(`Not enough cash. You need R ${cost.toFixed(2)}.`);
-                return;
-            }
-        }
-
-        const tickerBars = simData.bars?.[event.ticker];
-        const bar = tickerBars?.[dayIndex];
-        const timestamp = bar ? bar.timestamp : new Date().toISOString();
-
-        if (isStrategy) {
-            const price = Number.parseFloat(currentPrice);
-            const nextShares = type === 'buy' ? shares + qtyToTrade : shares - qtyToTrade;
-            const nextCash = type === 'buy' ? cash - qtyToTrade * price : cash + qtyToTrade * price;
-
-            setShares(nextShares);
-            setCash(nextCash);
-            setTrades(prev => [
-                ...prev,
-                { 
-                    type,
-                    symbol: event.ticker,
-                    qty: qtyToTrade,
-                    price: currentPrice,
-                    data: allDates[dayIndex]
-                },
-            ]);
-            return;
-        }
-
-        const action = {
-            type: type,
-            symbol: event.ticker,
-            qty: qtyToTrade,
-            timestamp: timestamp
-        };
-
-        try {
-            const res = await apiClient('/simulation/practice/simulate/actions', {
-                method: 'POST',
-                body: {
-                    simulation_id: simId,
-                    actions: [action],
-                }
-            });
-
-            const newShares = res.positions?.[event.ticker];
-            const nav = res.nav;
-            setShares(newShares);
-
-            setCash(nav - newShares * Number.parseFloat(currentPrice));
-
-            setTrades(prev => [
-                ...prev,
-                {
-                    type: type,
-                    symbol: event.ticker,
-                    qty: qtyToTrade,
-                    price: currentPrice,
-                    date: allDates[dayIndex],
-                },
-            ]);
-            setTimeout(() => setTradeError(null), 3000);
-        } catch (e) {
-            console.error('Trade failed', e);
-            setTradeError(`Trade failed. Please try again.`);
-            setTimeout(() => setTradeError(null), 3000);
-        }
-    }
-
-    const finish = async () => {
-        if (!simData) return;
-
-        if (isStrategy) {
-            const finalBalance = cash + shares * Number.parseFloat(currentPrice);
-
-            let peak = event.initialBalance;
-            let maxDD = 0;
-            for (let i = 0; i < dayIndex; i++) {
-                const p = Number.parseFloat(allPrices[i] || '0');
-                const equity = cash + shares * p;
-
-                if (equity > peak) peak = equity;
-                const dd = peak > 0 ? ((peak - equity) / peak) * 100 : 0;
-                if (dd > maxDD) maxDD = dd;
-            }
-
-            const returnsPct = ((finalBalance - event.initialBalance) / event.initialBalance) * 100;
-
-            setFinalSummary({
-                simulation_id: -1,
-                status: 'finished',
-                start_date: startDate,
-                end_date: endDate,
-                initial_balance: String(event.initialBalance),
-                summary: {
-                    final_balance: finalBalance.toFixed(2),
-                    returns_pct: returnsPct.toFixed(2),
-                    max_drawdown: maxDD.toFixed(2),
-                    trades_count: trades.length,
-                    per_symbol_results: {},
-                }
-            });
-            return;
-        }
-
-        try {
-            const res = await apiClient(`/simulation/practice/simulate/${simData.simulation_id}/finish`, {
-                method: 'POST',
-            }) as SimulationFinishResponse;
-            setFinalSummary(res);
-        } catch (e) {
-            console.error('Simulation finish failed.', e);
-        }
-    }
-
-    if (!simData) {
-        return (
-            <div className='bg-green-950 p-6 white rounded-xl border border-[var(--border)]'>
-                Loading simulation...
-            </div>
-        )
-    }
-
-    if (finalSummary) {
-        const { summary } = finalSummary;
-        return (
-            <div className='flex justify-center'>
-                <div className='p-8 py-12 bg-[var(--background)] border border-[var(--border)] rounded-xl space-y-4 h-full'>
-                    <div className='text-white font-bold text-xl text-center'>
-                        Simulation Finished
-                    </div>
-                    <div className='grid grid-cols-2 gap-4 text-sm'>
-                        <div className='text-center text-lg'>
-                            Final Balance: <span className='font-bold'>
-                                R {Number.parseFloat(summary.final_balance).toFixed(2)}
-                            </span>
-                        </div>
-                        <div className='text-center text-lg'>
-                            Return:<span className={Number.parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green)] font-bold' : 'text-[var(--red)] font-bold'}
-                            > {Number.parseFloat(summary.returns_pct)}%</span>
-                        </div>
-                        <div className='text-center text-lg'>
-                            Max Drawdown: <span className='text-[var(--red)]'>
-                                {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
-                        </div>
-                        <div className='text-center text-lg'>
-                            Trades:<span className='font-bold'> {summary.trades_count}</span>
-                        </div>
-                    </div>
-                    <div className='flex items-center justify-center'>
-                        <button
-                            
-                            type='button'
-                            onClick={onBack}
-                            className='flex self-center px-4 py-2 bg-blue-900 text-white rounded-xl'
-                        >
-                            Back to Events
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     const total = Number.parseFloat(qty) > 0 ? Number.parseFloat(qty) * Number.parseFloat(currentPrice) : 0;
 
@@ -551,8 +156,6 @@ export function EventSimulator({
                             <span>Back</span>
                         </div>
                     </button>
-                    <span className='font-bold text-blue-400'>{event.ticker}</span>
-                    <span className='font-semibold'>{event.title}</span>
                 </div>
                 <button
                     id='tut-play'
@@ -585,9 +188,8 @@ export function EventSimulator({
                 </div>
 
                 <button
-                    id='tut-skip'
                     type='button'
-                    onClick={() => { setDayIndex(d => Math.min(d + 1, allPrices.length)) }}
+                    onClick={() => { setDayIndex(d => Math.min(d + 1, bars.length)) }}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
@@ -599,7 +201,6 @@ export function EventSimulator({
                 <button
                     id='tut-finish'
                     type='button'
-                    onClick={finish}
                     className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
                 >
                     <div className='flex items-center gap-3'>
@@ -609,22 +210,8 @@ export function EventSimulator({
                 </button>
             </div>
 
-            {!isStrategy && (
-                <>
-                    <NewsTicker
-                        items={visibleNews}
-                        currentDate={currentBarTimestamp ?? startDate}
-                        />
-                    {newsError && (
-                        <p className='text-xs text-[var(--red)]'>Couldn&apos;t load news for {event.ticker}.</p>
-                    )}
-                </>
-            )}
-
             <div className='flex gap-4 flex-1 min-h-0'>
                 <div
-                    id='tut-chart' 
-                    onClick={() => { if (step?.elementId === 'tut-chart') advanceStep(); }}
                     className='flex-1 rounded-xl border border-[var(--border)] p-4'
                 >
                     <div className='flex justify-between'>
@@ -667,15 +254,13 @@ export function EventSimulator({
                         </ResponsiveContainer>
                     </div>
                     <div className='mt-2 mb-3 h-1 bg-gray-800 rounded-full'>
-                        <div className='h-full bg-[var(--blue)] rounded-full' style={{ width: `${((dayIndex + 1) / allPrices.length) * 100}%` }}></div>
+                        <div className='h-full bg-[var(--blue)] rounded-full' style={{ width: `${((dayIndex + 1) / totalDays) * 100}%` }}></div>
                     </div>
-                    <div className='text-xs mt-1'>Day {dayIndex + 1} of {allPrices.length}</div>
+                    <div className='text-xs mt-1'>Day {dayIndex + 1} of {totalDays}</div>
                 </div>
 
                 <div className='w-64 space-y-4'>
                     <div
-                        id='tut-portfolio' 
-                        onClick={() => { if (step?.elementId === 'tut-portfolio') advanceStep(); }}
                         className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'
                     >
                         <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
@@ -684,7 +269,7 @@ export function EventSimulator({
                             <span className='text-lg font-bold text-[var(--green)]'>R {cash.toFixed(2)}</span>
                         </div>
                         <div className='flex justify-between'>
-                            <span>{event.ticker}</span>
+                            <span>{assetSymbol}</span>
                             <span>{shares} sh</span>
                         </div>
                         <div className='flex justify-between'>
@@ -699,7 +284,7 @@ export function EventSimulator({
                         </div>
                     </div>
                     <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
-                        <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
+                        <div className='text-xs font-bold mb-2'>TRADE AT {Number(currentPrice).toFixed(2)} / sh</div>
                         <input
                             id='tut-qty'
                             type='number'
@@ -749,44 +334,6 @@ export function EventSimulator({
                                     onCancel={() => { setPendingTrade(null) }} orderType="market" 
                                 />
                             )}
-                        </div>
-                    </div>
-
-                    <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)] space-y-2'>
-                        <div className='flex justify-between items-center text-xs font-bold text-blue-400 uppercase tracking-wider'>
-                            <span>Call Option Risk</span>
-                            <span className='text-gray-400 font-normal'>DTE: {daysToExpiration}d</span>
-                        </div>
-
-                        <div className='flex items-center justify-between text-xs bg-gray-800/50 p-1.5 rounded-lg border border-gray-700/50'>
-                            <span className='text-gray-400'>Strike Price </span>
-                            <div className='flex items-center gap-1'>
-                                <input
-                                    type='number'
-                                    value={strikePrice}
-                                    onChange={(e) => { setStrikePrice(Number.parseFloat(e.target.value) || 0); setStrikeManuallySet(true) }}
-                                    className='w-20 bg-gray-900 text-right px-2 py-0.5 rounded text-white text-xs font-mono border border-gray-700'
-                                />
-                                <Button
-                                    type='button'
-                                    variant='ghost'
-                                    size='icon-xs'
-                                    disabled={!strikeManuallySet}
-                                    onClick={() => setStrikeManuallySet(false)}
-                                    aria-label='Reset to at-the-money'
-                                    title='Reset to at-the-money'
-                                >
-                                    <RotateCcw />
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className='grid grid-cols-2 gap-2 text-xs pt-1'>
-                            <GreekCell label="Delta (Δ)" value={greeksResult?.delta} decimals={3} unlocked={unlockedGreeks.delta} />
-                            <GreekCell label="Gamma (Γ)" value={greeksResult?.gamma} decimals={4} unlocked={unlockedGreeks.gamma} />
-                            <GreekCell label="Theta (Θ)" value={greeksResult?.theta} decimals={3} unlocked={unlockedGreeks.theta} />
-                            <GreekCell label="Vega (ν)" value={greeksResult?.vega} decimals={3} unlocked={unlockedGreeks.vega} />
-                            <GreekCell label="Rho (ρ)" value={greeksResult?.rho} decimals={3} unlocked={unlockedGreeks.rho} />
                         </div>
                     </div>
 
