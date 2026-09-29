@@ -1,6 +1,8 @@
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
+from typing import Optional
 
+from ...models import Strategies
 from ...models.user import User
 from decimal import Decimal
 from ...models.tech_tree import TechTree
@@ -111,9 +113,8 @@ class TechTreeService:
         return {g for g, tech in GREEK_TECH_NAMES.items() if tech in unlocked}
 
     @staticmethod
-    def strategy_tech_name(strategy_name: str) -> str:
-        slug = strategy_name.strip().lower().replace(" ", "_").replace("-", "_")
-        return f"strategy_{slug}"
+    def strategy_tech_name(strategy: Strategies) -> Optional[str]:
+        return strategy.tech_tree_node
 
     @staticmethod
     def max_sandbox_balance(user: User) -> Decimal:
