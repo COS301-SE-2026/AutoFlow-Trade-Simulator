@@ -1,16 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Activity, BarChart2, Zap } from 'lucide-react';
+import { Activity, BarChart2, Zap, Lock } from 'lucide-react';
+import Link from 'next/link';
+import { useUnlockedGreeks, type GreekKey } from '@/hooks/useUnlockedGreeks';
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
 } from 'recharts';
 
 interface GreekData {
@@ -28,6 +30,14 @@ interface GreekData {
     chartData: { x: number; y: number }[];
 };
 
+const GREEK_ROW_KEY: Record<string, GreekKey> = {
+    Delta: 'delta',
+    Gamma: 'gamma',
+    Theta: 'theta',
+    Vega: 'vega',
+    Rho: 'rho',
+};
+
 const greeks: GreekData[] = [
     {
         symbol: 'Δ',
@@ -36,7 +46,7 @@ const greeks: GreekData[] = [
         range: '0 → 1 (Calls) / -1 → 0 (Puts)',
         atm: '~0.50',
         definition:
-        'Option price change per $1 move in the underlying. ATM calls ≈ 0.50; deep ITM → 1.00',
+            'Option price change per $1 move in the underlying. ATM calls ≈ 0.50; deep ITM → 1.00',
         long: 'Profits from directional moves. A 0.60 delta call gains R60 per R1 stock rise.',
         short: 'Directional risk. Must delta-hedge to stay neutral.',
         tagline: 'How much does an option price move per R1 in the stock?',
@@ -138,10 +148,13 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export default function GreeksDisplay() {
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
+    const { unlocked } = useUnlockedGreeks();
 
     const toggleRow = (name: string) => {
         setExpandedRow((prev) => (prev === name ? null : name))
     };
+
+    const anyLocked = Object.values(unlocked).some(v => !v);
 
     return (
         <div className='flex flex-col h-full gap-4'>
@@ -158,6 +171,20 @@ export default function GreeksDisplay() {
                     </div>
                 </div>
                 <div className='flex-1 flex flex-col bg-card border rounded-xl'>
+                    {anyLocked && (
+                        <div className='flex items-center justify-between gap-3 px-5 py-3 border-b border-[var(--border)] bg-[var(--background)]'>
+                            <p className='text-xs text-muted-foreground'>
+                                Some greeks are locked. Their calculated values will not appear in live simulations until you unlock them.
+                            </p>
+                            <Link
+                                href='/learning/techTree'
+                                className='shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border)] text-xs font-semibold text-[var(--blue)] hover:border-[var(--blue)] transition-colors'
+                            >
+                                <Lock className='w-3.5 h-3.5' />
+                                Go to Tech Tree
+                            </Link>
+                        </div>
+                    )}
                     <div className='grid grid-cols-[60px_1.2fr_1fr_1fr_1.2fr_1.2fr] gap-3 px-5 py-3 bg-blur/50 border-b text-xs font-semibold uppercase'>
                         <div>Greek</div>
                         <div>Range</div>
@@ -169,12 +196,14 @@ export default function GreeksDisplay() {
                     <div className='flex-1 overflow-y-auto'>
                         {greeks.map((row) => {
                             const isExpanded = expandedRow === row.name;
-                        
+                            const isLocked = !unlocked[GREEK_ROW_KEY[row.name]];
+
                             return (
                                 <div key={row.name} className='border-b last:border-0'>
                                     <button
                                         className={`w-full grid grid-cols-[60px_1.2fr_1fr_1fr_1.2fr_1.2fr] gap-3 px-5 py-4 text-sm text-left transition-colors hover:bg-muted/30
-                                            ${isExpanded ? 'bg-muted/20' : '' }`
+                                            ${isExpanded ? 'bg-muted/20' : '' }
+                                            ${isLocked ? 'opacity-60' : ''}`
                                         }
                                         onClick={() => toggleRow(row.name)}
                                     >
@@ -202,6 +231,19 @@ export default function GreeksDisplay() {
                                         {row.short}
                                     </div>
                                     </button>
+
+                                    {isLocked && (
+                                        <div className='px-5 pb-3'>
+                                            <Link
+                                                href='/learning/techTree'
+                                                className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border)] text-xs font-semibold text-[var(--blue)] hover:border-[var(--blue)] transition-colors'
+                                            >
+                                                <Lock className='w-3.5 h-3.5' />
+                                                Locked — Unlock in Tech Tree →
+                                            </Link>
+                                        </div>
+                                    )}
+
                                     {isExpanded && (
                                         <div className='px-5 pb-5 bg-muted/10'>
                                             <div className='grid grid-cols-2 gap-6 pt-4 border-t'>

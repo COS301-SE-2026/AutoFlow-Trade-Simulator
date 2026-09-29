@@ -4,6 +4,8 @@ from datetime import datetime,time
 from decimal import Decimal
 from typing import Dict, List, Optional
 from sqlmodel import   Session, col, select
+from ...models.user import User
+from ..tech_tree.TechTreeService import TechTreeService
 
 from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
@@ -39,22 +41,32 @@ class SimulationService:
             epic="Simulation",
             status="healthy",
         )
-        
-    def get_strategies(self)->StrategiesResponse:
-        strategies= self.session.exec(select(Strategies)).all()
-        summaries=[]
+
+    def get_strategies(self, user: User) -> StrategiesResponse:
+        strategies = self.session.exec(select(Strategies)).all()
+        summaries = []
         for s in strategies:
-            assert s.strat_id is not None, "Strategy ID should not be None"
-            summaries.append(StrategySummary(id=s.strat_id,name=s.name,level=s.level,category=s.category,description=s.description))
+            assert s.strat_id is not None
+            tech = TechTreeService.strategy_tech_name(s.name)
+            summaries.append(StrategySummary(
+                id=s.strat_id, name=s.name, level=s.level, category=s.category,
+                description=s.description,
+                unlocked=TechTreeService.is_unlocked(user, tech),
+            ))
         return StrategiesResponse(strategies=summaries)
     
-    def get_strategy_detail(self,strategy_id:int)->StrategyDetail:
-
-        strategy:Strategies|None=self.session.get(Strategies,strategy_id)
+    def get_strategy_detail(self, strategy_id: int, user: User) -> StrategyDetail:
+        strategy = self.session.get(Strategies, strategy_id)
         if strategy is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Strategy not found")
-        assert strategy.strat_id is not None, "Strategy ID should not be None"
-        return StrategyDetail(id=strategy.strat_id,name=strategy.name,level=strategy.level,category=strategy.category,description=strategy.description,steps=strategy.steps,pros=strategy.pros,cons=strategy.cons)
+            raise HTTPException(status_code=404, detail="Strategy not found")
+        assert strategy.strat_id is not None
+        tech = TechTreeService.strategy_tech_name(strategy.name)
+        return StrategyDetail(
+            id=strategy.strat_id, name=strategy.name, level=strategy.level,
+            category=strategy.category, description=strategy.description,
+            steps=strategy.steps, pros=strategy.pros, cons=strategy.cons,
+            unlocked=TechTreeService.is_unlocked(user, tech),
+        )
     
     def validate_limits(self,symbol:List[str],start:date,end:date):
         if len(symbol)>MAX_SYMBOLS:
@@ -263,8 +275,3 @@ class SimulationService:
         if sim.id is None:
             raise ValueError("sim id was not refreshed")
         return SimulationFinishResponse(simulation_id=sim.id,status=sim.status,start_date=sim.start_date,end_date=sim.end_date,initial_balance=sim.initial_balance,summary=summary)
-
-
-
-
-

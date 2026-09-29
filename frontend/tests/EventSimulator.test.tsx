@@ -3,7 +3,6 @@ import '@testing-library/jest-dom';
 import { EventSimulator } from '@/components/EventSimulator';
 import { startSimulation } from '@/lib/api/assets';
 import { apiClient } from '@/lib/api';
-import { ResponsiveContainer } from 'recharts';
 import { calc_greeks, calc_realized_volatility } from '@/lib/greeks';
 
 jest.mock('@/lib/greeks', () => ({
@@ -66,6 +65,12 @@ jest.mock('recharts', () => {
         )
     };
 });
+
+jest.mock('@/hooks/useUnlockedGreeks', () => ({
+    useUnlockedGreeks: () => ({
+        unlocked: { delta: true, gamma: true, theta: true, vega: true, rho: true },
+    }),
+}));
 
 describe('EventSimulator Component', () => {
     const mockOnBack = jest.fn();
