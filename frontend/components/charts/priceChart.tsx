@@ -64,6 +64,7 @@ export default function PriceChart({ ticker }: PriceChartProps) {
   const chartData = data.map((item) => ({
     ...item,
     name: item.timestamp.split('T')[0],
+    value: item.close,
   }));
  
     return (
@@ -106,7 +107,7 @@ export default function PriceChart({ ticker }: PriceChartProps) {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis
-                      dataKey="date"
+                      dataKey="name"
                       tick={{ fontSize: 11, fill: 'var(--muted)' }}
                       tickLine={false}
                       axisLine={false}
