@@ -10,6 +10,8 @@ from .PuzzleDTOs import (
     PuzzleSubmitResponse,
     TutorialCompleteRequest,
 )
+from ..RubricEngine.RubricEngineController import get_rubric_service
+from ..RubricEngine.RubricEngineService import RubricEngineService
 
 from ...core.security import get_current_user
 from ...database import get_session
@@ -36,9 +38,10 @@ def submit_puzzle (
     puzzle_id: int,
     req: PuzzleSubmitRequest,
     service: Annotated[PuzzleService, Depends(get_puzzle_service)],
+    rubric: Annotated[RubricEngineService, Depends(get_rubric_service)],
     user: Annotated[User, Depends(get_current_user)]
 ):
-    return service.submit_puzzle(puzzle_id, user.id, req.actions)
+    return service.submit_puzzle(puzzle_id, user.id, req.actions, rubric)
 
 
 @router.post("/tutorial/complete")
