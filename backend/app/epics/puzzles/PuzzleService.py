@@ -8,6 +8,7 @@ from sqlalchemy import func
 from sqlmodel import Session, select
 
 from ..RubricEngine.RubricEngineController import get_rubric_service
+from ..RubricEngine.RubricEngineDTO import EvaluationResultDTO
 from ...models.user import User
 from ..tech_tree.TechTreeService import TechTreeService
 
@@ -118,13 +119,18 @@ class PuzzleService:
         self.session.commit()
         self.session.refresh(puzzle)
 
-        service.evaluate_puzzle_for_user(
+        result: EvaluationResultDTO = service.evaluate_puzzle_for_user(
             strat_key=strategy.slug,
             puzzle_id=puzzle.id,
             user_id=user_id,
         )
 
-        award_puzzle_progression(self.session, puzzle.id, user_id, puzzle.rubric_score)
+        xp_awarded = award_puzzle_progression(
+            self.session,
+            puzzle.id,
+            user_id,
+            puzzle.rubric_score,
+        )
 
         return PuzzleSubmitResponse(
             puzzle_id=puzzle.id,
@@ -133,6 +139,8 @@ class PuzzleService:
             return_pct=float(((final_balance / puzzle.initial_balance) - 1) * 100),
             trades_count=len(actions),
             rubric_score=puzzle.rubric_score,
+            evaluation=result,
+            xp_awarded=xp_awarded,
         )
 
     def complete_tutorial(self, strategy_id: int, user_id: int) -> None:

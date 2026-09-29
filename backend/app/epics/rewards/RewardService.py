@@ -92,14 +92,14 @@ def award_puzzle_progression(
         puzzle_run_id: int,
         user_id: int,
         rubric_score: int,
-) -> None:
+) -> int:
     existing = db.exec(
         select(ProgressionGrant)
         .where(ProgressionGrant.source_type == ProgressionSource.puzzle)
         .where(ProgressionGrant.source_id == puzzle_run_id)
     ).first()
     if existing is not None:
-        return
+        return 0
 
     user = db.get(User, user_id)
     if user is None:
@@ -118,6 +118,7 @@ def award_puzzle_progression(
         )
     )
     db.commit()
+    return xp
 
 def award_tutorial_progression(
         db: Session,
