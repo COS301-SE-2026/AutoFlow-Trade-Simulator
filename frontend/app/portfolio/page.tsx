@@ -48,6 +48,8 @@ export default function PortfolioPage() {
                 selectedTicker={ticker}
                 onSelectAction={(selected) => setTicker(selected)}
               />
+            </div>
+            <div className='flex w-full p-4'>
               <AssetSummaryBar ticker={ticker} holding={selectedHolding} />
             </div>
 
