@@ -9,7 +9,7 @@ or via:    npm run db:seed       (from project root)
 """
 
 import json
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy import text
@@ -506,7 +506,7 @@ def _seed_news(session):
                 "source": row["source"],
                 "author": row["author"],
                 "full_story": row["full_story"],
-                "timestamp": datetime.utcnow() - timedelta(days=row["days_ago"]),
+                "timestamp": datetime.now(timezone.utc) - timedelta(days=row["days_ago"]),
             },
         )
         added += created
@@ -516,7 +516,7 @@ def _seed_news(session):
 def _seed_market_conditions(session):
     added = 0
     for row in market_condition_data:
-        d = datetime.utcnow() - timedelta(days=row["days_ago"])
+        d = datetime.now(timezone.utc) - timedelta(days=row["days_ago"])
         _, created = _get_or_create(
             session, MarketCondition, date=d,
             defaults={"condition": row["condition"]},
@@ -603,7 +603,7 @@ def _seed_portfolios_and_accounts(session):
             portfolio_id=portfolio.id, currency_id=usd.id,
             defaults={
                 "balance": Decimal("100000"),
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
             },
         )
         a_added += a_created
@@ -636,7 +636,7 @@ def _seed_transactions(session):
         ("ETH/USDT", Direction.Sell, Decimal("3"),   Decimal("3450.0000")),
     ]
     count = 0
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     for i, (sym, direction, qty, px) in enumerate(trades):
         asset = session.exec(select(Asset).where(Asset.symbol == sym)).first()
         if not asset:
@@ -666,7 +666,7 @@ def _seed_greeks(session):
                 "theta": Decimal("-0.0500"),
                 "vega":  Decimal("0.1200"),
                 "rho":   Decimal("0.0300"),
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(timezone.utc),
             },
         )
         added += created
@@ -698,7 +698,7 @@ def _seed_reports(session):
             session, Report, user_id=user.id,
             defaults={
                 "period": Period.Weekly,
-                "generated_at": datetime.utcnow(),
+                "generated_at": datetime.now(timezone.utc),
             },
         )
         report_added += created
@@ -728,7 +728,7 @@ def _seed_practice_simulation(session):
     ).first():
         return 0
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     sim = PracticeSimulation(
         user_id=alice.id,
         symbols=["AAPL", "MSFT"],
@@ -782,7 +782,7 @@ def _seed_progression_grants(session):
             defaults={
                 "xp_awarded": 50,
                 "elo_delta": 10,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(timezone.utc),
             },
         )
         added += created
@@ -810,7 +810,7 @@ def _seed_multiplayer(session):
     if existing:
         return 0, 0, 0
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     match = MultiplayerMatch(
         scenario_id=scenario.id,
         symbol=scenario.symbol,

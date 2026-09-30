@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
 from sqlmodel import   Session, select
 
@@ -22,7 +22,7 @@ class RealTimeDataService:
         if asset_id is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Asset not found for symbol: {symbol}")
 
-        today:datetime= datetime.utcnow()
+        today:datetime= datetime.now(timezone.utc)
         yesterday:datetime = today+timedelta(days=-1)
 
         ticks: list[RealTimeTicks] =list(self.session.exec(select(RealTimeTicks).where(RealTimeTicks.asset_id==asset_id).where(RealTimeTicks.timestamp>yesterday)).all())
@@ -37,7 +37,7 @@ class RealTimeDataService:
         return SymbolResponseDTO(symbols=symbols,count=count)
 
     def get_top_movers(self,limit:int=10)->MoversResponseDTO:
-        today:datetime= datetime.utcnow()
+        today:datetime= datetime.now(timezone.utc)
         yesterday:datetime = today+timedelta(days=-1)
 
         ticks: list[RealTimeTicks] = list(self.session.exec(

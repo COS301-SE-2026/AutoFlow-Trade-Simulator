@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from datetime import date,  timedelta
+from datetime import date,  timedelta, timezone
 from datetime import datetime,time
 from decimal import Decimal
 from typing import Dict, List, Optional
@@ -278,7 +278,7 @@ class SimulationService:
         sim.last_prices={s:float(v) for s,v in last_close.items()}
         sim.summary={"final_balance": float(final_balance),"returns_pct": float(returns_pct),"max_drawdown": float(max_dd),"trades_count": trades_count,"per_symbol_results": {s: {"final_value": float(r.final_value), "returns_pct": float(r.returns_pct)}for s, r in per_symbol_results.items()},}
         sim.status="completed"
-        sim.finished_at=datetime.utcnow()
+        sim.finished_at=datetime.now(timezone.utc)
         self.session.add(sim)
         self.session.commit()
         self.session.refresh(sim)

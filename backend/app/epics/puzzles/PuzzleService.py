@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import List, Annotated
 
@@ -114,7 +114,7 @@ class PuzzleService:
 
         puzzle.actions = [action.model_dump(mode="json") for action in actions]
         puzzle.final_balance = final_balance
-        puzzle.completed_at = datetime.utcnow()
+        puzzle.completed_at = datetime.now(timezone.utc)
         self.session.add(puzzle)
         self.session.commit()
         self.session.refresh(puzzle)

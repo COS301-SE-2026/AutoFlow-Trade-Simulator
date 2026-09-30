@@ -1,6 +1,6 @@
 import math
 from decimal import Decimal
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 
 from sqlmodel import Session, select
 from fastapi import HTTPException, status
@@ -195,7 +195,7 @@ class RubricEngineService:
                     day_index=act.day_index,
                     event_type=act.action,
                     payload={"qty": float(act.qty), "price": float(price)},
-                    created_at=bars[act.day_index].timestamp if act.day_index < len(bars) else datetime.utcnow()
+                    created_at=bars[act.day_index].timestamp if act.day_index < len(bars) else datetime.now(timezone.utc)
                 )
             )
         return events
@@ -210,7 +210,7 @@ class RubricEngineService:
             q_val = payload.get("qty") if "qty" in payload else payload.get("quantity", 0)
             qty = Decimal(str(q_val))
             price = Decimal(str(payload.get("price", 0)))
-            event_time = e.created_at or datetime.utcnow()
+            event_time = e.created_at or datetime.now(timezone.utc)
 
             if qty <= 0 or price <= 0:
                 continue
