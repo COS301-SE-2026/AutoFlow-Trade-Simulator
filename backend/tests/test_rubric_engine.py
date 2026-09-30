@@ -1,5 +1,4 @@
-import math
-from datetime import datetime, time, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
@@ -7,7 +6,7 @@ import pytest
 from fastapi import HTTPException, status
 
 from app.epics.RubricEngine.RubricEngineDTO import EvaluationResultDTO, ExecutionMetricDTO, Grade
-from app.epics.RubricEngine.RubricEngineService import RubricEngineService, GRADE_TO_RUBRIC_SCORE
+from app.epics.RubricEngine.RubricEngineService import RubricEngineService
 
 @pytest.fixture
 def mock_session():
@@ -37,7 +36,7 @@ def sample_bars():
     return [bar1, bar2, bar3]
 
 def test_get_match_or_404_success(rubric_service, mock_session):
-    mock_match = MagicMock(id=10, initial_balance=Decimal("10000"));
+    mock_match = MagicMock(id=10, initial_balance=Decimal("10000"))
     mock_session.exec.return_value.first.return_value = mock_match
 
     match = rubric_service._get_match_or_404(match_id=10)
@@ -117,7 +116,7 @@ def test_calculate_max_drawdown(rubric_service):
 
 def test_calculate_sharpe_ratio(rubric_service):
     returns = [0.01, 0.02, -0.01, 0.0015, -0.005]
-    sharpe = rubric_service._calculate_sharpe_ratio(returns);
+    sharpe = rubric_service._calculate_sharpe_ratio(returns)
     assert isinstance(sharpe, float)
     assert sharpe > 0.0
 
