@@ -9,7 +9,8 @@ export interface PuzzleStrategy {
 
 interface LearningContextType {
     strategyTutorialOpen: boolean;
-    openStrategyTutorial: () => void;
+    tutorialStrategyId: number | null;
+    openStrategyTutorial: (strategyId: number) => void;
     closeStrategyTutorial: () => void;
 
     puzzleStrategy: PuzzleStrategy | null;
@@ -20,11 +21,12 @@ interface LearningContextType {
 const LearningContext = createContext<LearningContextType | undefined>(undefined);
 
 export function LearningProvider({ children }: { readonly children: ReactNode }) {
-    const [strategyTutorialOpen, setStrategyTutorialOpen] = useState(false);
+    const [tutorialStrategyId, setTutorialStrategyId] = useState<number | null>(null);
+    const strategyTutorialOpen = tutorialStrategyId !== null;
     const [puzzleStrategy, setPuzzleStrategy] = useState<PuzzleStrategy | null>(null);
 
-    const openStrategyTutorial = () => setStrategyTutorialOpen(true);
-    const closeStrategyTutorial = () => setStrategyTutorialOpen(false);
+    const openStrategyTutorial = (strategyId: number) => setTutorialStrategyId(strategyId);
+    const closeStrategyTutorial = () => setTutorialStrategyId(null);
 
     const openStrategyPuzzle = (strategy: PuzzleStrategy) => setPuzzleStrategy(strategy);
     const closeStrategyPuzzle = () => setPuzzleStrategy(null);
@@ -32,6 +34,7 @@ export function LearningProvider({ children }: { readonly children: ReactNode })
     return (
         <LearningContext.Provider value={{
             strategyTutorialOpen,
+            tutorialStrategyId,
             openStrategyTutorial,
             closeStrategyTutorial,
             puzzleStrategy,
