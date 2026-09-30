@@ -21,7 +21,6 @@ import { useNews } from '@/hooks/useNews';
 import { useUnlockedGreeks } from '@/hooks/useUnlockedGreeks';
 import {NewsTicker} from "@/components/news/newsScroll";
 import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
-import next from 'next';
 import { driver, type Driver } from 'driver.js';
 import 'driver.js/dist/driver.css'
 
@@ -289,7 +288,7 @@ export function EventSimulator({
                 console.error('Failed to create simulation', e);
             }
         };
-        initialize();
+        void initialize();
     }, [event, startDate, endDate, isStrategy]);
 
     const { allPrices, allDates, allTimestamps } = useMemo(() => {
@@ -649,8 +648,16 @@ export function EventSimulator({
 
             <div className='flex gap-4 flex-1 min-h-0'>
                 <div
-                    id='tut-chart' 
+                    id='tut-chart'
+                    role='button'
+                    tabIndex={0}
                     onClick={() => { if (step?.elementId === 'tut-chart') advanceStep(); }}
+                    onKeyDown={(e) => {
+                        if ((e.key === 'Enter' || e.key === ' ') && step?.elementId === 'tut-chart') {
+                            e.preventDefault();
+                            advanceStep();
+                        }
+                    }}
                     className='flex-1 rounded-xl border border-[var(--border)] p-4'
                 >
                     <div className='flex justify-between'>
@@ -700,8 +707,16 @@ export function EventSimulator({
 
                 <div className='w-64 space-y-4'>
                     <div
-                        id='tut-portfolio' 
+                        id='tut-portfolio'
+                        role='button'
+                        tabIndex={0}
                         onClick={() => { if (step?.elementId === 'tut-portfolio') advanceStep(); }}
+                        onKeyDown={(e) => {
+                            if ((e.key === 'Enter' || e.key === ' ') && step?.elementId === 'tut-portfolio') {
+                                e.preventDefault();
+                                advanceStep();
+                            }
+                        }}
                         className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'
                     >
                         <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
@@ -771,7 +786,7 @@ export function EventSimulator({
                                     side={pendingTrade.type} 
                                     quantity={Number.parseFloat(qty)} 
                                     price={Number.parseFloat(currentPrice)} 
-                                    onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }}
+                                    onConfirm={async () => { await execute(pendingTrade.type); setPendingTrade(null) }}
                                     onCancel={() => { setPendingTrade(null) }} orderType="market" 
                                 />
                             )}
