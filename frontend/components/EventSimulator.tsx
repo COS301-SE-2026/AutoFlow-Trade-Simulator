@@ -854,7 +854,7 @@ function GreekCell({ label, value, decimals, unlocked }: {
         <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
             <span className='text-gray-400 block text-[10px]'>{label}</span>
             <span className={`font-mono font-bold text-sm ${value !== undefined ? 'text-white' : 'text-gray-500'}`}>
-                {value !== undefined ? value.toFixed(decimals) : '0.000'}
+                {(value ?? 0).toFixed(decimals)}
             </span>
         </div>
     );
