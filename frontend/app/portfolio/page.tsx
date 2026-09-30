@@ -41,7 +41,7 @@ export default function PortfolioPage() {
             <div className="w-full min-w-0 md:col-span-3">
               <PortfolioPerformanceChart accountId={activeAccount.id} />
             </div>
-            <div className="flex w-full min-w-0 flex-col gap-5 md:col-span-3 lg:flex-row">
+            <div className="flex w-full min-w-0 gap-5 md:col-span-3 lg:flex-row">
               <HoldingsSummary
                 holdings={holdings}
                 loading={holdingsLoading}

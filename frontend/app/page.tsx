@@ -9,38 +9,42 @@ const features = [
         icon: History,
         title: 'Historical Replay',
         body: "Replay real events like the COVID crash, NVIDIA AI Surge, and more. Trade them day-by-day and see how well you'd perform.",
+        image: '/help/help2/Untitled.png',
         span: '',
     },
     {
         icon: BookOpen,
         title: 'Strategy Library',
         body: 'Learn proven strategies from dollar-cost averaging to iron condors. Step-by-step guides with pros and cons.',
-        image: '/help/strategylist.png',
+        image: '/help/help2/Untitled.png',
         span: 'md:col-span-2 md:row-span-2',
     },
     {
         icon: Shield,
         title: 'Risk-Free Practice',
         body: 'Practice with virtual money in a sandbox environment. Build confidence before risking real capital.',
+        image: '/help/help2/Untitled.png',
         span: '',
     },
     {
         icon: Triangle,
         title: 'Options Greeks',
         body: 'Master Delta, Gamma, Theta, Vega, and Rho with interactive charts and real-world examples.',
-        image: '/help/greeks.png',
+        image: '/help/help2/Untitled.png',
         span: 'md:col-span-2',
     },
     {
         icon: ChartLine,
         title: 'Live Charts',
         body: 'Watch the price unfold with real-time charts. See how your trades would have performed.',
+        image: '/help/help2/Untitled.png',
         span: '',
     },
     {
         icon: BrainCircuit,
         title: 'Multiplayer Mode',
         body: 'Test your skills against fellow traders in exciting 1v1 pertured scenarios.',
+        image: '/help/help2/Untitled.png',
         span: 'md:col-span-3',
         wide: true,
     },
@@ -111,7 +115,7 @@ export default function SplashPage() {
                     <div className="relative">
                         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#1b1b22] shadow-[0_30px_80px_-20px_rgba(28,117,188,0.35)]">
                             <Image
-                                src="/help/dashboard.png"
+                                src="/help/help1/Untitled.png"
                                 alt="The AutoFlow dashboard showing top movers and an AAPL price chart"
                                 width={1721}
                                 height={994}
@@ -132,9 +136,8 @@ export default function SplashPage() {
                         {features.map(({ icon: Icon, title, body, image, span, wide }) => (
                             <article
                                 key={title}
-                                className={`group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.85)] transition-colors hover:border-[rgba(28,117,188,0.45)] ${span} ${
-                                    wide ? 'md:flex-row md:items-center' : ''
-                                }`}
+                                className={`group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.85)] transition-colors hover:border-[rgba(28,117,188,0.45)] ${span} ${wide ? 'md:flex-row md:items-center' : ''
+                                    }`}
                             >
                                 <div className={`relative z-10 p-6 ${wide ? 'md:max-w-[60%]' : ''}`}>
                                     <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(28,117,188,0.12)] text-[#6fb4ea]">
