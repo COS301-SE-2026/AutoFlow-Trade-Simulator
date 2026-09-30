@@ -18,15 +18,6 @@ interface AccountSelectorProps {
     required?: boolean;
 }
 
-const actionStyle = {
-    border: '1px solid rgba(105, 80, 161, 0.55)',
-    background: 'rgba(38, 34, 98, 0.45)',
-    color: '#fff',
-    borderRadius: '12px',
-    fontSize: '13.5px',
-    fontWeight: 700,
-} as const;
-
 export function AccountSelector({ placeholder = "Select account", label, onChange, required }: AccountSelectorProps) {
     const { accounts, activeAccount, isLoading, update, refetchAccounts } = useAccount();
 
@@ -41,7 +32,7 @@ export function AccountSelector({ placeholder = "Select account", label, onChang
     return (
         <div>
             {label && (
-                <label style={{ fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>
+                <label className="mb-1 block text-xs font-medium text-white/60">
                     {label}
                 </label>
             )}
@@ -53,23 +44,17 @@ export function AccountSelector({ placeholder = "Select account", label, onChang
             }}
             required={required} 
             disabled={isLoading || !accounts?.length}>
-                <SelectTrigger style={{ ...actionStyle, padding: '9px 14px', height: 'auto', minWidth: '160px' }} className="hover:border-purple-500/60">
+                <SelectTrigger aria-label="Active account" className="tabular-nums h-9 min-w-[160px] rounded-lg border border-white/10 bg-white/[0.04] px-3 text-[13.5px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/[0.07]">
                     <SelectValue placeholder={isLoading ? "Loading..." : placeholder} />
                 </SelectTrigger>
-                <SelectContent style={{
-                    background: 'rgba(20, 20, 38, 0.95)',
-                    border: '1px solid rgba(105, 80, 161, 0.4)',
-                    backdropFilter: 'blur(16px)',
-                    color: '#fff',
-                    borderRadius: '12px',
-                }}>
+                <SelectContent className="rounded-xl border border-white/10 bg-[#12121c] text-white">
                     <SelectGroup>
                         {accounts?.map((account) => {
                             const formattedBalance = Number.parseFloat(account.balance).toFixed(2);
                             const flag = account.currency_code.substring(0, 2).toLocaleLowerCase();
 
                             return(
-                            <SelectItem key={account.id} value={account.id.toString()} className="py-3 text-base">
+                            <SelectItem key={account.id} value={account.id.toString()} className="tabular-nums py-2.5 text-sm focus:bg-white/10">
                                 <Image
                                     src={`https://flagcdn.com/w20/${flag}.png`}
                                     className="flag inline-block mr-2 w-5 h-auto"

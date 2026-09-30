@@ -18,6 +18,7 @@ jest.mock('@/hooks/useSandBoxCap', () => ({
 }))
 
 jest.mock('next/navigation', () => ({
+    usePathname: () => '/help',
     useRouter: () => ({
         push: jest.fn(),
         replace: jest.fn(),

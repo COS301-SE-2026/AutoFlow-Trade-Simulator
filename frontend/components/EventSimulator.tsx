@@ -63,14 +63,9 @@ const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload?.length) {
         const data = payload[0].payload;
         return (
-            <div style={{
-                backgroundColor: '#414042',
-                border: '1px solid #ffffff4b',
-                padding: '8px',
-                borderRadius: '4px',
-            }}>
-                <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Data: {data.date}</p>
-                <p style={{ margin: '2px 0', fontSize: '12px' }}>Price {data.price}</p>
+            <div className='rounded-lg border border-white/10 bg-[#12121c] px-3 py-2 text-xs shadow-lg'>
+                <p className='mb-1 text-white/55'>Data: {data.date}</p>
+                <p className='tabular-nums font-semibold'>Price {data.price}</p>
             </div>
         );
     }
@@ -513,7 +508,8 @@ export function EventSimulator({
 
     if (!simData) {
         return (
-            <div className='bg-green-950 p-6 white rounded-xl border border-[var(--border)]'>
+            <div aria-busy='true' className='flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-6 text-sm text-white/70'>
+                <span aria-hidden='true' className='h-4 w-4 rounded-full border-2 border-white/15 border-t-[var(--blue)] motion-safe:animate-spin' />
                 Loading simulation...
             </div>
         )
@@ -522,39 +518,38 @@ export function EventSimulator({
     if (finalSummary) {
         const { summary } = finalSummary;
         return (
-            <div className='flex justify-center'>
-                <div className='p-8 py-12 bg-[var(--background)] border border-[var(--border)] rounded-xl space-y-4 h-full'>
-                    <div className='text-white font-bold text-xl text-center'>
-                        Simulation Finished
+            <div className='flex justify-center py-6'>
+                <div className='w-full max-w-xl rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.85)] p-8'>
+                    <div className='mb-6 text-center'>
+                        <h2 className='text-2xl font-semibold'>Simulation Finished</h2>
+                        <p className='mt-1 text-sm text-[var(--muted)]'>{event.title}</p>
                     </div>
-                    <div className='grid grid-cols-2 gap-4 text-sm'>
-                        <div className='text-center text-lg'>
-                            Final Balance: <span className='font-bold'>
-                                R {Number.parseFloat(summary.final_balance).toFixed(2)}
-                            </span>
+                    <dl className='mb-8 grid grid-cols-2 gap-3'>
+                        <div className='rounded-xl border border-[var(--border)] bg-white/[0.02] p-4'>
+                            <dt className='text-xs font-medium text-white/50'>Final Balance</dt>
+                            <dd className='tabular-nums mt-1 text-xl font-semibold'>R {Number.parseFloat(summary.final_balance).toFixed(2)}</dd>
                         </div>
-                        <div className='text-center text-lg'>
-                            Return:<span className={Number.parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green)] font-bold' : 'text-[var(--red)] font-bold'}
-                            > {Number.parseFloat(summary.returns_pct)}%</span>
+                        <div className='rounded-xl border border-[var(--border)] bg-white/[0.02] p-4'>
+                            <dt className='text-xs font-medium text-white/50'>Return</dt>
+                            <dd className={`tabular-nums mt-1 text-xl font-semibold ${Number.parseFloat(summary.returns_pct) >= 0 ? 'text-[var(--green-light)]' : 'text-[#ff6b72]'}`}>{Number.parseFloat(summary.returns_pct)}%</dd>
                         </div>
-                        <div className='text-center text-lg'>
-                            Max Drawdown: <span className='text-[var(--red)]'>
-                                {Number.parseFloat(summary.max_drawdown).toFixed(2)}%</span>
+                        <div className='rounded-xl border border-[var(--border)] bg-white/[0.02] p-4'>
+                            <dt className='text-xs font-medium text-white/50'>Max Drawdown</dt>
+                            <dd className='tabular-nums mt-1 text-xl font-semibold text-[#ff6b72]'>{Number.parseFloat(summary.max_drawdown).toFixed(2)}%</dd>
                         </div>
-                        <div className='text-center text-lg'>
-                            Trades:<span className='font-bold'> {summary.trades_count}</span>
+                        <div className='rounded-xl border border-[var(--border)] bg-white/[0.02] p-4'>
+                            <dt className='text-xs font-medium text-white/50'>Trades</dt>
+                            <dd className='tabular-nums mt-1 text-xl font-semibold'>{summary.trades_count}</dd>
                         </div>
-                    </div>
-                    <div className='flex items-center justify-center'>
-                        <button
-                            
-                            type='button'
-                            onClick={onBack}
-                            className='flex self-center px-4 py-2 bg-blue-900 text-white rounded-xl'
-                        >
-                            Back to Events
-                        </button>
-                    </div>
+                    </dl>
+                    <button
+                        type='button'
+                        onClick={onBack}
+                        className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--blue)] font-semibold text-white transition-[background-color,transform] hover:bg-[#2385d1] active:scale-[0.98]'
+                    >
+                        <MoveLeft aria-hidden='true' className='h-4 w-4' />
+                        Back to Events
+                    </button>
                 </div>
             </div>
         );
@@ -563,75 +558,65 @@ export function EventSimulator({
     const total = Number.parseFloat(qty) > 0 ? Number.parseFloat(qty) * Number.parseFloat(currentPrice) : 0;
 
     return (
-        <div className='flex flex-col p-4 h-full'>
-            <div className='flex justify-between items-center gap-3'>
-                <div className='flex items-center gap-3'>
+        <div className='flex h-full flex-col gap-4'>
+            <div className='flex flex-wrap items-center justify-between gap-3'>
+                <div className='flex min-w-0 items-center gap-3'>
                     <button
                         type='button'
                         onClick={onBack}
-                        className='text-sm text-gray-200 hover:text-white-100 p-4'
+                        className='inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white'
                     >
-                        <div className='flex items-center gap-3'>
-                            <MoveLeft />
-                            <span>Back</span>
-                        </div>
+                        <MoveLeft aria-hidden='true' className='h-4 w-4' />
+                        <span>Back</span>
                     </button>
-                    <span className='font-bold text-blue-400'>{event.ticker}</span>
-                    <span className='font-semibold'>{event.title}</span>
+                    <span className='rounded-md bg-[rgba(28,117,188,0.15)] px-2 py-0.5 font-mono text-sm font-semibold text-[#6fb4ea]' translate='no'>{event.ticker}</span>
+                    <h2 className='truncate font-semibold'>{event.title}</h2>
                 </div>
-                <button
-                    id='tut-play'
-                    type='button'
-                    onClick={() => { setIsPlaying(b => !b) }}
-                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
-                >
-                    <div className='flex items-center gap-3'>
-                        {isPlaying ? <><Pause /> Pause</> : <><Play /> Play</>}
-                    </div>
-                </button>
+                <div className='flex flex-wrap items-center gap-2'>
+                    <button
+                        id='tut-play'
+                        type='button'
+                        onClick={() => { setIsPlaying(b => !b) }}
+                        className='inline-flex h-9 min-w-[92px] items-center justify-center gap-1.5 rounded-lg bg-[var(--blue)] px-3 text-sm font-semibold text-white transition-[background-color,transform] hover:bg-[#2385d1] active:scale-[0.98]'
+                    >
+                        {isPlaying ? <><Pause aria-hidden='true' className='h-4 w-4' /> Pause</> : <><Play aria-hidden='true' className='h-4 w-4' /> Play</>}
+                    </button>
 
-                <div className='flex flex-row gap-1 bg-blue-900 border border-[var(--border)] items-center px-3 rounded-xl font-semibold text-sm'>
-                    <Gauge className='mr-2' />
-                    <span className='mr-2'>Speed Controls:</span>
-                    {[1, 2, 4].map((s) => {
-
-                        return (
+                    <div role='group' aria-label='Playback speed' className='inline-flex h-9 items-center gap-0.5 rounded-lg border border-white/10 bg-white/[0.03] p-0.5'>
+                        <Gauge aria-hidden='true' className='mx-1.5 h-4 w-4 text-white/50' />
+                        {[1, 2, 4].map((s) => (
                             <button
                                 key={s}
                                 type='button'
+                                aria-pressed={speed == s}
                                 onClick={() => { setSpeed(s) }}
-                                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm border-[var(--border)] border-2
-                                ${speed == s ? 'bg-[var(--background-alt)]' : 'bg-blue-900'}`}
+                                className={`tabular-nums h-full rounded-md px-2.5 text-sm font-semibold transition-colors ${speed == s ? 'bg-[var(--background-alt)] text-white shadow-sm ring-1 ring-white/10' : 'text-white/55 hover:text-white'}`}
                             >
                                 {s}x
                             </button>
-                        )
-                    })}
+                        ))}
+                    </div>
+
+                    <button
+                        id='tut-skip'
+                        type='button'
+                        onClick={() => { setDayIndex(d => Math.min(d + 1, allPrices.length)) }}
+                        className='inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-white/85 transition-colors hover:bg-white/[0.08] hover:text-white'
+                    >
+                        <ChevronsRight aria-hidden='true' className='h-4 w-4' />
+                        <span>Skip Forward</span>
+                    </button>
+
+                    <button
+                        id='tut-finish'
+                        type='button'
+                        onClick={finish}
+                        className='inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-white/85 transition-colors hover:bg-white/[0.08] hover:text-white'
+                    >
+                        <Check aria-hidden='true' className='h-4 w-4' />
+                        <span>View Simulation Summary</span>
+                    </button>
                 </div>
-
-                <button
-                    id='tut-skip'
-                    type='button'
-                    onClick={() => { setDayIndex(d => Math.min(d + 1, allPrices.length)) }}
-                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
-                >
-                    <div className='flex items-center gap-3'>
-                        <ChevronsRight />
-                        <span className='text-white'>Skip Forward</span>
-                    </div>
-                </button>
-
-                <button
-                    id='tut-finish'
-                    type='button'
-                    onClick={finish}
-                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
-                >
-                    <div className='flex items-center gap-3'>
-                        <Check />
-                        <span className='text-white'>View Simulation Summary</span>
-                    </div>
-                </button>
             </div>
 
             {!isStrategy && (
@@ -646,22 +631,24 @@ export function EventSimulator({
                 </>
             )}
 
-            <div className='flex gap-4 flex-1 min-h-0'>
+            <div className='flex min-h-0 flex-1 flex-col gap-4 lg:flex-row'>
                 <button
                     id='tut-chart'
                     type='button'
                     onClick={() => { if (step?.elementId === 'tut-chart') advanceStep(); }}
-                    className='flex-1 text-left rounded-xl border border-[var(--border)] p-4'
+                    className='flex min-h-[420px] min-w-0 flex-1 flex-col rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-5 text-left'
                 >
-                    <div className='flex justify-between'>
-                        <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
-                        <div className='text-xl font-bold'>COST: R{Number.parseFloat(currentPrice).toFixed(2)}</div>
-                        <div className={`text-sm flex items-center gap-1 ${priceChangePct >= 0 ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`}>
-                            {priceChangePct >= 0 ? <TrendingUp className='w-4 h-4' /> : <TrendingDown className='w-4 h-4' />}
+                    <div className='mb-4 flex flex-wrap items-end justify-between gap-3'>
+                        <div>
+                            <div className='text-xs font-medium text-white/50'>{allDates[dayIndex]}</div>
+                            <div className='tabular-nums mt-1 text-2xl font-semibold'>COST: R{Number.parseFloat(currentPrice).toFixed(2)}</div>
+                        </div>
+                        <div className={`tabular-nums inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-semibold ${priceChangePct >= 0 ? 'bg-[rgba(0,148,68,0.15)] text-[var(--green-light)]' : 'bg-[rgba(247,148,29,0.15)] text-[var(--orange)]'}`}>
+                            {priceChangePct >= 0 ? <TrendingUp aria-hidden='true' className='w-4 h-4' /> : <TrendingDown aria-hidden='true' className='w-4 h-4' />}
                             {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
                         </div>
                     </div>
-                    <div style={{ width: '100%', height: '85%' }}>
+                    <div className='min-h-0 w-full flex-1'>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
                                 data={chartData}
@@ -669,13 +656,13 @@ export function EventSimulator({
                             >
                                 <defs>
                                     <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
-                                        <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
+                                        <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.45} />
                                         <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff59" />
-                                <XAxis dataKey="date" stroke="#ffffff" tick={{ fontSize: 10 }} />
-                                <YAxis domain={['auto', 'auto']} stroke="#ffffff" tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                                <XAxis dataKey="date" stroke="rgba(255,255,255,0.45)" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} minTickGap={24} />
+                                <YAxis domain={['auto', 'auto']} stroke="rgba(255,255,255,0.45)" tickLine={false} axisLine={false} tickFormatter={(v) => v.toFixed(2)} width={55} tick={{ fontSize: 10 }} />
                                 <Tooltip
                                     cursor={{ stroke: '#9ca3af' }}
                                     content={<CustomTooltip />}
@@ -684,7 +671,7 @@ export function EventSimulator({
                                     type="monotone"
                                     dataKey="price"
                                     stroke='var(--blue)'
-                                    strokeWidth={4}
+                                    strokeWidth={2.5}
                                     fill={`url(#grad-${event.id})`}
                                     dot={false}
                                     activeDot={{ r: 4, stroke: '#1c75bc' }}
@@ -692,44 +679,58 @@ export function EventSimulator({
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
-                    <div className='mt-2 mb-3 h-1 bg-gray-800 rounded-full'>
-                        <div className='h-full bg-[var(--blue)] rounded-full' style={{ width: `${((dayIndex + 1) / allPrices.length) * 100}%` }}></div>
+                    <div className='mt-4 flex items-center gap-3'>
+                        <div
+                            role='progressbar'
+                            aria-label='Simulation progress'
+                            aria-valuemin={1}
+                            aria-valuemax={allPrices.length}
+                            aria-valuenow={dayIndex + 1}
+                            className='h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.06]'
+                        >
+                            <div className='h-full rounded-full bg-[var(--blue)] transition-[width] duration-300' style={{ width: `${((dayIndex + 1) / allPrices.length) * 100}%` }}></div>
+                        </div>
+                        <div className='tabular-nums shrink-0 text-xs text-white/55'>Day {dayIndex + 1} of {allPrices.length}</div>
                     </div>
-                    <div className='text-xs mt-1'>Day {dayIndex + 1} of {allPrices.length}</div>
                 </button>
 
-                <div className='w-64 space-y-4'>
+                <div className='flex w-full flex-col gap-4 lg:w-[300px] lg:shrink-0'>
                     <button
                         id='tut-portfolio'
                         type='button'
                         onClick={() => { if (step?.elementId === 'tut-portfolio') advanceStep(); }}
-                        className='w-full text-left p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'
+                        className='w-full rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-4 text-left'
                     >
-                        <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
-                        <div className='flex justify-between'>
-                            <span>Cash</span>
-                            <span className='text-lg font-bold text-[var(--green)]'>R {cash.toFixed(2)}</span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span>{event.ticker}</span>
-                            <span>{shares} sh</span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span>Total</span>
-                            <span className='text-lg font-bold text-[var(--green)]'>R {portfolioValue.toFixed(2)}</span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span>Profit & Loss</span>
-                            <span className={`${totalProfit >= 0 ? 'text-[var(--green)]' : 'text-[var(--red)]'}`}>
-                                R{totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)} ({profitPct >= 0 ? '+' : ''}{profitPct.toFixed(1)}%)
-                            </span>
-                        </div>
+                        <h3 className='mb-3 text-sm font-semibold'>Portfolio</h3>
+                        <dl className='tabular-nums flex flex-col gap-2 text-sm'>
+                            <div className='flex justify-between gap-3'>
+                                <dt className='text-white/55'>Cash</dt>
+                                <dd className='font-semibold'>R {cash.toFixed(2)}</dd>
+                            </div>
+                            <div className='flex justify-between gap-3'>
+                                <dt className='text-white/55' translate='no'>{event.ticker}</dt>
+                                <dd>{shares} sh</dd>
+                            </div>
+                            <div className='flex justify-between gap-3 border-t border-[var(--border)] pt-2'>
+                                <dt className='text-white/55'>Total</dt>
+                                <dd className='text-base font-semibold'>R {portfolioValue.toFixed(2)}</dd>
+                            </div>
+                            <div className='flex justify-between gap-3'>
+                                <dt className='text-white/55'>Profit & Loss</dt>
+                                <dd className={`font-semibold ${totalProfit >= 0 ? 'text-[var(--green-light)]' : 'text-[#ff6b72]'}`}>
+                                    R{totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)} ({profitPct >= 0 ? '+' : ''}{profitPct.toFixed(1)}%)
+                                </dd>
+                            </div>
+                        </dl>
                     </button>
-                    <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
-                        <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
+                    <div className='rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-4'>
+                        <div className='tabular-nums mb-3 text-sm font-semibold'>Trade at R{Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
+                        <label htmlFor='tut-qty' className='mb-1.5 block text-xs font-medium text-white/55'>Quantity</label>
                         <input
                             id='tut-qty'
+                            name='quantity'
                             type='number'
+                            inputMode='numeric'
                             min="1"
                             step='1'
                             value={qty}
@@ -739,30 +740,30 @@ export function EventSimulator({
                                 if (Number.isNaN(n) || n < 1) setQty('1');
                             }}
                             placeholder='Quantity'
-                            className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
+                            className='tabular-nums mb-3 h-10 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-center text-sm font-semibold [color-scheme:dark] focus:border-[var(--blue)] focus:outline-none focus:ring-2 focus:ring-[rgba(28,117,188,0.35)]'
                         />
                         {total > 0 && (
-                            <div className='text-xs mb-2 mt-2 text-center'>
-                                Cost:<span className='font-bold text-lg'> R{total.toFixed(2)}</span>
+                            <div className='tabular-nums mb-3 flex items-baseline justify-between text-xs text-white/55'>
+                                Cost:<span className='text-base font-semibold text-white'> R{total.toFixed(2)}</span>
                             </div>
                         )}
                         {tradeError && (
-                            <div className='text-xs mb-2 mt-2 text-[var(--red)]'>
+                            <div role='alert' className='mb-3 rounded-lg bg-[rgba(237,28,36,0.1)] px-3 py-2 text-xs text-[#ff6b72]'>
                                 {tradeError}
                             </div>
                         )}
-                        <div className='flex gap-2 justify-evenly'>
+                        <div className='flex gap-2'>
                             <button
                                 id='tut-buy'
                                 type='button'
-                                className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
+                                className='h-10 flex-1 rounded-lg bg-[var(--green)] text-sm font-semibold text-white transition-[background-color,transform] hover:bg-[#00a84e] active:scale-[0.98]'
                                 onClick={() => setPendingTrade({ type: 'buy' })}
                             >
                                 Buy
                             </button>
                             <button
                                 type='button'
-                                className='w-full py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
+                                className='h-10 flex-1 rounded-lg bg-[#d4262d] text-sm font-semibold text-white transition-[background-color,transform] hover:bg-[var(--red)] active:scale-[0.98]'
                                 onClick={() => setPendingTrade({ type: 'sell' })}
                             >
                                 Sell
@@ -779,20 +780,21 @@ export function EventSimulator({
                         </div>
                     </div>
 
-                    <div className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)] space-y-2'>
-                        <div className='flex justify-between items-center text-xs font-bold text-blue-400 uppercase tracking-wider'>
-                            <span>Call Option Risk</span>
-                            <span className='text-gray-400 font-normal'>DTE: {daysToExpiration}d</span>
+                    <div className='rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-4 space-y-3'>
+                        <div className='flex items-center justify-between'>
+                            <h3 className='text-sm font-semibold'>Call Option Risk</h3>
+                            <span className='tabular-nums text-xs text-white/50'>DTE: {daysToExpiration}d</span>
                         </div>
 
-                        <div className='flex items-center justify-between text-xs bg-gray-800/50 p-1.5 rounded-lg border border-gray-700/50'>
-                            <span className='text-gray-400'>Strike Price </span>
+                        <div className='flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-xs'>
+                            <label htmlFor='strike-price' className='text-white/55'>Strike Price</label>
                             <div className='flex items-center gap-1'>
                                 <input
+                                    id='strike-price'
                                     type='number'
                                     value={strikePrice}
                                     onChange={(e) => { setStrikePrice(Number.parseFloat(e.target.value) || 0); setStrikeManuallySet(true) }}
-                                    className='w-20 bg-gray-900 text-right px-2 py-0.5 rounded text-white text-xs font-mono border border-gray-700'
+                                    className='w-20 rounded-md border border-white/10 bg-white/[0.05] px-2 py-0.5 text-right font-mono text-xs text-white [color-scheme:dark] focus:border-[var(--blue)] focus:outline-none'
                                 />
                                 <Button
                                     type='button'
@@ -808,7 +810,7 @@ export function EventSimulator({
                             </div>
                         </div>
 
-                        <div className='grid grid-cols-2 gap-2 text-xs pt-1'>
+                        <div className='grid grid-cols-2 gap-2 text-xs'>
                             <GreekCell label="Delta (Δ)" value={greeksResult?.delta} decimals={3} unlocked={unlockedGreeks.delta} />
                             <GreekCell label="Gamma (Γ)" value={greeksResult?.gamma} decimals={4} unlocked={unlockedGreeks.gamma} />
                             <GreekCell label="Theta (Θ)" value={greeksResult?.theta} decimals={3} unlocked={unlockedGreeks.theta} />
@@ -817,16 +819,18 @@ export function EventSimulator({
                         </div>
                     </div>
 
-                    <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
-                        History
-                        {trades.length === 0 ? <p>No trades</p> : [...trades].reverse().map((t, i) => (
-                            <div key={"n" + i} className='flex items-center gap-2 mb-1'>
-                                <span className={`font-bold ${t.type === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
-                                <span className='text-xs'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
-                            </div>
-                        ))
-
-                        }
+                    <div className='rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-4'>
+                        <h3 className='mb-3 text-sm font-semibold'>History</h3>
+                        {trades.length === 0 ? <p className='text-xs text-white/45'>No trades</p> : (
+                            <ul className='flex max-h-48 flex-col gap-1.5 overflow-y-auto'>
+                                {[...trades].reverse().map((t, i) => (
+                                    <li key={"n" + i} className='flex items-center gap-2'>
+                                        <span aria-hidden='true' className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${t.type === 'buy' ? 'bg-[rgba(0,148,68,0.15)] text-[var(--green-light)]' : 'bg-[rgba(247,148,29,0.15)] text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
+                                        <span className='tabular-nums text-xs text-white/75'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 </div>
             </div>
@@ -842,19 +846,19 @@ function GreekCell({ label, value, decimals, unlocked }: {
 }) {
     if (!unlocked) {
         return (
-            <div className='bg-gray-800/30 p-2 rounded-lg border border-gray-700/30'>
-                <span className='text-gray-500 block text-[10px]'>{label}</span>
-                <span className='inline-flex items-center gap-1 text-gray-500 font-bold text-sm'>
-                    <Lock className='w-3 h-3' />
+            <div className='rounded-lg border border-white/[0.06] bg-white/[0.02] p-2'>
+                <span className='block text-[10px] text-white/40'>{label}</span>
+                <span className='inline-flex items-center gap-1 text-sm font-semibold text-white/40'>
+                    <Lock aria-hidden='true' className='w-3 h-3' />
                     Locked
                 </span>
             </div>
         );
     }
     return (
-        <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
-            <span className='text-gray-400 block text-[10px]'>{label}</span>
-            <span className={`font-mono font-bold text-sm ${value !== undefined ? 'text-white' : 'text-gray-500'}`}>
+        <div className='rounded-lg border border-white/10 bg-white/[0.04] p-2'>
+            <span className='block text-[10px] text-white/55'>{label}</span>
+            <span className={`font-mono tabular-nums font-semibold text-sm ${value !== undefined ? 'text-white' : 'text-white/40'}`}>
                 {(value ?? 0).toFixed(decimals)}
             </span>
         </div>

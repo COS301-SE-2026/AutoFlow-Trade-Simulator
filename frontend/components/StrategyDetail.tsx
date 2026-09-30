@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useStrategies, type StrategyDetail as StrategyDetailData } from '@/hooks/useStrategies';
 import { useLearning } from '@/context/LearningContext';
 import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
-import { X, Lock, Brain } from 'lucide-react';
+import { X, Lock, Brain, ThumbsUp, ThumbsDown, Play } from 'lucide-react';
 import Link from 'next/link';
 import { getPuzzleGuide } from '@/lib/puzzleGuides';
 
@@ -31,181 +31,160 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
             .finally(() => setLoading(false));
     }, [id, fetchDetail]);
 
-    // Loading State
-    if (loading) {
-        return (
-            <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
-                <div className='card !p-8 max-w-md w-full'>
-                    <div className='flex justify-between items-center mb-4'>
-                        <h3 className='text-xl font-bold'>Loading...</h3>
-                        <button
-                            type='button'
-                            data-testid="close"
-                            onClick={onClose}
-                            className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
-                        >
-                            <X />
-                        </button>
-                    </div>
+    return (
+        <Shell onClose={onClose} title={loading ? 'Loading...' : (strategy === null || error) ? 'Strategy Not Found' : strategy.name} tone={!loading && (strategy === null || error) ? 'error' : 'default'}>
+            {loading ? (
+                <>
                     <div className='flex items-center justify-center py-8'>
-                        <div className='animate-spin rounded-full h-8 w-8 border-2 border-[var(--border)] border-t-[var(--blue)]'></div>
+                        <div className='motion-safe:animate-spin rounded-full h-8 w-8 border-2 border-[var(--border)] border-t-[var(--blue)]'></div>
                     </div>
-                    <p className='text-sm text-gray-400 text-center'>Loading strategy details...</p>
-                </div>
-            </div>
-        )
-    }
-
-    // Error / Not Found State
-    if ((strategy === null) || error) {
-        return (
-            <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
-                <div className='card !p-8 max-w-md w-full'>
-                    <div className='flex justify-between items-center mb-4'>
-                        <h3 className='text-xl font-bold text-red-400'>Strategy Not Found</h3>
-                        <button
-                            type='button'
-                            data-testid="close"
-                            onClick={onClose}
-                            className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
-                        >
-                            <X />
-                        </button>
-                    </div>
-                    <p className='text-sm text-gray-400 mb-6'>
+                    <p className='text-sm text-[var(--muted)] text-center'>Loading strategy details...</p>
+                </>
+            ) : (strategy === null || error) ? (
+                <>
+                    <p className='text-sm text-[var(--muted)] mb-6'>
                         {error || 'The strategy you\'re looking for doesn\'t exist or has been removed.'}
                     </p>
                     <button
                         type='button'
                         onClick={onClose}
-                        className='w-full bg-[var(--background)] hover:bg-[var(--border)] text-[var(--text)] font-bold py-3 px-6 rounded-xl border border-[var(--border)] transition-colors'
+                        className='h-11 w-full rounded-xl border border-white/10 font-semibold text-white/80 transition-colors hover:bg-white/[0.05] hover:text-white'
                     >
                         Close
                     </button>
-                </div>
-            </div>
-        )
-    }
-
-    // Success State - Strategy Loaded
-    return (
-        <div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
-            <div className='card !p-8 max-w-md w-full'>
-                {/* Header */}
-                <div className='flex justify-between items-start mb-4'>
-                    <h3 className='text-xl font-bold'>{strategy.name}</h3>
-                    <button
-                        type='button'
-                        data-testid="close"
-                        onClick={onClose}
-                        className='px-4 py-2 rounded-xl font-bold border border-[var(--border)] text-sm hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors duration-200'
-                    >
-                        <X />
-                    </button>
-                </div>
-
-                {/* Level & Category Badge */}
-                <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm mb-4'>
-                    <span className={`${strategyLevelColors[strategy.level.toLowerCase() as strategyLevel]}`}>
-                        {strategy.level}
-                    </span>
-                    <span>•</span>
-                    <span>{strategy.category}</span>
-                </div>
-
-                {/* Description */}
-                <p className='text-sm text-gray-400 mb-4 leading-relaxed'>
-                    {strategy.description}
-                </p>
-
-                {/* Divider */}
-                <div className='border-b border-[var(--border)] mb-4'></div>
-
-                {/* Steps */}
-                <div className='mb-4'>
-                    <div className='font-bold text-sm mb-2'>Steps</div>
-                    <div className='space-y-1'>
-                        {strategy.steps.map((step: string, index: number) => (
-                            <div key={step} className='text-sm text-gray-300 leading-relaxed'>
-                                {index + 1}. {step}
-                            </div>
-                        ))}
+                </>
+            ) : (
+                <>
+                    <div className='mb-5 inline-flex items-center gap-2 text-xs'>
+                        <span className={`rounded-full bg-white/[0.05] px-2.5 py-1 font-medium ${strategyLevelColors[strategy.level.toLowerCase() as strategyLevel] ?? ''}`}>
+                            {strategy.level}
+                        </span>
+                        <span className='text-white/50'>{strategy.category}</span>
                     </div>
-                </div>
 
-                {/* Divider */}
-                <div className='border-b border-[var(--border)] mb-4'></div>
+                    <p className='mb-6 max-w-[60ch] text-[15px] leading-relaxed text-white/70'>
+                        {strategy.description}
+                    </p>
 
-                {/* Pros & Cons Grid */}
-                <div className='grid grid-cols-2 gap-4 mb-4'>
-                    <div>
-                        <div className='font-bold text-sm mb-2 text-green-400'>Pros</div>
-                        <div className='space-y-1'>
-                            {strategy.pros.map((pro: string, index: number) => (
-                                <div key={pro} className='text-sm text-gray-300 leading-relaxed'>
-                                    {index + 1}. {pro}
-                                </div>
+                    <section className='mb-6'>
+                        <h4 className='mb-3 text-sm font-semibold'>Steps</h4>
+                        <ol className='flex flex-col gap-2'>
+                            {strategy.steps.map((step: string, index: number) => (
+                                <li key={step} className='rounded-xl border border-[var(--border)] bg-white/[0.02] px-4 py-2.5 text-sm leading-relaxed text-white/80'>
+                                    {index + 1}. {step}
+                                </li>
                             ))}
-                        </div>
-                    </div>
-                    <div>
-                        <div className='font-bold text-sm mb-2 text-red-400'>Cons</div>
-                        <div className='space-y-1'>
-                            {strategy.cons.map((con: string, index: number) => (
-                                <div key={con} className='text-sm text-gray-300 leading-relaxed'>
-                                    {index + 1}. {con}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                        </ol>
+                    </section>
 
-                {/* Divider */}
-                <div className='border-b border-[var(--border)] mb-4'></div>
+                    <div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2'>
+                        <section className='rounded-xl border border-[rgba(0,148,68,0.3)] bg-[rgba(0,148,68,0.06)] p-4'>
+                            <h4 className='mb-2.5 flex items-center gap-2 text-sm font-semibold text-[var(--green-light)]'>
+                                <ThumbsUp aria-hidden='true' className='h-4 w-4' />
+                                Pros
+                            </h4>
+                            <ul className='flex flex-col gap-1.5'>
+                                {strategy.pros.map((pro: string, index: number) => (
+                                    <li key={pro} className='text-sm leading-relaxed text-white/75'>
+                                        {index + 1}. {pro}
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                        <section className='rounded-xl border border-[rgba(237,28,36,0.3)] bg-[rgba(237,28,36,0.06)] p-4'>
+                            <h4 className='mb-2.5 flex items-center gap-2 text-sm font-semibold text-[#ff6b72]'>
+                                <ThumbsDown aria-hidden='true' className='h-4 w-4' />
+                                Cons
+                            </h4>
+                            <ul className='flex flex-col gap-1.5'>
+                                {strategy.cons.map((con: string, index: number) => (
+                                    <li key={con} className='text-sm leading-relaxed text-white/75'>
+                                        {index + 1}. {con}
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    </div>
 
-                {/* Try it now button */}
-                <div className='flex flex-col gap-3 mt-4'>
                     {strategy.unlocked ? (
                         <>
                             <button
-                                className='w-full bg-green-600 hover:bg-green-700 text-white font-bold 
-                                    py-6 px-6 rounded-xl text-lg transition-colors'
+                                type='button'
                                 data-testid="Try it now button"
+                                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--green)] text-[15px] font-semibold text-white transition-[background-color,transform] hover:bg-[#00a84e] active:scale-[0.98]"
                                 onClick={() => openStrategyTutorial(strategy.id)}
                             >
+                                <Play aria-hidden='true' className='h-4 w-4' />
                                 Try it now!
                             </button>
                             {puzzleGuide && (
                                 <button
-                                    className='w-full text-white font-bold py-4 px-6 rounded-xl 
-                                        transition-colors flex items-center justify-center gap-2
-                                        border border-[var(--border)] bg-purple-600/80 hover:bg-purple-700/80'
-                                    onClick={() => 
+                                    type='button'
+                                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[rgba(105,80,161,0.5)] bg-[rgba(105,80,161,0.25)] text-[15px] font-semibold text-white transition-[background-color,transform] hover:bg-[rgba(105,80,161,0.4)] active:scale-[0.98]"
+                                    onClick={() =>
                                         openStrategyPuzzle({ id: strategy.id, name: strategy.name })
                                     }
                                 >
-                                    <Brain className='w-4 h-4' />
+                                    <Brain aria-hidden='true' className='h-4 w-4' />
                                     Try the Puzzle
                                 </button>
                             )}
                         </>
                     ) : (
-                        <div className='w-full text-center bg-[var(--background)] border border-[var(--border)] rounded-xl py-6 px-6 mb-4'>
-                            <p className='font-bold text-sm inline-flex items-center justify-center gap-2'>
-                                <Lock className='w-4 h-4' />
+                        <div className='w-full rounded-xl border border-[var(--border)] bg-white/[0.02] px-6 py-5 text-center'>
+                            <p className='inline-flex items-center justify-center gap-2 text-sm font-semibold'>
+                                <Lock aria-hidden='true' className='w-4 h-4' />
                                 Locked
                             </p>
-                            <p className='text-sm mt-1' style={{ color: 'var(--muted)' }}>
+                            <p className='mt-1 text-sm text-[var(--muted)]'>
                                 Unlock this strategy in the Tech Tree to try it out.
                             </p>
                             <Link
                                 href='/learning/techTree'
-                                className='inline-block mt-3 text-sm font-bold text-[var(--blue)] hover:underline'
+                                className='mt-3 inline-block text-sm font-semibold text-[#6fb4ea] hover:underline'
                             >
                                 Go to Tech Tree →
                             </Link>
                         </div>
                     )}
+                </>
+            )}
+        </Shell>
+    );
+}
+
+function Shell({ title, tone, onClose, children }: { title: string; tone: 'default' | 'error'; onClose: () => void; children: React.ReactNode }) {
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        globalThis.addEventListener('keydown', onKey);
+        return () => globalThis.removeEventListener('keydown', onKey);
+    }, [onClose]);
+
+    return (
+        <div
+            className='fixed inset-0 z-50 flex items-center justify-center overscroll-contain bg-[rgba(4,4,10,0.72)] p-4 backdrop-blur-sm md:p-6'
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        >
+            <div
+                role='dialog'
+                aria-modal='true'
+                aria-labelledby='strategy-detail-title'
+                className='flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#12121c] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]'
+            >
+                <div className='flex items-start justify-between gap-4 border-b border-[var(--border)] px-6 py-5'>
+                    <h3 id='strategy-detail-title' className={`text-xl font-semibold ${tone === 'error' ? 'text-[#ff6b72]' : ''}`}>{title}</h3>
+                    <button
+                        type='button'
+                        data-testid="close"
+                        aria-label='Close'
+                        onClick={onClose}
+                        className='-mr-2 rounded-lg p-2 text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white'
+                    >
+                        <X aria-hidden='true' className='h-5 w-5' />
+                    </button>
+                </div>
+                <div className='overflow-y-auto overscroll-contain px-6 py-5'>
+                    {children}
                 </div>
             </div>
         </div>

@@ -61,40 +61,60 @@ export default function HelpMenu() {
   return (
     <>
       <Navbar />
-      <div className="h-full p-6 max-w-7xl mx-auto">
-        <div className='text-4xl flex justify-center mb-3'>Tutorial</div>
-        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
-          {tutorials.map((t) => (
-            <div key={`tutorials-${t.id}`}>
-              <p className='text-1.5xl mb-3'>{t.id}. {t.q}</p>
-              {t.a.map((a) => (
-                <div key={`tutorials-${t.id}-step-${a.id}`}>
-                  <p className='mb-4' style={{ color: 'var(--muted' }}>{a.text}</p>
-                  <Image
-                    src={a.image}
-                    alt={a.text}
-                    width={960}
-                    height={540}
-                    style={{ width: 'auto', height: 'auto' }}
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <hr className='border-[#9ca3af] my-6' />
+      <main className="mx-auto w-full max-w-5xl px-4 pt-10 pb-20 md:px-6">
+        <h1 className="sr-only">Help</h1>
 
-        <div className='text-4xl flex justify-center mb-3'>FAQ</div>
-        <div className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--purple)] transition-colors'>
-          {faq.map((f) => (
-            <div key={`faq-${f.id}`}>
-              <p className='text-1.5xl mb-3'>{f.id}. {f.q}</p>
-              <p className='mb-4' style={{ color: 'var(--muted' }}>{f.a}</p>
-            </div>
-          ))}
-        </div>
-        <hr className='border-[#9ca3af] my-6' />
-      </div >
+        <section aria-labelledby="tutorial-heading">
+          <h2 id="tutorial-heading" className="mb-6 text-3xl font-semibold tracking-tight">Tutorial</h2>
+          <div className="flex flex-col gap-6">
+            {tutorials.map((t) => (
+              <article
+                key={`tutorials-${t.id}`}
+                className="rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.7)] p-5 md:p-7"
+              >
+                <h3 className="tabular mb-5 text-lg font-semibold">{t.id}. {t.q}</h3>
+                <ol className="flex flex-col gap-6">
+                  {t.a.map((a) => (
+                    <li key={`tutorials-${t.id}-step-${a.id}`} className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] md:gap-6">
+                      <div className="flex gap-3">
+                        <span
+                          aria-hidden="true"
+                          className="tabular mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/15 text-xs text-white/70"
+                        >
+                          {a.id}
+                        </span>
+                        <p className="text-[15px] leading-relaxed text-[var(--muted)]">{a.text}</p>
+                      </div>
+                      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#1b1b22]">
+                        <Image
+                          src={a.image}
+                          alt={a.text}
+                          width={960}
+                          height={540}
+                          loading="lazy"
+                          className="h-auto w-full"
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="faq-heading" className="mt-16">
+          <h2 id="faq-heading" className="mb-6 text-3xl font-semibold tracking-tight">FAQ</h2>
+          <dl className="grid gap-4 md:grid-cols-2">
+            {faq.map((f) => (
+              <div key={`faq-${f.id}`} className="rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.7)] p-5">
+                <dt className="tabular mb-2 font-semibold">{f.id}. {f.q}</dt>
+                <dd className="text-[15px] leading-relaxed text-[var(--muted)]">{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      </main>
     </>
   );
 }

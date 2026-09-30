@@ -65,8 +65,9 @@ describe('TooltipText', () => {
         expect(button).toHaveAttribute('aria-describedby', 'tooltip-0');
 
         expect(tooltip).toHaveStyle({
-            top: '112px',
-            left: '80px'
+            // position: fixed is viewport-relative, so the page scroll (set to 10/20 above) must not be added
+            top: '92px',
+            left: '70px'
         });
 
         fireEvent.mouseLeave(button);

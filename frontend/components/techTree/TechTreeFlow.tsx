@@ -36,11 +36,11 @@ export function TechTreeFlow() {
         const styledEdges = edges.map(e => ({
             ...e,
             style: {
-                stroke: unlocked.has(e.source) ? '#34d399' : '#475569',
+                stroke: unlocked.has(e.source) ? '#8dc63f' : 'rgba(255,255,255,0.18)',
                 strokeWidth: 1.5,
             },
             markerEnd: {
-                type: MarkerType.ArrowClosed, color: unlocked.has(e.source) ? '#34d399' : '#475569'
+                type: MarkerType.ArrowClosed, color: unlocked.has(e.source) ? '#8dc63f' : 'rgba(255,255,255,0.18)'
             },
         }));
 
@@ -57,7 +57,7 @@ export function TechTreeFlow() {
 
     return (
         <TechFlowContext.Provider value={ctx}>
-            <div className={`${styles.flow} h-[70vh] w-full rounded-xl border border-slate-700/60 bg-slate-900/40`}>
+            <div className={`${styles.flow} h-[70vh] w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)]`}>
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -68,19 +68,20 @@ export function TechTreeFlow() {
                     maxZoom={1.5}
                     proOptions={{ hideAttribution: true }}
                 >
-                    <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#334155" />
-                    <Controls className="!bg-slate-800 !border-slate-700" />
+                    <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="rgba(255,255,255,0.08)" />
+                    <Controls />
                     <MiniMap
-                        className="bg-slate-800"
+                        pannable
+                        zoomable
                         nodeColor={(n: Node) => {
                             const d = n.data as { unlocked?: boolean; available?: boolean };
                             if (d.unlocked) {
-                                return '#34d399';
+                                return '#8dc63f';
                             }
                             if (d.available) {
-                                return '#0ea5e9';
+                                return '#1c75bc';
                             }
-                            return '#475569';
+                            return 'rgba(255,255,255,0.2)';
                         }}
                     />
                 </ReactFlow>

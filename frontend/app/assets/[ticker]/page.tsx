@@ -13,6 +13,28 @@ import { useState } from 'react';
 import Toast from '@/components/Toast';
 import { TopMovers } from '@/components/topMovers';
 import { PageError } from '@/components/PageError';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function AssetSkeleton() {
+  return (
+    <>
+      <Navbar />
+      <div aria-busy='true' aria-label='Loading…' className='flex min-h-[calc(100dvh-4rem)]'>
+        <aside className='hidden lg:flex flex-col w-100 shrink-0 border-r border-[var(--border)] p-4 gap-3'>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className='h-16 w-full rounded-xl' />
+          ))}
+        </aside>
+        <main className='flex-1 flex flex-col gap-5 p-6 min-w-0'>
+          <span className='sr-only'>Loading...</span>
+          <Skeleton className='h-8 w-28' />
+          <Skeleton className='h-[380px] w-full rounded-2xl' />
+          <Skeleton className='h-56 w-full rounded-2xl' />
+        </main>
+      </div>
+    </>
+  );
+}
 
 export default function AssetPage() {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
@@ -28,7 +50,7 @@ export default function AssetPage() {
   const { holdings, refetch: refetchHoldings } = useHoldings(activeAccount?.id ?? null);
 
   if (!ticker) return <PageError message='Invalid ticker' />;
-  if (pricesLoading || summaryLoading) return <PageError message='Loading...' />;
+  if (pricesLoading || summaryLoading) return <AssetSkeleton />;
   if (pricesError || summaryError) return <PageError message={`Error: ${pricesError || summaryError}`} />;
 
   const currentPrice = prices.length > 0
@@ -98,13 +120,13 @@ export default function AssetPage() {
     <div>
       <Navbar />
 
-      <div className='flex min-h-screen bg-background'>
-        <aside className='hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 overflow-y-auto'>
+      <div className='flex min-h-[calc(100dvh-4rem)]'>
+        <aside className='hidden lg:flex flex-col w-100 shrink-0 border-r border-[var(--border)] p-4 overflow-y-auto'>
           <TopMovers />
         </aside>
 
         <main className='flex-1 flex flex-col gap-5 p-6 min-w-0'>
-          <div className='flex justify-evenly'>
+          <div className='flex justify-evenly' aria-live='polite'>
             {toast && (
               <Toast
                 message={toast.message}
@@ -115,7 +137,7 @@ export default function AssetPage() {
           </div>
 
           <div>
-            <h1 className='text-2xl font-bold uppercase'>{ticker}</h1>
+            <h1 className='font-mono text-2xl font-bold uppercase tracking-widest' translate='no'>{ticker}</h1>
           </div>
 
           <div>

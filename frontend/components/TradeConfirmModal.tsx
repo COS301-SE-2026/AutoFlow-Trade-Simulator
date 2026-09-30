@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+
 interface TradeConfirmModalProps {
 	side: "buy" | "sell";
 	quantity: number;
@@ -7,53 +11,79 @@ interface TradeConfirmModalProps {
 	onConfirm: () => void;
 	onCancel: () => void;
 }
+
 export default function TradeConfirmModal({ side, quantity, price, orderType, limitPrice, onConfirm, onCancel }: Readonly<TradeConfirmModalProps>) {
 	const effectivePrice = orderType === 'market' ? price : (limitPrice ?? price);
 	const total = quantity * effectivePrice;
+	const confirmRef = useRef<HTMLButtonElement>(null);
+	const isBuy = side === 'buy';
+
+	useEffect(() => {
+		confirmRef.current?.focus();
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') onCancel();
+		};
+		globalThis.addEventListener('keydown', onKey);
+		return () => globalThis.removeEventListener('keydown', onKey);
+	}, [onCancel]);
+
+	const rows: [string, string, boolean?][] = [
+		['Order Type:', orderType],
+		['Quantity:', `${quantity} units`],
+		['Price per unit:', effectivePrice.toFixed(2)],
+	];
+
 	return (
-		<div className='z-50 flex items-center justify-center fixed inset-0 bg-black bg-opacity-70 p-6 backdrop-blur-sm'>
-			<div className='card p-6 max-w-md w-full'>
-				<h3 className='text-xl font-bold mb-4'>
-					Confirm {side === 'buy' ? 'Buy' : 'Sell'}
-				</h3>
-				<div className='flex flex-col gap-3 mb-6'>
-					<div className='flex justify-between'>
-						<span>Order Type:</span>
-						<span className='font-semibold capitalize'>{orderType}</span>
-					</div>
-					<div className='flex justify-between'>
-						<span>Quantity:</span>
-						<span className='font-semibold'>{quantity} units</span>
-					</div>
-					<div className='flex justify-between'>
-						<span>Price per unit:</span>
-						<span className='font-semibold'>{effectivePrice.toFixed(2)}</span>
-					</div>
-					<div className='flex justify-between'>
-						<span>Total Cost:</span>
-						<span className='font-semibold'>{total.toFixed(2)}</span>
-					</div>
-					<div className='border-b border-[var(--border)] p-2'></div>
+		<div
+			className='fixed inset-0 z-50 flex items-center justify-center overscroll-contain bg-[rgba(4,4,10,0.72)] p-6 backdrop-blur-sm'
+			onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+		>
+			<div
+				role='dialog'
+				aria-modal='true'
+				aria-labelledby='trade-confirm-title'
+				className='w-full max-w-md rounded-2xl border border-white/10 bg-[#12121c] p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]'
+			>
+				<div className='mb-5 flex items-center gap-3'>
+					<span className={`h-2.5 w-2.5 rounded-full ${isBuy ? 'bg-[var(--green)]' : 'bg-[var(--red)]'}`} aria-hidden='true' />
+					<h3 id='trade-confirm-title' className='text-xl font-semibold'>
+						Confirm {isBuy ? 'Buy' : 'Sell'}
+					</h3>
+				</div>
+
+				<dl className='tabular mb-6 flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-white/[0.02] p-4 text-[15px]'>
+					{rows.map(([label, value]) => (
+						<div key={label} className='flex justify-between gap-4'>
+							<dt className='text-white/60'>{label}</dt>
+							<dd className='font-semibold capitalize'>{value}</dd>
+						</div>
+					))}
 					{orderType === 'limit' && limitPrice !== undefined && (
-						<div className='flex justify-between text-yellow'>
-							<span>Limit Price:</span>
-							<span className='font-semibold'>{limitPrice.toFixed(2)}</span>
+						<div className='flex justify-between gap-4 text-[var(--yellow)]'>
+							<dt>Limit Price:</dt>
+							<dd className='font-semibold'>{limitPrice.toFixed(2)}</dd>
 						</div>
 					)}
-				</div>
-				<div className='flex gap-3 justify-between'>
+					<div className='mt-1 flex justify-between gap-4 border-t border-[var(--border)] pt-3'>
+						<dt className='font-medium text-white/80'>Total Cost:</dt>
+						<dd className='text-lg font-semibold'>{total.toFixed(2)}</dd>
+					</div>
+				</dl>
+
+				<div className='flex gap-3'>
 					<button
 						onClick={onCancel}
-						className='px-4 py-2 flex rounded-xl font-bold border border-[var(--border)] disabled:opacity-50'
+						className='h-11 flex-1 rounded-xl border border-white/10 font-semibold text-white/80 transition-colors hover:bg-white/[0.05] hover:text-white'
 						type="button"
 					>
 						Cancel
 					</button>
 					<button
+						ref={confirmRef}
 						onClick={onConfirm}
-						className={`px-4 py-2 flex rounded-xl font-bold border
-							border-[var(--border)] disabled:opacity-50
-							${side === 'buy' ? 'bg-green-600' : 'bg-red-600'}`}
+						className={`h-11 flex-1 rounded-xl font-semibold text-white transition-[background-color,transform] active:scale-[0.98] ${
+							isBuy ? 'bg-[var(--green)] hover:bg-[#00a84e]' : 'bg-[#d4262d] hover:bg-[var(--red)]'
+						}`}
 						type="button"
 					>
 						Confirm

@@ -73,7 +73,10 @@ export function LoginForm({
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
+                  spellCheck={false}
                   placeholder="m@example.com"
                   required
                   className="bg-background"
@@ -93,16 +96,18 @@ export function LoginForm({
                 </div>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="bg-background"
                 />
               </Field>
-              {error && (<Field> <p className="text-sm text-red-500">{error} </p></Field>)}
+              {error && (<Field><p role="alert" className="text-sm text-[#ff6b72]">{error}</p></Field>)}
               <Field>
-                <Button type="submit" disabled={isLoading}>{isLoading ? 'Logging in...' : 'Login'}</Button>
+                <Button type="submit" disabled={isLoading}>{isLoading ? 'Logging In…' : 'Login'}</Button>
 
               </Field>
               <FieldSeparator>Or continue with</FieldSeparator>

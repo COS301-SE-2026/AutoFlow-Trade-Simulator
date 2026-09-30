@@ -50,7 +50,7 @@ describe('AssetSummaryBar', () => {
 
         const changeText = screen.getByText('+7.14% today');
         expect(changeText).toBeInTheDocument();
-        expect(changeText).toHaveClass('text-green-600');
+        expect(changeText).toHaveClass('text-[var(--green-light)]');
     });
 
     it('renders negative day change', () => {
@@ -75,7 +75,7 @@ describe('AssetSummaryBar', () => {
 
         const changeText = screen.getByText('-10.00% today');
         expect(changeText).toBeInTheDocument();
-        expect(changeText).toHaveClass('text-red-600');
+        expect(changeText).toHaveClass('text-[#ff6b72]');
     });
 
     it('renders holding details when holding prop is provided', () => {

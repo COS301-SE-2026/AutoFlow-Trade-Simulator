@@ -177,7 +177,7 @@ export function HistoricalEventsTab() {
 
     return (
         <div className='space-y-6'>
-            <div className='border border-[var(--border)]/20 rounded-xl p-4'>
+            <div className='border border-white/10 rounded-xl p-4'>
                 <p className='text-sm font-medium mb-1'>Replay real market history</p>
                 <p className='text-sm'>
                     Each event replays historical market data one day at a time. Buy and sell as you want the event unfold - see how your decisions would have actually played out.

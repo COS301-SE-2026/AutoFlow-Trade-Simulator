@@ -1,23 +1,26 @@
 .flow :global(.react-flow__controls) {
     background: transparent;
     box-shadow: none;
+    border-radius: 0.625rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .flow :global(.react-flow__controls-button) {
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
-    color: #cbd5e1;
-    fill: #cbd5e1;
+    background: #14141e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.75);
+    fill: rgba(255, 255, 255, 0.75);
 }
 .flow :global(.react-flow__controls-button:hover) {
-    background: #334155;
+    background: #1d1d2a;
 }
 .flow :global(.react-flow__minimap) {
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 0.5rem;
+    background: #0e0e16;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
     overflow: hidden;
 }
 .flow :global(.react-flow__minimap-mask) {
-    fill: rgba(15, 23, 42, 0.6);
-    stroke: #475569;
+    fill: rgba(8, 8, 15, 0.6);
+    stroke: rgba(255, 255, 255, 0.2);
 }

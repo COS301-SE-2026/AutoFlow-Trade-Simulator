@@ -120,10 +120,10 @@ function HoldingRow({ holding, index, active, onSelectAction }: HoldingRowProps)
     const hasLivePrice = holding.current_price !== null && holding.pct_change !== null;
     const isUp = hasLivePrice && holding.pct_change! >= 0;
 
-    const trendClass = isUp ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400';
+    const trendClass = isUp ? 'text-[var(--green-light)]' : 'text-[#ff6b72]';
     const badgeClass = isUp
-        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10'
-        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 hover:bg-rose-500/10';
+        ? 'bg-[rgba(141,198,63,0.12)] text-[var(--green-light)] border-[rgba(141,198,63,0.25)] hover:bg-[rgba(141,198,63,0.12)]'
+        : 'bg-[rgba(237,28,36,0.12)] text-[#ff6b72] border-[rgba(237,28,36,0.25)] hover:bg-[rgba(237,28,36,0.12)]';
 
     return (
         <li
@@ -185,8 +185,8 @@ export function HoldingsSummary({ holdings, loading, error, onSelectAction = () 
             <CardHeader className='pb-3'>
                 <CardTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
                     <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                        <span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-[var(--green-light)] opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--green-light)]" />
                     </span>
                     Holdings
                 </CardTitle>

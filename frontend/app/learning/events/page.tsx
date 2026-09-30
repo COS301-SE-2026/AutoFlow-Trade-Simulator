@@ -9,7 +9,7 @@ export default function LearningPage() {
         <>
             <Navbar />
             <LearningNavbar />
-            <div className='flex-1 p-6'>
+            <div className='flex-1 px-4 py-6 md:px-7'>
                 <HistoricalEventsTab />
             </div>
         </>
