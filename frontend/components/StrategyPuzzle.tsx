@@ -207,66 +207,55 @@ export function StrategyPuzzle({
                     </span>
                 </div>
                 <div className='flex items-center gap-2'>
-                <div className='flex flex-row gap-1 bg-blue-900 border border-[var(--border)] items-center px-3 rounded-xl font-semibold text-sm'>
-                    <Gauge className='mr-2 w-4 h-4' />
-                    <span className='mr-2'>Speed Controls:</span>
-                    {[1, 2, 4].map((s) => {
+                    <div className='flex flex-row gap-1 bg-blue-900 border border-[var(--border)] items-center px-3 rounded-xl font-semibold text-sm'>
+                        <Gauge className='mr-2 w-4 h-4' />
+                        <span className='mr-2'>Speed Controls:</span>
+                        {[1, 2, 4].map((s) => {
 
-                        return (
-                            <button
-                                key={s}
-                                type='button'
-                                onClick={() => { setSpeed(s) }}
-                                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm border-[var(--border)] border-2
-                                    ${speed === s ? 'bg-[var(--background-alt)]' : 'bg-blue-900'}`}
-                            >
-                                {s}x
-                            </button>
-                        )
-                    })}
+                            return (
+                                <button
+                                    key={s}
+                                    type='button'
+                                    onClick={() => { setSpeed(s) }}
+                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm border-[var(--border)] border-2
+                                        ${speed === s ? 'bg-[var(--background-alt)]' : 'bg-blue-900'}`}
+                                >
+                                    {s}x
+                                </button>
+                            )
+                        })}
+                    </div>
+
+                    <button
+                        type='button'
+                        disabled={isFinished}
+                        onClick={() => { setIsPlaying(b => !b) }}
+                        className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
+                    >
+                        <div className='flex items-center gap-3'>
+                            {isPlaying ? <><Pause /> Pause</> : <><Play /> Play</>}
+                        </div>
+                    </button>
+
+                    <button
+                        type='button'
+                        onClick={stepForward}
+                        disabled={isFinished}
+                        className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm disabled:opacity-50'
+                    >
+                        <div className='flex items-center gap-3'>
+                            <ChevronsRight />
+                            <span className='text-white'>Skip Forward</span>
+                        </div>
+                    </button>
                 </div>
-
-                <button
-                    type='button'
-                    disabled={isFinished}
-                    onClick={() => { setIsPlaying(b => !b) }}
-                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
-                >
-                    <div className='flex items-center gap-3'>
-                        {isPlaying ? <><Pause /> Pause</> : <><Play /> Play</>}
-                    </div>
-                </button>
-
-                <button
-                    type='button'
-                    onClick={stepForward}
-                    disabled={isFinished}
-                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm disabled:opacity-50'
-                >
-                    <div className='flex items-center gap-3'>
-                        <ChevronsRight />
-                        <span className='text-white'>Skip Forward</span>
-                    </div>
-                </button>
-            </div>
-
-                <button
-                    id='tut-finish'
-                    type='button'
-                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
-                >
-                    <div className='flex items-center gap-3'>
-                        <Check />
-                        <span className='text-white'>View Simulation Summary</span>
-                    </div>
-                </button>
             </div>
 
             <div className='flex gap-4 flex-1 min-h-0'>
                 <div
-                    className='flex-1 rounded-xl border border-[var(--border)] p-4'
+                    className='flex-1 rounded-xl border border-[var(--border)] p-4 flex flex-col min-w-0'
                 >
-                    <div className='flex justify-between'>
+                    <div className='flex justify-between items-center mb-2 shrink-0'>
                         <div className='text-lg font-bold'>Day {dayIndex + 1} of {totalDays}</div>
                         <div className='text-xl font-bold'>COST: R{Number(currentPrice).toFixed(2)}</div>
                         <div className={`text-sm flex items-center gap-1 ${priceChangePct >= 0 ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`}>
@@ -274,7 +263,7 @@ export function StrategyPuzzle({
                             {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
                         </div>
                     </div>
-                    <div style={{ width: '100%', height: '85%' }}>
+                    <div className='flex-1 min-h-0'>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
                                 data={chartData}
@@ -305,13 +294,35 @@ export function StrategyPuzzle({
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
-                    <div className='mt-2 mb-3 h-1 bg-gray-800 rounded-full'>
-                        <div className='h-full bg-[var(--blue)] rounded-full' style={{ width: `${((dayIndex + 1) / totalDays) * 100}%` }}></div>
+                    <div className='mt-2 mb-2 h-1 bg-gray-800 rounded-full shrink-0'>
+                        <div
+                            className='h-full bg-[var(--blue)] rounded-full transition-all duration-200'
+                            style={{width: `${((dayIndex + 1) / Math.max(totalDays, 1)) * 100}%`}}
+                        />
                     </div>
-                    <div className='text-xs mt-1'>Day {dayIndex + 1} of {totalDays}</div>
                 </div>
 
-                <div className='w-64 space-y-4'>
+                <div className='w-64 flex flex-col gap-3 shrink-0 overflow-y-auto'>
+                    {guide && (
+                        <div className='p-3 rounded-xl bg-[var(--background)] border border-[var(--border)]'>
+                            <div className='text-xs font-bold uppercase tracking-wider mb-2'>
+                                Strategy Guide
+                            </div>
+                            <ol className='space-y-1.5'>
+                                {guide.map((rule, i) => (
+                                    <li
+                                        key={i}
+                                        className='flex gap-2 text-xs leading-relaxed '
+                                    >
+                                        <span className='shrink-0 font-bold mt-px'>
+                                            {i + 1}.
+                                        </span>
+                                        {rule}
+                                    </li>
+                                ))}
+                            </ol>
+                        </div>
+                    )}
                     <div
                         className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'
                     >
