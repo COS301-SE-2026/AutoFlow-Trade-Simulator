@@ -78,6 +78,10 @@ export function StrategyPuzzle({
 
     const [speed, setSpeed] = useState(1);
 
+    const [phase, setPhase] = useState<'sim' | 'submitting' | 'graded'>('sim');
+    const [result, setResult] = useState<PuzzleSubmitResponse | null>(null);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
@@ -111,14 +115,14 @@ export function StrategyPuzzle({
     );
 
     useEffect(() => {
-        if (!isPlaying || isFinished) {
+        if (!isPlaying || isFinished || phase !== 'sim') {
             setIsPlaying(false);
             return;
         }
 
         const id = setInterval(() => setDayIndex(d => Math.min(d + 1, totalDays - 1)), BASE_INTERVAL_MS / speed );
     return () => clearInterval(id);
-    }, [isPlaying, isFinished, totalDays, speed]);
+    }, [isPlaying, isFinished, totalDays, speed, phase]);
 
     const stepForward = () => setDayIndex(d => Math.min(d + 1, totalDays - 1));
 
@@ -140,8 +144,8 @@ export function StrategyPuzzle({
                 setTimeout(() => setTradeError(null), 3000);
                 return;
             }
-            setCash(c => c + n * price);
-            setShares(s => s - n);
+            setCash(c => c - n * price);
+            setShares(s => s + n);
         } else {
             if (shares <= 0) {
                 setTradeError('You have no shares to sell.');
@@ -154,6 +158,36 @@ export function StrategyPuzzle({
         }   
 
         setTrades(prev => [...prev, { dayIndex, action, qty: n, price }]);
+    };
+
+    const submit = async () => {
+        if (!puzzle || phase !== 'sim') return;
+        if (trades.length === 0) {
+            setSubmitError('Make at least one trade before submitting.');
+            setTimeout(() => setSubmitError(null), 3000);
+            return;
+        }
+
+        setPhase('submitting');
+        setIsPlaying(false);
+        setSubmitError(null);
+
+        const actions: PuzzleAction[] = trades.map(t => ({
+            day_index: t.dayIndex,
+            action: t.action,
+            qty: t.qty,
+        }));
+
+        const res = await submitPuzzleApi(puzzle.puzzle_id, { actions });
+
+        if (!res) {
+            setSubmitError('Failed to submit puzzle. Please try again.');
+            setPhase('sim');
+            return;
+        }
+
+        setResult(res);
+        setPhase('graded');
     };
 
     if (loadError) {
@@ -403,6 +437,22 @@ export function StrategyPuzzle({
 
                         }
                     </div>
+                    {submitError && (
+                        <div className='text-xs text-[var(--red)] text-center'>
+                            {submitError}
+                        </div>
+                    )}
+
+                    <button
+                        type='button'
+                        onClick={submit}
+                        disabled={phase === 'submitting' || trades.length === 0}
+                        className='bg-purple-700 hover:bg-purple-600 border border-var[var(--border)] flex items-center justify-center
+                        gap-2 px-3 py-2 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed'
+                    >
+                        <Check className='w-4 h-4' />
+                        {phase === 'submitting' ? 'Submitting...' : 'Submit & Grade'}
+                    </button>
                 </div>
             </div>
         </div>
