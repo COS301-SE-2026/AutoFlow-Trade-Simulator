@@ -13,6 +13,7 @@ jest.mock('@/lib/hooks/accountContext', () => ({
 jest.mock('next/image', () => ({
     __esModule: true,
     default: ({ src, alt, className }: any) => (
+        // eslint-disable-next-line @next/next/no-img-element -- mock of next/image, not a real rendered image
         <img src={src} alt={alt} className={className} data-testid="next-image"/>
     )
 }));
