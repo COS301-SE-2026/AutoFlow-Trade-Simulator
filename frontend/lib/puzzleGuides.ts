@@ -8,7 +8,7 @@ const STRATEGY_GUIDES: Record<string, string[]> = {
     ],
 };
 
-export function getPuzzleGuide(strategyName: string): string | null {
+export function getPuzzleGuide(strategyName: string): string[] | null {
     const n = strategyName.toLowerCase();
     const key = Object.keys(STRATEGY_GUIDES).find(k => n.includes(k));
     return key ? STRATEGY_GUIDES[key] : null;
