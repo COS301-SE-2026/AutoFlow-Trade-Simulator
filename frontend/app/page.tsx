@@ -87,10 +87,6 @@ export default function SplashPage() {
 
                 <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 pt-16 pb-20 md:px-6 lg:grid-cols-[1fr_1.15fr] lg:pt-24">
                     <div className="max-w-xl">
-                        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgba(28,117,188,0.4)] bg-[rgba(28,117,188,0.1)] px-3.5 py-1.5 text-[13px] font-medium text-[#6fb4ea]">
-                            <Zap aria-hidden="true" className="h-3.5 w-3.5" />
-                            AI-Powered Educational Trading Platform
-                        </div>
                         <h1 className="mb-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl">
                             Master the markets with <span className="text-[#6fb4ea]">Confidence</span>
                         </h1>
