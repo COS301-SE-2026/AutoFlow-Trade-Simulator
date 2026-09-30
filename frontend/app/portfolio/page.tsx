@@ -41,7 +41,7 @@ export default function PortfolioPage() {
             <div className="w-full min-w-0 md:col-span-3">
               <PortfolioPerformanceChart accountId={activeAccount.id} />
             </div>
-            <div className="flex w-full min-w-0 flex-col gap-5 md:col-span-3 lg:flex-row">
+            <div className="flex w-full min-w-0 md:col-span-1">
               <HoldingsSummary
                 holdings={holdings}
                 loading={holdingsLoading}
@@ -50,7 +50,7 @@ export default function PortfolioPage() {
                 onSelectAction={(selected) => setTicker(selected)}
               />
             </div>
-            <div className='flex w-full p-4'>
+            <div className="flex w-full min-w-0 md:col-span-2">
               <AssetSummaryBar ticker={ticker} holding={selectedHolding} />
             </div>
 

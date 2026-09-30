@@ -15,7 +15,7 @@ const features = [
         icon: BookOpen,
         title: 'Strategy Library',
         body: 'Learn proven strategies from dollar-cost averaging to iron condors. Step-by-step guides with pros and cons.',
-        image: '/help/strategylist.png',
+        image: '/help/help3/Untitled.png',
         span: 'md:col-span-2 md:row-span-2',
     },
     {
@@ -28,7 +28,6 @@ const features = [
         icon: Triangle,
         title: 'Options Greeks',
         body: 'Master Delta, Gamma, Theta, Vega, and Rho with interactive charts and real-world examples.',
-        image: '/help/greeks.png',
         span: 'md:col-span-2',
     },
     {
@@ -111,9 +110,9 @@ export default function SplashPage() {
                     <div className="relative">
                         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#1b1b22] shadow-[0_30px_80px_-20px_rgba(28,117,188,0.35)]">
                             <Image
-                                src="/help/dashboard.png"
+                                src="/help/help4/Untitled.png"
                                 alt="The AutoFlow dashboard showing top movers and an AAPL price chart"
-                                width={1721}
+                                width={1752}
                                 height={994}
                                 priority
                                 className="h-auto w-full"
