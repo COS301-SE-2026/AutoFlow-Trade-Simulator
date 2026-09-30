@@ -1,16 +1,18 @@
 import asyncio
 import logging
 import secrets
+import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 from fastapi import WebSocket
 from sqlmodel import Session, select
-from sqlalchemy import func
+from sqlalchemy import func, update
 
 
-from ...models.multiplayer_match import MultiplayerMatch, MultiplayerParticipant
+from ...models.multiplayer_match import MultiplayerMatch, MultiplayerParticipant, MatchStatus
 from ...models.scenario import Scenario
 from ..market_data.generator import LCGPseudoRandomGenerator
 from ..simulation.SimulationService import SimulationService
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_INITIAL_BALANCE = Decimal("100000")
 PERTURBATION_VERSION: str = "v1"
 DATA_SNAPSHOT_ID: str = "demo"
+MATCH_RATE_LIMIT_SECONDS: float = 15.0
 
 
 @dataclass
@@ -37,6 +40,26 @@ class MultiplayerService:
         self.active_matches: Dict[int, MatchSession] = {}
         self.queue_lock = asyncio.Lock()
         self.session_factory = session_factory
+        self._recent_match_pairs: Dict[Tuple[int, int], float] = {}
+        self._abandon_orphaned_matches()
+
+    def _pair_key(self, a: int, b: int) -> Tuple[int, int]:
+        return (min(a, b), max(a, b))
+
+    def _abandon_orphaned_matches(self) -> None:
+        try:
+            with self.session_factory() as db:
+                db.exec(
+                    update(MultiplayerMatch)
+                    .where(MultiplayerMatch.status == MatchStatus.in_progress)
+                    .values(
+                        status=MatchStatus.abandoned,
+                        ended_at=datetime.now(timezone.utc),
+                    )
+                )
+                db.commit()
+        except Exception:
+            logger.exception("Failed to abandon orphaned matches at startup")
 
     def get_connection(self, user_id: int) -> Connection:
         for connection in self.active_connections:
@@ -116,6 +139,26 @@ class MultiplayerService:
                 return None
 
             peer = waiting[0]
+
+            key = self._pair_key(peer.user_id, connection.user_id)
+            now = time.monotonic()
+            last = self._recent_match_pairs.get(key, 0.0)
+            if now - last < MATCH_RATE_LIMIT_SECONDS:
+                logger.warning(
+                    "Rate-limited match for pair %s (%.1fs since last)",
+                    key,
+                    now - last,
+                )
+                try:
+                    await connection.socket.close(code=1013)
+                except Exception:
+                    pass
+                try:
+                    await peer.socket.close(code=1013)
+                except Exception:
+                    pass
+                return None
+            self._recent_match_pairs[key] = now
 
             scenario = self.pick_scenario_for_players()
 
