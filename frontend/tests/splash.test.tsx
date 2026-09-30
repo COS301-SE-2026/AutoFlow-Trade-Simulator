@@ -19,7 +19,7 @@ describe('SplashPage', () => {
             expect(screen.getByText('Risk-Free Practice')).toBeInTheDocument();
             expect(screen.getByText('Options Greeks')).toBeInTheDocument();
             expect(screen.getByText('Live Charts')).toBeInTheDocument();
-            expect(screen.getByText('AI Insights')).toBeInTheDocument();
+            expect(screen.getByText('Multiplayer Mode')).toBeInTheDocument();
 
             expect(screen.getByText('Terms')).toBeInTheDocument();
             expect(screen.getByText('Privacy')).toBeInTheDocument();

@@ -6,7 +6,7 @@ from ...database import get_session
 from ...core.security import get_current_user
 from ...models import User
 
-from .RubricEngineDTO import EpicStatusDTO, CategoryScoreDTO, ExecutionMetricDTO, EvaluationResultDTO, EvaluateMatchRequestDTO
+from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, EvaluateMatchRequestDTO
 from .RubricEngineService import RubricEngineService
 
 UserDep = Annotated[User, Depends(get_current_user)]

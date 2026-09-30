@@ -1,9 +1,11 @@
 from typing import Any, Dict, Optional
 from uuid import UUID
 
-from sqlalchemy import Column, Index, text as sa_text
+from sqlalchemy import JSON, Column, Index, text as sa_text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from sqlmodel import Field, SQLModel
+
+JSONVariant = JSONB().with_variant(JSON, "sqlite")
 
 
 class TechTree(SQLModel, table=True):
@@ -16,4 +18,4 @@ class TechTree(SQLModel, table=True):
         default=None,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True, server_default="gen_random_uuid()"),
     )
-    node: Dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))
+    node: Dict[str, Any] = Field(sa_column=Column(JSONVariant, nullable=False))

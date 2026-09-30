@@ -46,7 +46,7 @@ export function CreateNewInternationalAccount() {
     const overCap = cap !== null && initialBalance > cap
 
     useEffect(() => {
-        if (cap !== null && initialBalance > cap) setInitialBalance(cap)
+        if (cap !== null) setInitialBalance((prev) => (prev > cap ? cap : prev))
     }, [cap])
 
     async function handleSubmit() {

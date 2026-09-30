@@ -94,7 +94,7 @@ export function StrategyPuzzle({
         return () => { cancelled = true; };
     }, [strategyId, asset, startPuzzle]);
 
-    const bars = puzzle?.bars ?? [];
+    const bars = useMemo(() => puzzle?.bars ?? [], [puzzle]);
     const totalDays = bars.length;
     const currentBar = bars[dayIndex];
     const currentPrice = currentBar?.close ?? 0;

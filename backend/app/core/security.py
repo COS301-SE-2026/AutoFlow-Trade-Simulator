@@ -6,7 +6,7 @@ from ..database import get_session
 
 from ..settings import settings
 from passlib.hash import bcrypt
-from fastapi import Depends, HTTPException, WebSocket, WebSocketException, status
+from fastapi import Depends, HTTPException, WebSocketException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
