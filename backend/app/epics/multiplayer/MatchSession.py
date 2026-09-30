@@ -11,6 +11,7 @@ from sqlalchemy import func
 from sqlmodel import Session, select
 
 from ..market_data.generator import LCGPseudoRandomGenerator
+from ..rewards.RewardService import award_match_progression
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.multiplayer_match import MatchEventLog, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
 from .MultiplayerDTOs import (
@@ -24,7 +25,6 @@ from .MultiplayerDTOs import (
     QteOfferDTO,
     QtePlayerOutcome,
     QteResultMessage,
-    OpponentActionMessage,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,10 +69,8 @@ class MatchSession:
         initial_balance: Decimal,
         players: List[PlayerState],
         session_factory: Callable[[], Session],
-        on_finished: Optional[Callable[[int], None]] = None,
     ) -> None:
         self.match_id: int = match_id
-        self.on_finished = on_finished
         self.seed: int = seed
         self.scenario_id = scenario_id
         self.symbol = symbol
@@ -94,6 +92,7 @@ class MatchSession:
         self.rnd_gen = LCGPseudoRandomGenerator(seed=seed)
         self.used_question_ids: List[int] = []
         self.pending_events: List[Dict] = []
+        self.action_counts: Dict[int, int] = {p.user_id: 0 for p in players}
 
         self.lock = asyncio.Lock()
         self.task: Optional[asyncio.Task] = None
@@ -104,7 +103,6 @@ class MatchSession:
         self.actions_event = asyncio.Event()
 
     async def announce(self) -> None:
-        # print(f"announce START: match={self.match_id} players={[p.user_id for p in self.players.values()]}", flush=True)
         players = list(self.players.values())
         player_one, player_two = players[0], players[1]
         for player in players:
@@ -117,10 +115,15 @@ class MatchSession:
                 opponent_user_id=opponent.user_id,
                 total_days=self.total_days,
             )
-            # print(f"announce: sending to user={player.user_id}", flush=True)
-            await player.socket.send_text(message.model_dump_json())
-            # print(f"announce: sent to user={player.user_id}", flush=True)
-        # print(f"announce DONE: match={self.match_id}", flush=True)
+            try:
+                await player.socket.send_text(message.model_dump_json())
+            except Exception:
+                logger.exception(
+                    "Failed to announce match %s to user %s; marking disconnected",
+                    self.match_id,
+                    player.user_id,
+                )
+                player.connected = False
 
     def log_event(self, user_id: int, event_type: str, payload: Dict) -> None:
         self.pending_events.append({
@@ -130,17 +133,13 @@ class MatchSession:
             "day_index": self.day_index,
         })
 
-    def opponent_of(self, player: PlayerState) -> PlayerState:
-        return next(p for p in self.players.values() if p.user_id != player.user_id)
-
     def flush_events(self) -> None:
         if not self.pending_events:
             return
         try:
             with self.session_factory() as db:
                 last_seq = db.exec(
-                    select(func.max(MatchEventLog.seq)).where(
-                        MatchEventLog.match_id == self.match_id)
+                    select(func.max(MatchEventLog.seq)).where(MatchEventLog.match_id == self.match_id)
                 ).one()
                 next_seq = (last_seq or 0) + 1
                 for event in self.pending_events:
@@ -158,8 +157,7 @@ class MatchSession:
                 db.commit()
             self.pending_events.clear()
         except Exception:
-            logger.exception(
-                "Failed to persist events for match %s; will retry on next flush", self.match_id)
+            logger.exception("Failed to persist events for match %s; will retry on next flush", self.match_id)
 
     async def submit_action(
         self,
@@ -186,27 +184,16 @@ class MatchSession:
                     bar = player.bars[self.day_index]
                     error = self.apply_trade(player, bar, action, qty)
                     if error is None:
-                        player.pending_action = PendingAction(
-                            type=action, qty=qty or 0.0, price=bar.close)
-                        if action != "hold":  # we don't need to remember that they did nothing
-                            self.log_event(user_id, event_type=action, payload={
-                                           "qty": qty or 0.0, "price": float(bar.close)})
-                            opponent = self.opponent_of(player)
-                            if opponent.connected:
-                                notice = OpponentActionMessage(
-                                    day_index=self.day_index, action=action, qty=qty or 0.0)
-                                try:
-                                    await opponent.socket.send_text(notice.model_dump_json())
-                                except Exception:
-                                    logger.exception(
-                                        "Failed to send opponent_action to user %s", opponent.user_id)
+                        player.pending_action = PendingAction(type=action, qty=qty or 0.0, price=bar.close)
+                        self.action_counts[user_id] += 1
+                        if action != "hold": # we don't need to remember that they did nothing
+                            self.log_event(user_id, event_type=action, payload={"qty": qty or 0.0, "price": float(bar.close)})
                         if all(p.pending_action is not None for p in self.players.values()):
                             self.actions_event.set()
 
             if self.current_qte is not None and qte_answer is not None and player.pending_qte_answer is None:
                 player.pending_qte_answer = qte_answer
-                self.log_event(user_id, event_type="qte_attempt", payload={
-                               "question_id": self.current_qte.id, "answer": qte_answer})
+                self.log_event(user_id, event_type="qte_attempt", payload={"question_id": self.current_qte.id, "answer": qte_answer})
                 if all(p.pending_qte_answer is not None for p in self.players.values()):
                     self.qte_event.set()
 
@@ -244,6 +231,11 @@ class MatchSession:
             if self.status != MatchStatus.in_progress:
                 return  # match was forfeited mid-tick; finalize() must not run
 
+            if not any(p.connected for p in self.players.values()):
+                logger.warning("All players disconnected for match %s; forfeiting", self.match_id)
+                await self.forfeit(disconnected_user_id=next(iter(self.players)))
+                return
+
             for player in self.players.values():
                 player.pending_action = None
                 player.pending_qte_answer = None
@@ -257,7 +249,8 @@ class MatchSession:
             current_date = bar.timestamp.date()
 
             for player in self.players.values():
-                await self.send_day(player, bar, current_date)
+                if player.connected:
+                    await self.send_day(player, bar, current_date)
 
             if self.current_qte is not None:
                 await self.collect_qte()
@@ -266,18 +259,15 @@ class MatchSession:
 
             for player in self.players.values():
                 if player.pending_action is None:
-                    player.pending_action = PendingAction(
-                        type="hold", qty=0.0, price=bar.close)
+                    player.pending_action = PendingAction(type="hold", qty=0.0, price=bar.close)
 
             if self.current_qte is not None:
                 outcomes = {
-                    player.user_id: self.apply_qte_effect(
-                        player, self.current_qte)
+                    player.user_id: self.apply_qte_effect(player, self.current_qte)
                     for player in self.players.values()
                 }
                 for user_id, outcome in outcomes.items():
-                    self.log_event(user_id, event_type="qte_result", payload={
-                                   "question_id": self.current_qte.id, "answer": outcome.answer, "correct": outcome.correct, "cash_delta": outcome.cash_delta})
+                    self.log_event(user_id, event_type="qte_result", payload={"question_id": self.current_qte.id, "answer": outcome.answer, "correct": outcome.correct, "cash_delta": outcome.cash_delta})
                 await self.send_qte_result(self.current_qte, outcomes)
 
             self.day_index += 1
@@ -301,7 +291,6 @@ class MatchSession:
             pass
 
     async def send_day(self, player: PlayerState, bar: DailyOHLCV, current_date: date) -> None:
-        # print("send_day: match=%s user=%s day=%s close=%s", self.match_id, player.user_id, self.day_index, bar.close)
         qte_offer: Optional[QteOfferDTO] = None
         if self.current_qte is not None:
             qte_offer = QteOfferDTO(
@@ -311,8 +300,6 @@ class MatchSession:
                 options=self.current_qte.options,
                 timeout_seconds=int(QTE_TIMEOUT_SECONDS),
             )
-
-        opponent = self.opponent_of(player)
 
         message = DayMessage(
             day_index=self.day_index,
@@ -326,19 +313,19 @@ class MatchSession:
             ),
             cash_balance=float(player.cash),
             position_qty=float(player.qty),
-            opponent_cash_balance=float(opponent.cash),
-            opponent_position_qty=float(opponent.qty),
             qte=qte_offer,
         )
-        await player.socket.send_text(message.model_dump_json())
+        try:
+            await player.socket.send_text(message.model_dump_json())
+        except Exception:
+            logger.exception("send_day failed for user %s in match %s; marking disconnected", player.user_id, self.match_id)
+            player.connected = False
 
     def pick_qte_question(self) -> Optional[QTEQuestion]:
         with self.session_factory() as db:
-            query = select(QTEQuestion).where(
-                QTEQuestion.active.is_(True)).order_by(QTEQuestion.id)
+            query = select(QTEQuestion).where(QTEQuestion.active == True).order_by(QTEQuestion.id)
             if self.used_question_ids:
-                query = query.where(
-                    QTEQuestion.id.notin_(self.used_question_ids))
+                query = query.where(QTEQuestion.id.notin_(self.used_question_ids))
             questions = list(db.exec(query).all())
         if not questions:
             return None
@@ -362,11 +349,16 @@ class MatchSession:
             day_index=self.day_index,
             question_id=question.id,
             correct_answer=question.correct_answer,
-            per_player={str(user_id): outcome for user_id,
-                        outcome in outcomes.items()},
+            per_player={str(user_id): outcome for user_id, outcome in outcomes.items()},
         )
         for player in self.players.values():
-            await player.socket.send_text(message.model_dump_json())
+            if not player.connected:
+                continue
+            try:
+                await player.socket.send_text(message.model_dump_json())
+            except Exception:
+                logger.exception("send_qte_result failed for user %s in match %s", player.user_id, self.match_id)
+                player.connected = False
 
     async def finalize(self) -> None:
         final_bar = next(iter(self.players.values())).bars[-1]
@@ -374,11 +366,9 @@ class MatchSession:
         for player in self.players.values():
             if player.qty > 0:
                 self.apply_trade(player, final_bar, "sell", float(player.qty))
-                self.log_event(player.user_id, event_type="sell", payload={"qty": float(
-                    player.qty), "price": float(final_bar.close), "reason": "final_liquidation"})
+                self.log_event(player.user_id, event_type="sell", payload={"qty": float(player.qty), "price": float(final_bar.close), "reason": "final_liquidation"})
 
-        balances: Dict[int, Decimal] = {
-            p.user_id: p.cash for p in self.players.values()}
+        balances: Dict[int, Decimal] = {p.user_id: p.cash for p in self.players.values()}
         winner_user_id: Optional[int] = None
         values = list(balances.values())
         if values[0] != values[1]:
@@ -404,30 +394,30 @@ class MatchSession:
 
             db.commit()
 
+            try:
+                award_match_progression(db, self.match_id, winner_user_id, list(balances.keys()), self.action_counts)
+            except Exception:
+                logger.exception("award_match_progression failed for match %s", self.match_id)
+
         self.status = MatchStatus.completed
         self.flush_events()
 
         message = MatchEndMessage(
-            final_balances={str(user_id): float(cash)
-                            for user_id, cash in balances.items()},
+            final_balances={str(user_id): float(cash) for user_id, cash in balances.items()},
             winner_user_id=winner_user_id,
             reason="completed",
         )
-        try:
-            for player in self.players.values():
+        for player in self.players.values():
+            if not player.connected:
+                continue
+            try:
                 await player.socket.send_text(message.model_dump_json())
-        finally:
-            self.notify_finished()
-
-    def notify_finished(self) -> None:
-        if self.on_finished is not None:
-            callback, self.on_finished = self.on_finished, None
-            callback(self.match_id)
+            except Exception:
+                logger.exception("finalize send failed for user %s in match %s", player.user_id, self.match_id)
+                player.connected = False
 
     def start(self) -> None:
-        # print(f"start: creating task for match={self.match_id}", flush=True)
         self.task = asyncio.create_task(self.run())
-        # print(f"start: task created for match={self.match_id}", flush=True)
 
     async def handle_client_message(self, user_id: int, raw: str) -> None:
         player = self.players.get(user_id)
@@ -447,9 +437,13 @@ class MatchSession:
             position_qty=float(player.qty),
             error=error,
         )
-        await player.socket.send_text(ack.model_dump_json())
+        try:
+            await player.socket.send_text(ack.model_dump_json())
+        except Exception:
+            logger.exception("ack send failed for user %s in match %s", user_id, self.match_id)
+            player.connected = False
 
-    def handle_disconnect(self, user_id: int) -> None:
+    async def handle_disconnect(self, user_id: int) -> None:
         player = self.players.get(user_id)
         if player is None:
             return
@@ -481,8 +475,7 @@ class MatchSession:
         if self.status != MatchStatus.in_progress:
             return  # match already completed or already forfeited
 
-        winner_user_id = next(
-            uid for uid in self.players if uid != disconnected_user_id)
+        winner_user_id = next(uid for uid in self.players if uid != disconnected_user_id)
 
         with self.session_factory() as db:
             match = db.get(MultiplayerMatch, self.match_id)
@@ -492,22 +485,27 @@ class MatchSession:
             db.add(match)
             db.commit()
 
+            try:
+                award_match_progression(db, self.match_id, winner_user_id, list(self.players.keys()), self.action_counts)
+            except Exception:
+                logger.exception("award_match_progression failed on forfeit for match %s", self.match_id)
+
         self.status = MatchStatus.abandoned
 
         message = MatchEndMessage(
-            final_balances={str(uid): float(p.cash)
-                            for uid, p in self.players.items()},
+            final_balances={str(uid): float(p.cash) for uid, p in self.players.items()},
             winner_user_id=winner_user_id,
             reason="opponent_disconnected",
         )
         winner = self.players[winner_user_id]
-        try:
-            if winner.connected:
+        if winner.connected:
+            try:
                 await winner.socket.send_text(message.model_dump_json())
-        finally:
-            self.notify_finished()
+            except Exception:
+                logger.exception("forfeit send failed for user %s in match %s", winner_user_id, self.match_id)
+                winner.connected = False
 
-    def rebind_socket(self, user_id: int, socket: WebSocket) -> None:
+    async def rebind_socket(self, user_id: int, socket: WebSocket) -> None:
         player = self.players.get(user_id)
         if player is None:
             raise ValueError(f"No player {user_id} in match {self.match_id}")
