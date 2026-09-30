@@ -2,14 +2,13 @@
 
 import { useState } from 'react';
 import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
 } from 'recharts';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -28,10 +27,10 @@ const CustomTooltip = ({ active, payload }: any) => {
     return (
       <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
         <p className="mb-1">{data.name}</p>
-        <p className="text-muted-foreground">OPEN: R{data.open.toFixed(2)}</p>
-        <p className="text-muted-foreground">HIGH: R{data.high.toFixed(2)}</p>
-        <p className="text-muted-foreground">LOW: R{data.low.toFixed(2)}</p>
-        <p className="text-muted-foreground">CLOSE: R{data.close.toFixed(2)}</p>
+        <p className="text-muted-foreground">OPEN: {data.open.toFixed(2)}</p>
+        <p className="text-muted-foreground">HIGH: {data.high.toFixed(2)}</p>
+        <p className="text-muted-foreground">LOW: {data.low.toFixed(2)}</p>
+        <p className="text-muted-foreground">CLOSE: {data.close.toFixed(2)}</p>
       </div>
     );
   }
@@ -65,6 +64,7 @@ export default function PriceChart({ ticker }: PriceChartProps) {
   const chartData = data.map((item) => ({
     ...item,
     name: item.timestamp.split('T')[0],
+    value: item.close,
   }));
  
     return (
@@ -97,29 +97,40 @@ export default function PriceChart({ ticker }: PriceChartProps) {
           loading ? (<ChartSkeleton />)
           : (
           <div style={{width:'100%', height:"400px", padding:"20px"}}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chartData}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="name" stroke="var(--text)" />
-                <YAxis domain={['auto', 'auto']} stroke="var(--text)" tickFormatter={(v) => `R${v}`} width={70} />
-                <Tooltip
-                  cursor={{ stroke: 'var(--muted)' }}
-                  content={<CustomTooltip />}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="close"
-                  stroke="var(--purple)"
-                  strokeWidth={4}
-                  dot={false}
-                  activeDot={{ r: 2, stroke: 'var(--blue)' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={chartData}>
+                  <defs>
+                      <linearGradient id="gradPortfolioValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--blue)" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="var(--blue)" stopOpacity={0} />
+                      </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 11, fill: 'var(--muted)' }}
+                      tickLine={false}
+                      axisLine={false}
+                  />
+                  <YAxis
+                      tick={{ fontSize: 11, fill: 'var(--muted)' }}
+                      tickLine={false}
+                      axisLine={false}
+                      domain={['auto', 'auto']}
+                      width={70}
+                  />
+                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--muted)' }} />
+                  <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="var(--blue)"
+                      strokeWidth={2.5}
+                      fill="url(#gradPortfolioValue)"
+                      dot={false}
+                      activeDot={{ r: 4, stroke: 'var(--blue)' }}
+                  />
+              </AreaChart>
+          </ResponsiveContainer>
           </div>
           )
         }

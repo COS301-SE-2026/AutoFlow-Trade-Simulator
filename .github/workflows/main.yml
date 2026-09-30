@@ -35,9 +35,9 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          python -m pip install --upgrade pip==26.2.1
-          python -m pip install --require-hashes -r backend/requirements.txt
-          python -m pip install --require-hashes -r backend/requirements-cov.lock.txt
+          python -m pip install --only-binary :all: --upgrade pip==26.2.1
+          python -m pip install --only-binary :all: --require-hashes -r backend/requirements.txt
+          python -m pip install --only-binary :all: --require-hashes -r backend/requirements-cov.lock.txt
 
       - name: Lint backend
         run: npm run lint:backend
@@ -70,8 +70,8 @@ jobs:
 
       - name: Install stock-poller dependencies
         run: |
-          python -m pip install --upgrade pip==26.2.1
-          python -m pip install --require-hashes -r stock-poller/requirements-test.lock.txt
+          python -m pip install --only-binary :all: --upgrade pip==26.2.1
+          python -m pip install --only-binary :all: --require-hashes -r stock-poller/requirements-test.lock.txt
 
       - name: Run stock-poller tests
         run: python -m pytest stock-poller/tests -v --cov=stock-poller --cov-report=xml:coverage-stock-poller.xml
@@ -124,3 +124,37 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+
+  converter:
+    name: Historical data converter tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install converter dependencies
+        run: |
+          python -m pip install --only-binary :all: --upgrade pip==26.2.1
+          python -m pip install --only-binary :all: --require-hashes -r historicalDataConverter/tests/requirements.txt
+          python -m pip install --only-binary :all: pytest-cov==6.0.0
+
+      - name: Run converter tests
+        run: |
+          python -m pytest historicalDataConverter/tests -v \
+            --cov=historicalDataConverter \
+            --cov-report=xml:coverage-converter.xml
+
+      - name: Upload converter coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage-converter.xml
+          flags: converter
+          name: converter
+          fail_ci_if_error: false

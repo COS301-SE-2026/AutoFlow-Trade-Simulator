@@ -1,14 +1,16 @@
 from fastapi import HTTPException, status
-from datetime import date,  timedelta
+from datetime import date,  timedelta, timezone
 from datetime import datetime,time
 from decimal import Decimal
 from typing import Dict, List, Optional
 from sqlmodel import   Session, col, select
+from ...models.user import User
+from ..tech_tree.TechTreeService import TechTreeService
 
 from ...models.strategies import Strategies
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
-from ...models.practice_simulation import PraticeSimulation
+from ...models.practice_simulation import PracticeSimulation
 from .SimulationDTOs import OHLCVBar,SimulationCreateResponse,PerSymbolResult, SimulationAppendRequest, SimulationCreateRequest, SimulationFinishResponse, SimulationSessionResponse, SimulationSummary, StrategiesResponse, EpicStatusDTO, StrategyDetail, StrategySummary
 
 MAX_SYMBOLS = 20
@@ -39,22 +41,42 @@ class SimulationService:
             epic="Simulation",
             status="healthy",
         )
-        
-    def get_strategies(self)->StrategiesResponse:
-        strategies= self.session.exec(select(Strategies)).all()
-        summaries=[]
+
+    def get_strategies(self, user: User) -> StrategiesResponse:
+        strategies = self.session.exec(select(Strategies)).all()
+        summaries = []
         for s in strategies:
             assert s.strat_id is not None, "Strategy ID should not be None"
-            summaries.append(StrategySummary(id=s.strat_id,name=s.name,level=s.level,category=s.category,description=s.description))
+            tech = TechTreeService.strategy_tech_name(s)
+            unlocked = TechTreeService.is_unlocked(user, tech) if tech else True
+            summaries.append(StrategySummary(
+                id=s.strat_id,
+                name=s.name,
+                level=s.level,
+                category=s.category,
+                description=s.description,
+                unlocked=unlocked,
+            ))
         return StrategiesResponse(strategies=summaries)
-    
-    def get_strategy_detail(self,strategy_id:int)->StrategyDetail:
 
-        strategy:Strategies|None=self.session.get(Strategies,strategy_id)
+    def get_strategy_detail(self, strategy_id: int, user: User) -> StrategyDetail:
+        strategy: Strategies | None = self.session.get(Strategies, strategy_id)
         if strategy is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Strategy not found")
+            raise HTTPException(status_code=404, detail="Strategy not found")
         assert strategy.strat_id is not None, "Strategy ID should not be None"
-        return StrategyDetail(id=strategy.strat_id,name=strategy.name,level=strategy.level,category=strategy.category,description=strategy.description,steps=strategy.steps,pros=strategy.pros,cons=strategy.cons)
+        tech = TechTreeService.strategy_tech_name(strategy)
+        unlocked = TechTreeService.is_unlocked(user, tech) if tech else True
+        return StrategyDetail(
+            id=strategy.strat_id,
+            name=strategy.name,
+            level=strategy.level,
+            category=strategy.category,
+            description=strategy.description,
+            steps=strategy.steps,
+            pros=strategy.pros,
+            cons=strategy.cons,
+            unlocked=unlocked,
+        )
     
     def validate_limits(self,symbol:List[str],start:date,end:date):
         if len(symbol)>MAX_SYMBOLS:
@@ -121,7 +143,7 @@ class SimulationService:
 
         float_positions:Dict[str,float]={s:float(v) for [s,v] in positions.items()}
         float_allocations:Dict[str,float]={s:float(v) for [s,v] in allocations.items()}
-        sim=PraticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=float_allocations,current_balance=cash,positions=float_positions,actions=actions_log)
+        sim=PracticeSimulation(user_id=user_id,symbols=req.symbols,start_date=req.start_date,end_date=req.end_date,initial_balance=req.initial_balance,allocations=float_allocations,current_balance=cash,positions=float_positions,actions=actions_log)
         self.session.add(sim)
         self.session.commit()
         self.session.refresh(sim)
@@ -132,7 +154,7 @@ class SimulationService:
 
     def append_simulation_actions(self,req:SimulationAppendRequest,user_id:int)->SimulationSessionResponse:
         # check if simulation_id is valid
-        sim:PraticeSimulation= self.session.exec(select(PraticeSimulation).where(PraticeSimulation.id==req.simulation_id)).one()
+        sim:PracticeSimulation= self.session.exec(select(PracticeSimulation).where(PracticeSimulation.id==req.simulation_id)).one()
         if sim.user_id != user_id:
             raise  HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This simulation does not belong to the current user")
         positions:Dict[str,Decimal]= dict({s:Decimal(str(v)) for s,v in sim.positions.items()} or {})
@@ -189,7 +211,7 @@ class SimulationService:
         return SimulationSessionResponse(simulation_id=sim.id, status=sim.status, positions=positions, nav=nav)
 
     def finalize_simulation(self,simulation_id:int,user_id:int)->SimulationFinishResponse:
-        sim:PraticeSimulation=self.session.exec(select(PraticeSimulation).where(PraticeSimulation.id==simulation_id)).one()
+        sim:PracticeSimulation=self.session.exec(select(PracticeSimulation).where(PracticeSimulation.id==simulation_id)).one()
         if sim.user_id != user_id:
             raise  HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="This simulation does not belong to the current user")
         #load bars and check rows
@@ -256,15 +278,10 @@ class SimulationService:
         sim.last_prices={s:float(v) for s,v in last_close.items()}
         sim.summary={"final_balance": float(final_balance),"returns_pct": float(returns_pct),"max_drawdown": float(max_dd),"trades_count": trades_count,"per_symbol_results": {s: {"final_value": float(r.final_value), "returns_pct": float(r.returns_pct)}for s, r in per_symbol_results.items()},}
         sim.status="completed"
-        sim.finished_at=datetime.utcnow()
+        sim.finished_at=datetime.now(timezone.utc)
         self.session.add(sim)
         self.session.commit()
         self.session.refresh(sim)
         if sim.id is None:
             raise ValueError("sim id was not refreshed")
         return SimulationFinishResponse(simulation_id=sim.id,status=sim.status,start_date=sim.start_date,end_date=sim.end_date,initial_balance=sim.initial_balance,summary=summary)
-
-
-
-
-

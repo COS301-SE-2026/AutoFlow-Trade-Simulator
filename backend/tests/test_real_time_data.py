@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from sqlmodel import Session, select
 from app.models.currency import Currency
@@ -53,7 +53,7 @@ def test_get_real_data_no_ticks()->None:
 
 def test_get_real_data_returns_recent_ticks()->None:
     asset_id=seed_asset("AAPL")
-    now=datetime.utcnow()
+    now=datetime.now(timezone.utc)
     seed_tick(asset_id, now - timedelta(hours=1))
     seed_tick(asset_id, now - timedelta(minutes=5))
     res=client.get("/real_time/points/AAPL")
@@ -63,7 +63,7 @@ def test_get_real_data_returns_recent_ticks()->None:
     
 def test_get_real_data_excludes_ticks_older_than_a_day() -> None:
     asset_id=seed_asset("AAPL")
-    now=datetime.utcnow()
+    now=datetime.now(timezone.utc)
     seed_tick(asset_id, now - timedelta(days=2))
     seed_tick(asset_id, now - timedelta(minutes=10))
     res=client.get("/real_time/points/AAPL")
@@ -75,7 +75,7 @@ def test_get_real_data_excludes_ticks_older_than_a_day() -> None:
 def test_get_real_data_only_returns_ticks_for_requested_asset() -> None:
     aapl_id = seed_asset("AAPL")
     msft_id = seed_asset("MSFT")
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     seed_tick(aapl_id, now - timedelta(minutes=5), price="150.00")
     seed_tick(msft_id, now - timedelta(minutes=5), price="300.00")
 

@@ -2,6 +2,7 @@
 
 import { StrategySummary } from '@/hooks/useStrategies';
 import { Button } from './ui/button';
+import { Lock } from 'lucide-react';
 
 interface StrategyCardProps {
     readonly strategy: StrategySummary,
@@ -18,6 +19,7 @@ export const strategyLevelColors = {
 export type strategyLevel = keyof typeof strategyLevelColors;
 
 export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
+    const locked = !strategy.unlocked;
 
     return (
         <Button
@@ -28,13 +30,22 @@ export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
                 flexDirection: 'column',
                 alignItems: 'flex-start',
                 width: '100%',
+                opacity: locked ? 0.55 : 1,
             }}>
-            <div className='flex'>
-                <div className='font-bold my-1'>{strategy.name}</div>
-                <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
-                    <span className={`${strategyLevelColors[strategy.level.toLowerCase() as strategyLevel]}`}>{strategy.level}</span> -
-                    <span>{strategy.category}</span>
+            <div className='flex' style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className='font-bold my-1'>{strategy.name}</div>
+                    <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
+                        <span className={`${strategyLevelColors[strategy.level.toLowerCase() as strategyLevel]}`}>{strategy.level}</span> -
+                        <span>{strategy.category}</span>
+                    </div>
                 </div>
+                {locked && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--muted)', fontSize: '12px', fontWeight: 600 }}>
+                        <Lock className='w-3.5 h-3.5' />
+                        Locked
+                    </div>
+                )}
             </div>
             <span style={{ color: 'var(--muted)' }}>{strategy.description}</span>
         </Button>

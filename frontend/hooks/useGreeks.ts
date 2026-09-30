@@ -2,11 +2,11 @@ import { useState, useCallback } from 'react';
 import { apiClient, ApiError } from '@/lib/api';
 
 export interface GreekValues {
-    delta: number;
-    gamma: number;
-    theta: number;
-    vega: number;
-    rho: number;
+    delta: number | null;
+    gamma: number | null;
+    theta: number | null;
+    vega: number | null;
+    rho: number | null;
 }
 
 export interface CalculateGreeksParams {

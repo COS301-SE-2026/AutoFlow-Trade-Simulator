@@ -2,22 +2,20 @@ from typing import Any, Dict, List, Optional
 from sqlmodel import SQLModel
 from decimal import Decimal
 from datetime import date, datetime
+
 class EpicStatusDTO(SQLModel):
     epic: str
     status: str
+
 class StrategySummary(SQLModel):
     id: int
     name: str
     level: str
     category: str
     description: str
+    unlocked: bool = False
 
 class StrategyDetail(StrategySummary):
-    id: int
-    name: str
-    level: str
-    category: str
-    description: str
     steps: List[str]
     pros: List[str]
     cons: List[str]

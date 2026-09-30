@@ -2,25 +2,45 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-type TabId = 'strategies' | 'greeks' | 'events';
+export interface PuzzleStrategy {
+    id: number;
+    name: string;
+}
 
 interface LearningContextType {
-    activeTab: TabId;
-    setActiveTab: (tab: TabId) => void;
-    switchToEvents: () => void;
+    strategyTutorialOpen: boolean;
+    tutorialStrategyId: number | null;
+    openStrategyTutorial: (strategyId: number) => void;
+    closeStrategyTutorial: () => void;
+
+    puzzleStrategy: PuzzleStrategy | null;
+    openStrategyPuzzle: (strategy: PuzzleStrategy) => void;
+    closeStrategyPuzzle: () => void;
 }
 
 const LearningContext = createContext<LearningContextType | undefined>(undefined);
 
 export function LearningProvider({ children }: { readonly children: ReactNode }) {
-    const [activeTab, setActiveTab] = useState<TabId>('events');
+    const [tutorialStrategyId, setTutorialStrategyId] = useState<number | null>(null);
+    const strategyTutorialOpen = tutorialStrategyId !== null;
+    const [puzzleStrategy, setPuzzleStrategy] = useState<PuzzleStrategy | null>(null);
 
-    const switchToEvents = () => {
-        setActiveTab('events');
-    }
+    const openStrategyTutorial = (strategyId: number) => setTutorialStrategyId(strategyId);
+    const closeStrategyTutorial = () => setTutorialStrategyId(null);
+
+    const openStrategyPuzzle = (strategy: PuzzleStrategy) => setPuzzleStrategy(strategy);
+    const closeStrategyPuzzle = () => setPuzzleStrategy(null);
 
     return (
-        <LearningContext.Provider value={{ activeTab, setActiveTab, switchToEvents }}>
+        <LearningContext.Provider value={{
+            strategyTutorialOpen,
+            tutorialStrategyId,
+            openStrategyTutorial,
+            closeStrategyTutorial,
+            puzzleStrategy,
+            openStrategyPuzzle,
+            closeStrategyPuzzle,
+        }}>
             {children}
         </LearningContext.Provider>
     )
@@ -29,7 +49,7 @@ export function LearningProvider({ children }: { readonly children: ReactNode })
 export function useLearning() {
     const context = useContext(LearningContext);
     if (!context) {
-        throw new Error('userLearning must be used inside LearningProvider')
+        throw new Error('useLearning must be used inside LearningProvider')
     }
     return context;
 }

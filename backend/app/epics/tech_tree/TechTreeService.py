@@ -1,0 +1,126 @@
+from fastapi import HTTPException, status
+from sqlmodel import Session, select
+from typing import Optional
+
+from ...models import Strategies
+from ...models.user import User
+from decimal import Decimal
+from ...models.tech_tree import TechTree
+from .TechTreeDTOs import (
+    EpicStatusDTO,
+    PurchaseResponseDTO,
+    TechNodeStateDTO,
+    TechTreeResponseDTO,
+    UnlockCheckDTO,
+)
+
+GREEK_TECH_NAMES = {
+    "delta": "greeks_delta",
+    "gamma": "greeks_gamma",
+    "theta": "greeks_theta",
+    "vega":  "greeks_vega",
+    "rho":   "greeks_rho",
+}
+
+class TechTreeService:
+    def __init__(self, session: Session) -> None:
+        self.session = session
+
+    @staticmethod
+    def get_status() -> EpicStatusDTO:
+        return EpicStatusDTO(
+            epic="Tech Tree",
+            status="healthy",
+        )
+
+    @staticmethod
+    def is_unlocked(user: User, tech_name: str) -> bool:
+        return tech_name in (user.upgrades or [])
+
+    def _load_nodes(self) -> list[dict]:
+        rows = list(self.session.exec(select(TechTree)).all())
+        return [row.node for row in rows]
+
+    def get_tree(self, user: User) -> TechTreeResponseDTO:
+        owned = set(user.upgrades or [])
+        nodes: list[TechNodeStateDTO] = []
+
+        for node in self._load_nodes():
+            name = node["name"]
+            prereqs = node.get("prerequisites") or []
+            cost = node.get("cost", 0)
+
+            unlocked = name in owned
+            available = (
+                not unlocked
+                and all(p in owned for p in prereqs)
+                and user.experience_points >= cost
+            )
+
+            nodes.append(
+                TechNodeStateDTO(
+                    name=name,
+                    description=node.get("description", ""),
+                    cost=cost,
+                    prerequisites=prereqs or None,
+                    unlocks=node.get("unlocks") or None,
+                    unlocked=unlocked,
+                    available=available,
+                )
+            )
+
+        return TechTreeResponseDTO(
+            experience_points=user.experience_points,
+            upgrades=list(owned),
+            nodes=nodes,
+        )
+
+    def check_unlock(self, user: User, tech_name: str) -> UnlockCheckDTO:
+        return UnlockCheckDTO(
+            tech_name=tech_name,
+            unlocked=self.is_unlocked(user, tech_name),
+        )
+
+    def purchase_tech(self, user: User, tech_name: str) -> PurchaseResponseDTO:
+        if self.is_unlocked(user, tech_name):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Technology '{tech_name}' is already unlocked",
+            )
+
+        user.upgrades = list(user.upgrades or []) + [tech_name]
+
+        try:
+            self.session.add(user)
+            self.session.commit()
+            self.session.refresh(user)
+        except Exception as exc:
+            self.session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(exc),
+            )
+
+        return PurchaseResponseDTO(
+            experience_points=user.experience_points,
+            upgrades=user.upgrades,
+            purchased=tech_name,
+        )
+
+    @staticmethod
+    def unlocked_greeks(user: User) -> set[str]:
+        unlocked = set(user.upgrades or [])
+        return {g for g, tech in GREEK_TECH_NAMES.items() if tech in unlocked}
+
+    @staticmethod
+    def strategy_tech_name(strategy: Strategies) -> Optional[str]:
+        return strategy.tech_tree_node
+
+    @staticmethod
+    def max_sandbox_balance(user: User) -> Decimal:
+        unlocked = set(user.upgrades or [])
+        if "sandbox_balance_500k" in unlocked:
+            return Decimal("500000")
+        if "sandbox_balance_200k" in unlocked:
+            return Decimal("200000")
+        return Decimal("100000")

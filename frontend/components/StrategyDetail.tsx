@@ -1,14 +1,35 @@
 'use client';
 
-import { useStrategy } from '@/hooks/useStrategy';
-import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
-import { Button } from "./ui/button";
-import { X } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { useStrategies, type StrategyDetail as StrategyDetailData } from '@/hooks/useStrategies';
 import { useLearning } from '@/context/LearningContext';
+import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
+import { X, Lock, Brain } from 'lucide-react';
+import Link from 'next/link';
+import { getPuzzleGuide } from '@/lib/puzzleGuides';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
-    const { strategy, loading, error } = useStrategy(id);
-    const { switchToEvents } = useLearning();
+    const { fetchDetail } = useStrategies();
+    const { openStrategyTutorial, openStrategyPuzzle } = useLearning();
+
+    const [strategy, setStrategy] = useState<StrategyDetailData | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const puzzleGuide = useMemo(() => (strategy ? getPuzzleGuide(strategy.name) : null),
+        [strategy],
+    );
+
+    useEffect(() => {
+        if (!id) return;
+        setLoading(true);
+        setError(null);
+        setStrategy(null);
+        fetchDetail(id)
+            .then(setStrategy)
+            .catch((e: any) => setError(e?.message ?? 'Failed to load strategy'))
+            .finally(() => setLoading(false));
+    }, [id, fetchDetail]);
 
     // Loading State
     if (loading) {
@@ -143,15 +164,49 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 <div className='border-b border-[var(--border)] mb-4'></div>
 
                 {/* Try it now button */}
-                <Button
-                    data-testid="Try it now button"
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
-                    onClick={() => {
-                        switchToEvents();
-                    }}
-                >
-                    Try it now!
-                </Button>
+                <div className='flex flex-col gap-3 mt-4'>
+                    {strategy.unlocked ? (
+                        <>
+                            <button
+                                className='w-full bg-green-600 hover:bg-green-700 text-white font-bold 
+                                    py-6 px-6 rounded-xl text-lg transition-colors'
+                                data-testid="Try it now button"
+                                onClick={() => openStrategyTutorial(strategy.id)}
+                            >
+                                Try it now!
+                            </button>
+                            {puzzleGuide && (
+                                <button
+                                    className='w-full text-white font-bold py-4 px-6 rounded-xl 
+                                        transition-colors flex items-center justify-center gap-2
+                                        border border-[var(--border)] bg-purple-600/80 hover:bg-purple-700/80'
+                                    onClick={() => 
+                                        openStrategyPuzzle({ id: strategy.id, name: strategy.name })
+                                    }
+                                >
+                                    <Brain className='w-4 h-4' />
+                                    Try the Puzzle
+                                </button>
+                            )}
+                        </>
+                    ) : (
+                        <div className='w-full text-center bg-[var(--background)] border border-[var(--border)] rounded-xl py-6 px-6 mb-4'>
+                            <p className='font-bold text-sm inline-flex items-center justify-center gap-2'>
+                                <Lock className='w-4 h-4' />
+                                Locked
+                            </p>
+                            <p className='text-sm mt-1' style={{ color: 'var(--muted)' }}>
+                                Unlock this strategy in the Tech Tree to try it out.
+                            </p>
+                            <Link
+                                href='/learning/techTree'
+                                className='inline-block mt-3 text-sm font-bold text-[var(--blue)] hover:underline'
+                            >
+                                Go to Tech Tree →
+                            </Link>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

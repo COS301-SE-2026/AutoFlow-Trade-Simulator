@@ -18,8 +18,12 @@ from .epics.accounts.AccountsController import router as accounts_router
 from .epics.portfolio.ReportController import router as report_router
 from .epics.simulation.SimulationController import router as simulation_router
 from .epics.Datapoints.DatapointsController import router as chart_router
-from .epics.real_time_data.RealTimeDataController import router as real_time 
+from .epics.real_time_data.RealTimeDataController import router as real_time
 from .epics.news.NewsController import router as news
+from .epics.multiplayer.MultiplayerController import router as multiplayer_router
+from .epics.RubricEngine.RubricEngineController import router as rubric_router
+from .epics.tech_tree.TechTreeController import router as tech_tree_router
+from .epics.puzzles.PuzzleController import router as puzzle_router
 
 
 @asynccontextmanager
@@ -64,3 +68,7 @@ app.include_router(simulation_router)
 app.include_router(chart_router)
 app.include_router(real_time)
 app.include_router(news)
+app.include_router(multiplayer_router)
+app.include_router(rubric_router) 
+app.include_router(tech_tree_router)
+app.include_router(puzzle_router)

@@ -5,7 +5,7 @@ import { useAssetSummary } from '../hooks/useAssetSummary';
 import PriceChart from '@/components/charts/priceChart';
 
 interface SummaryBarProps {
-  ticker: string;
+  ticker: string | null;
   holding?: HoldingsWithCurrPrice | null;
 }
 
@@ -14,7 +14,7 @@ function fmt(n: number): string {
 }
 
 export default function AssetSummaryBar({ ticker, holding = null }: SummaryBarProps) {
-  const { data, loading } = useAssetSummary(ticker);
+  const { data, loading, error } = useAssetSummary(ticker);
 
   const openPrice = data?.open_price ?? null;
   const dayChangePct = data && openPrice ? ((data.current_price - openPrice) / openPrice) * 100 : null;
@@ -22,7 +22,9 @@ export default function AssetSummaryBar({ ticker, holding = null }: SummaryBarPr
 
   return (
     <div className="card p-6 w-full flex-1">
-      {loading ? (
+      {!ticker ? (
+        <p className='text-sm text-muted-foreground'>Select a holding to view its summary</p>
+      ) : loading ? (
         <p className="text-sm text-muted-foreground">Loading summary...</p>
       ) : !data ? (
         <p className="text-sm text-muted-foreground">No summary data available</p>
@@ -71,9 +73,11 @@ export default function AssetSummaryBar({ ticker, holding = null }: SummaryBarPr
         </>
       )}
 
-      <div className="mt-4 pt-4 border-t border-border/60">
-        <PriceChart ticker={ticker} />
-      </div>
+      {ticker && (
+        <div className="mt-4 pt-4 border-t border-border/60">
+          <PriceChart ticker={ticker} />
+        </div>
+      )}
     </div>
   );
 }

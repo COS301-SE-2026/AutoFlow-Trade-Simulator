@@ -23,7 +23,7 @@ export default function PortfolioPage() {
   const { activeAccount } = useAccount();
   const { holdings, loading: holdingsLoading, error: holdingsError } = useHoldings(activeAccount?.id ?? null)
 
-  const [ticker, setTicker] = useState<string | null>('AAPL');
+  const [ticker, setTicker] = useState<string | null>(null);
 
   const selectedHolding = holdings.find(h => h.ticker === ticker) ?? null;
 
@@ -36,27 +36,28 @@ export default function PortfolioPage() {
             <PortfolioCashBalance accountId={activeAccount.id} />
             <PortfolioInvested accountId={activeAccount.id} />
             <PortfolioTotalValue accountId={activeAccount.id} />
+
+            <div className="w-full p-4">
+              <PortfolioPerformanceChart accountId={activeAccount.id} />
+            </div>
+            <div className="flex w-full gap-6 p-4">
+              <HoldingsSummary
+                holdings={holdings}
+                loading={holdingsLoading}
+                error={holdingsError}
+                selectedTicker={ticker}
+                onSelectAction={(selected) => setTicker(selected)}
+              />
+            </div>
+            <div className='flex w-full p-4'>
+              <AssetSummaryBar ticker={ticker} holding={selectedHolding} />
+            </div>
+
           </>
         ) :
-          <TradingAuthPrompt />
-        }
-      </div>
-      {activeAccount && (
-        <div className="w-full p-4">
-          <PortfolioPerformanceChart accountId={activeAccount.id} />
-        </div>
-      )}
-      <div className="flex w-full gap-6 p-4">
-        {activeAccount ? (
-          <HoldingsSummary
-            holdings={holdings}
-            loading={holdingsLoading}
-            error={holdingsError}
-            selectedTicker={ticker}
-            onSelectAction={(selected) => setTicker(selected)}
-          />
-        ) : <TradingAuthPrompt />}
-        <AssetSummaryBar ticker={ticker || 'AAPL'} holding={selectedHolding} />
+          <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
+            <TradingAuthPrompt />
+          </div>}
       </div>
     </>
   )

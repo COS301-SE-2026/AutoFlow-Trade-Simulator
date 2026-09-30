@@ -22,7 +22,7 @@ function summariseTicks(ticker: string, ticks: RealTimeTick[]): AssetSummary | n
   };
 }
 
-export function useAssetSummary(ticker: string) {
+export function useAssetSummary(ticker: string | null) {
   const [data, setData] = useState<AssetSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export function useAssetSummary(ticker: string) {
       }
     };
 
-    getSummary();
+    void getSummary();
 
     return () => {
       cancelled = true;

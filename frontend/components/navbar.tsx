@@ -67,6 +67,7 @@ export function Navbar() {
                     { label: 'Dashboard', href: '/dashboard' },
                     { label: 'Portfolio', href: '/portfolio' },
                     { label: 'Markets', href: '/assets/BTC' },
+                    { label: 'Multiplayer', href: '/multiplayer' },
                     { label: 'Learning', href: '/learning' },
                     { label: 'Help', href: '/help' },
                 ].map(({ label, href }) => (
