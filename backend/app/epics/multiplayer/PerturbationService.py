@@ -21,13 +21,13 @@ def perturb_bars(bars: List[DailyOHLCV], rng: LCGPseudoRandomGenerator) -> List[
 
     out: List[DailyOHLCV] = []
     for bar in bars:
-        o, h, l, c = jitter(bar.open), jitter(bar.high), jitter(bar.low), jitter(bar.close)
+        o, h, lo, c = jitter(bar.open), jitter(bar.high), jitter(bar.low), jitter(bar.close)
         out.append(DailyOHLCV(
             asset_id=bar.asset_id,
             timestamp=bar.timestamp,
             open=o,
-            high=max(o, h, l, c),
-            low=min(o, h, l, c),
+            high=max(o, h, lo, c),
+            low=min(o, h, lo, c),
             close=c,
             volume=bar.volume,
         ))

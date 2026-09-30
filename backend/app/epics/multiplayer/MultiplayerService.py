@@ -6,7 +6,6 @@ from typing import Callable, Dict, List, Optional
 
 from fastapi import WebSocket
 from sqlmodel import Session, select
-from sqlalchemy import func
 
 
 from ...models.multiplayer_match import MultiplayerMatch, MultiplayerParticipant
@@ -14,7 +13,7 @@ from ...models.scenario import Scenario
 from ..market_data.generator import LCGPseudoRandomGenerator
 from ..simulation.SimulationService import SimulationService
 from .MatchSession import MatchSession, PlayerState
-from .PerturbationService import derive_seed, perturb_bars
+from .PerturbationService import perturb_bars
 
 DEFAULT_INITIAL_BALANCE = Decimal("100000")
 PERTURBATION_VERSION: str = "v1"
@@ -72,7 +71,7 @@ class MultiplayerService:
 
     def pick_scenario_for_players(self) -> Scenario:
         with self.session_factory() as db:
-            scenarios = list(db.exec(select(Scenario).where(Scenario.active == True).order_by(Scenario.id)).all())
+            scenarios = list(db.exec(select(Scenario).where(Scenario.active.is_(True)).order_by(Scenario.id)).all())
         if not scenarios:
             raise ValueError("No active scenarios configured")
         rng = LCGPseudoRandomGenerator(seed=secrets.randbits(31)) # don't need to store this seed because we store what it chose.

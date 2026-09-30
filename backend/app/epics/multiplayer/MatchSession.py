@@ -335,7 +335,7 @@ class MatchSession:
     def pick_qte_question(self) -> Optional[QTEQuestion]:
         with self.session_factory() as db:
             query = select(QTEQuestion).where(
-                QTEQuestion.active == True).order_by(QTEQuestion.id)
+                QTEQuestion.active.is_(True)).order_by(QTEQuestion.id)
             if self.used_question_ids:
                 query = query.where(
                     QTEQuestion.id.notin_(self.used_question_ids))
