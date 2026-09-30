@@ -43,6 +43,11 @@ const SPEEDS = [1, 2, 4] as const;
 const BASE_INTERVAL_MS = 3000;
 const PUZZLE_STARTING_BALANCE = 100000;
 
+interface LocalTrade {
+    dayIndex: number;
+    action: 'buy' | 'sell';
+}
+
 export function StrategyPuzzle({ 
     strategyId,
     strategyName,
@@ -66,7 +71,7 @@ export function StrategyPuzzle({
     const [shares, setShares] = useState(0);
     const [qty, setQty] = useState('1');
     const [cash, setCash] = useState(PUZZLE_STARTING_BALANCE);
-    const [trades, setTrades] = useState<any[]>([]);
+    const [trades, setTrades] = useState<LocalTrade[]>([]);
     const [tradeError, setTradeError] = useState<string | null>(null);
 
     const [speed, setSpeed] = useState(1);
@@ -74,7 +79,7 @@ export function StrategyPuzzle({
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
-            const res = await StrategyPuzzle(strategyId, asset);
+            const res = await startPuzzle(strategyId, asset);
             if (cancelled) return;
             if (res) setPuzzle(res);
             else setLoadError('Failed to load puzzle. Please try again.')
@@ -114,6 +119,32 @@ export function StrategyPuzzle({
     }, [isPlaying, isFinished, totalDays, speed]);
 
     const stepForward = () => setDayIndex(d => Math.min(d + 1, totalDays - 1));
+
+    const execute = (action: 'buy' | 'sell') => {
+        if (!currentBar) return;
+        if (trades.length >= 100) {
+            setTradeError(`Trade limit reached (100)`);
+            setTimeout(() => setTradeError(null), 3000);
+            return;
+        }
+
+        let n = Math.max(1, Math.floor(Number(qty) || 1));
+        const price = currentBar.close;
+
+        if (action === 'buy' ) {
+            const cost = n * price;
+            if (cost > cash) {
+                setTradeError(`Not enough cash. You need R ${cost.toFixed(2)}.`);
+                setTimeout(() => setTradeError(null), 3000);
+                return;
+            }
+            n = Math.min(n, shares);
+            setCash(c => c + n * price);
+            setShares(s => s - n);
+        }
+
+        setTrades(prev => [...prev, { dayIndex, action, qty: n, price }]);
+    };
 
     if (loadError) {
         return (
@@ -317,15 +348,6 @@ export function StrategyPuzzle({
                             >
                                 Sell
                             </button>
-                            {pendingTrade && (
-                                <TradeConfirmModal 
-                                    side={pendingTrade.type} 
-                                    quantity={Number.parseFloat(qty)} 
-                                    price={Number.parseFloat(currentPrice)} 
-                                    onConfirm={() => { execute(pendingTrade.type); setPendingTrade(null) }}
-                                    onCancel={() => { setPendingTrade(null) }} orderType="market" 
-                                />
-                            )}
                         </div>
                     </div>
 

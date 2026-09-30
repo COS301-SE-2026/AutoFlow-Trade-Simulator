@@ -1,10 +1,10 @@
 
 const STRATEGY_GUIDES: Record<string, string[]> = {
-    'dollar-cost averaging': [
-        'Invest a fixed rand amount at regular invervals - regardless of the price.',
-        'Do not try to time the market, consistency is the edge.',
-        'Hold through any dip. Do not panic sell into weakness.',
-        'Aim for at least 4 - 5 purchases spread evenly across the period.'
+    'mean reversion': [
+        'Buy when the price dips below its recent average — that is your edge.',
+        'Sell when the price rallies above its recent average — do not get greedy.',
+        'Do not chase momentum. If price is rising, wait for the pullback.',
+        'Close your positions before the end. Mean reversion is not buy-and-hold.',
     ],
 };
 
