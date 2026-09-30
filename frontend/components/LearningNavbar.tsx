@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useTechTreeContext } from '@/context/TechTreeContext';
 import { XPindicator } from './XPindicator';
 
-type TabId = 'strategies' | 'greeks' | 'events';
+type TabId = 'strategies' | 'techTree' | 'greeks' | 'events';
 
 const tabs: { id: TabId, label: string, icon: typeof BookOpen, href: string }[] = [
     { id: 'strategies' as TabId, label: 'Strategies', icon: BookOpen, href: '/learning/strategies' },

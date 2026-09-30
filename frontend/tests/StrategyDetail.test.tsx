@@ -17,6 +17,7 @@ const mockStrategy = {
 
 const mockOnClose = jest.fn();
 const mockSwitchToEvents = jest.fn();
+const mockSetStrategyId = jest.fn();
 
 jest.mock('@/hooks/useStrategies', () => ({
     useStrategies: jest.fn(),
@@ -48,7 +49,8 @@ describe('StrategyDetail', () => {
             openStrategyPuzzle: jest.fn(),
             activeTab: 'strategies',
             setActiveTab: jest.fn(),
-            switchToEvents: mockSwitchToEvents,
+            setStrategyId: mockSetStrategyId,
+            switchToEvents: mockSwitchToEvents
         })
     })
 
@@ -106,11 +108,12 @@ describe('StrategyDetail', () => {
                 />
             );
 
-            await waitFor(() => {
-                expect(screen.getByTestId('Try it now button')).toBeInTheDocument();
-            });
+            await screen.findByText(mockStrategy.name);
 
-            fireEvent.click(screen.getByTestId('Try it now button'));
+            const button = screen.getByTestId('Try it now button');
+            expect(button).toBeInTheDocument();
+
+            fireEvent.click(button);
             expect(mockOpenStrategyTutorial).toHaveBeenCalledWith(mockStrategy.id);
         });
     });
