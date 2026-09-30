@@ -46,6 +46,8 @@ const PUZZLE_STARTING_BALANCE = 100000;
 interface LocalTrade {
     dayIndex: number;
     action: 'buy' | 'sell';
+    qty: number;
+    price: number;
 }
 
 export function StrategyPuzzle({ 
@@ -138,24 +140,32 @@ export function StrategyPuzzle({
                 setTimeout(() => setTradeError(null), 3000);
                 return;
             }
+            setCash(c => c + n * price);
+            setShares(s => s - n);
+        } else {
+            if (shares <= 0) {
+                setTradeError('You have no shares to sell.');
+                setTimeout(() => setTradeError(null), 3000);
+                return;
+            }
             n = Math.min(n, shares);
             setCash(c => c + n * price);
             setShares(s => s - n);
-        }
+        }   
 
         setTrades(prev => [...prev, { dayIndex, action, qty: n, price }]);
     };
 
     if (loadError) {
         return (
-            <div>
-                <div>
-                    <p>Puzzle unavailable</p>
-                    <p>{loadError}</p>
+            <div className='flex items-center justify-center h-full p-6'>
+                <div className='p-6 bg-[var(--background)] border border-[var(--border)] rounded-xl max-w-md w-full text-center'>
+                    <p className='font-bold mb-2 text-[var(--red)]'>Puzzle unavailable</p>
+                    <p className='text-sm text-gray-400 mb-4'>{loadError}</p>
                     <button
                         type='button'
                         onClick={onBack}
-                        className='px-4 py-2 rounded-xl text-sm font-semibold'
+                        className='px-4 py-2 bg-blue-900 rounded-xl text-sm font-semibold'
                     >
                         Back
                     </button>
@@ -164,22 +174,58 @@ export function StrategyPuzzle({
         );
     }
 
+    if (!puzzle) {
+        return (
+            <div className='flex items-center justify-center h-full'>
+                <div className='p-6 bg-[var(--background)] border border-[var(--border)] rounded-xl text-sm'>
+                    Loading puzzle...
+                </div>
+            </div>
+        );
+    }
+
+    const total = Number.parseFloat(qty) > 0 ? Number.parseFloat(qty) * currentPrice : 0;
+
     return (
-        <div className='flex flex-col p-4 h-full'>
-            <div className='flex justify-between items-center gap-3'>
+        <div className='flex flex-col p-4 h-full min-h-0 gap-3'>
+            <div className='flex justify-between items-center gap-3 shrink-0'>
                 <div className='flex items-center gap-3'>
                     <button
                         type='button'
                         onClick={onBack}
-                        className='text-sm text-gray-200 hover:text-white-100 p-4'
+                        className='text-sm text-gray-200 hover:text-white p-2'
                     >
-                        <div className='flex items-center gap-3'>
+                        <div className='flex items-center gap-2'>
                             <MoveLeft />
                             <span>Back</span>
                         </div>
                     </button>
-                    <Brain className='w-4 h-4' />
+                    <Brain className='w-4 h-4 text-[#b09ae0]' />
+                    <span className='font-bold text-sm'>Strategy Puzzle</span>
+                    <span className='text-xs px-2.5 py-0.5 rounded-full font-semibold bg-[var(--background)] border border-[var(--border)]'>
+                        {strategyName}
+                    </span>
                 </div>
+                <div className='flex items-center gap-2'>
+                <div className='flex flex-row gap-1 bg-blue-900 border border-[var(--border)] items-center px-3 rounded-xl font-semibold text-sm'>
+                    <Gauge className='mr-2 w-4 h-4' />
+                    <span className='mr-2'>Speed Controls:</span>
+                    {[1, 2, 4].map((s) => {
+
+                        return (
+                            <button
+                                key={s}
+                                type='button'
+                                onClick={() => { setSpeed(s) }}
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm border-[var(--border)] border-2
+                                    ${speed === s ? 'bg-[var(--background-alt)]' : 'bg-blue-900'}`}
+                            >
+                                {s}x
+                            </button>
+                        )
+                    })}
+                </div>
+
                 <button
                     type='button'
                     disabled={isFinished}
@@ -191,35 +237,18 @@ export function StrategyPuzzle({
                     </div>
                 </button>
 
-                <div className='flex flex-row gap-1 bg-blue-900 border border-[var(--border)] items-center px-3 rounded-xl font-semibold text-sm'>
-                    <Gauge className='mr-2' />
-                    <span className='mr-2'>Speed Controls:</span>
-                    {[1, 2, 4].map((s) => {
-
-                        return (
-                            <button
-                                key={s}
-                                type='button'
-                                onClick={() => { setSpeed(s) }}
-                                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm border-[var(--border)] border-2
-                                ${speed == s ? 'bg-[var(--background-alt)]' : 'bg-blue-900'}`}
-                            >
-                                {s}x
-                            </button>
-                        )
-                    })}
-                </div>
-
                 <button
                     type='button'
-                    onClick={() => { setDayIndex(d => Math.min(d + 1, bars.length)) }}
-                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm'
+                    onClick={stepForward}
+                    disabled={isFinished}
+                    className='bg-blue-900 border border-[var(--border)] flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm disabled:opacity-50'
                 >
                     <div className='flex items-center gap-3'>
                         <ChevronsRight />
                         <span className='text-white'>Skip Forward</span>
                     </div>
                 </button>
+            </div>
 
                 <button
                     id='tut-finish'
@@ -238,8 +267,8 @@ export function StrategyPuzzle({
                     className='flex-1 rounded-xl border border-[var(--border)] p-4'
                 >
                     <div className='flex justify-between'>
-                        <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
-                        <div className='text-xl font-bold'>COST: R{Number.parseFloat(currentPrice).toFixed(2)}</div>
+                        <div className='text-lg font-bold'>Day {dayIndex + 1} of {totalDays}</div>
+                        <div className='text-xl font-bold'>COST: R{Number(currentPrice).toFixed(2)}</div>
                         <div className={`text-sm flex items-center gap-1 ${priceChangePct >= 0 ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`}>
                             {priceChangePct >= 0 ? <TrendingUp className='w-4 h-4' /> : <TrendingDown className='w-4 h-4' />}
                             {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
@@ -252,7 +281,7 @@ export function StrategyPuzzle({
                                 margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                             >
                                 <defs>
-                                    <linearGradient id={`grad-${event.id}`} x1='0' y1='0' x2='0' y2='1'>
+                                    <linearGradient id={`grad-${asset}`} x1='0' y1='0' x2='0' y2='1'>
                                         <stop offset='5%' stopColor='#1c75bc' stopOpacity={0.8} />
                                         <stop offset='95%' stopColor='#1c75bc' stopOpacity={0.02} />
                                     </linearGradient>
@@ -269,7 +298,7 @@ export function StrategyPuzzle({
                                     dataKey="price"
                                     stroke='var(--blue)'
                                     strokeWidth={4}
-                                    fill={`url(#grad-${event.id})`}
+                                    fill={`url(#grad-${asset})`}
                                     dot={false}
                                     activeDot={{ r: 4, stroke: '#1c75bc' }}
                                 />
@@ -292,7 +321,7 @@ export function StrategyPuzzle({
                             <span className='text-lg font-bold text-[var(--green)]'>R {cash.toFixed(2)}</span>
                         </div>
                         <div className='flex justify-between'>
-                            <span>{assetSymbol}</span>
+                            <span>{asset}</span>
                             <span>{shares} sh</span>
                         </div>
                         <div className='flex justify-between'>
@@ -337,14 +366,15 @@ export function StrategyPuzzle({
                                 id='tut-buy'
                                 type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
-                                onClick={() => setPendingTrade({ type: 'buy' })}
+                                onClick={() => execute('buy')}
                             >
                                 Buy
                             </button>
                             <button
                                 type='button'
                                 className='w-full py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
-                                onClick={() => setPendingTrade({ type: 'sell' })}
+                                onClick={() => execute('sell')}
+                                disabled={shares === 0}
                             >
                                 Sell
                             </button>
@@ -355,8 +385,8 @@ export function StrategyPuzzle({
                         History
                         {trades.length === 0 ? <p>No trades</p> : [...trades].reverse().map((t, i) => (
                             <div key={"n" + i} className='flex items-center gap-2 mb-1'>
-                                <span className={`font-bold ${t.type === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
-                                <span className='text-xs'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
+                                <span className={`font-bold ${t.action === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`} >{t.action === 'buy' ? '↑' : '↓'}</span>
+                                <span className='text-xs'>{t.action.toUpperCase()} {t.qty} @ R{Number(t.price).toFixed(2)} ON Day {t.dayIndex + 1}</span>
                             </div>
                         ))
 
