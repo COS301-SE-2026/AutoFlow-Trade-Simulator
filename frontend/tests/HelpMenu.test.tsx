@@ -38,9 +38,9 @@ describe('HelpMenu content present', () => {
             );
 
             expect(screen.getByText('1. How to create an account')).toBeInTheDocument();
-            expect(screen.getByText('2. How to buy and sell stocks')).toBeInTheDocument();
-            expect(screen.getByText('3. How to learn about strategies')).toBeInTheDocument();
-            expect(screen.getByText('4. How to view account details')).toBeInTheDocument();
+            expect(screen.getByText('2. How to unlock strategies')).toBeInTheDocument();
+            expect(screen.getByText('3. How to earn XP')).toBeInTheDocument();
+            expect(screen.getByText('4. How to get holdings')).toBeInTheDocument();
         });
 
         it('should render all faqs', () => {
@@ -51,9 +51,10 @@ describe('HelpMenu content present', () => {
             );
 
             expect(screen.getByText('1. Is my money real?')).toBeInTheDocument();
-            expect(screen.getByText('2. How do I make more money?')).toBeInTheDocument();
-            expect(screen.getByText('3. What is stop loss?')).toBeInTheDocument();
-            expect(screen.getByText('4. Is the data real?')).toBeInTheDocument();
+            expect(screen.getByText('2. What is a strategy?')).toBeInTheDocument();
+            expect(screen.getByText('3. What are Greeks?')).toBeInTheDocument();
+            expect(screen.getByText('4. How does the tech tree work?')).toBeInTheDocument();
+            expect(screen.getByText('5. What are my holdings?')).toBeInTheDocument();
         });
 
         it('navbar should be visible', () => {
