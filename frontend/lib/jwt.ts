@@ -12,7 +12,7 @@ export function getUserIdFromToken(token: string | null): number | null {
         const json = decodeURIComponent(
             atob(base64)
                 .split('')
-                .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+                .map((c) => '%' + (c.codePointAt(0) ?? 0).toString(16).padStart(2, '0'))
                 .join('')
         );
         const claims = JSON.parse(json) as { sub?: string };

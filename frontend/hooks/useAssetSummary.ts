@@ -71,7 +71,7 @@ export function useAssetSummary(ticker: string | null) {
       }
     };
 
-    getSummary();
+    void getSummary();
 
     return () => {
       cancelled = true;

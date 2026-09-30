@@ -46,7 +46,7 @@ class MultiplayerService:
         self.active_connections.append(connection)
         return connection
 
-    async def disconnect(self, user_id: int) -> None:
+    def disconnect(self, user_id: int) -> None:
         connection = self.get_connection(user_id)
         if connection.match_id is not None:
             match = self.active_matches.get(connection.match_id)

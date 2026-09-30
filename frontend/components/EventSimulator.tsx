@@ -647,18 +647,11 @@ export function EventSimulator({
             )}
 
             <div className='flex gap-4 flex-1 min-h-0'>
-                <div
+                <button
                     id='tut-chart'
-                    role='button'
-                    tabIndex={0}
+                    type='button'
                     onClick={() => { if (step?.elementId === 'tut-chart') advanceStep(); }}
-                    onKeyDown={(e) => {
-                        if ((e.key === 'Enter' || e.key === ' ') && step?.elementId === 'tut-chart') {
-                            e.preventDefault();
-                            advanceStep();
-                        }
-                    }}
-                    className='flex-1 rounded-xl border border-[var(--border)] p-4'
+                    className='flex-1 text-left rounded-xl border border-[var(--border)] p-4'
                 >
                     <div className='flex justify-between'>
                         <div className='text-lg font-bold'>{allDates[dayIndex]}</div>
@@ -703,21 +696,14 @@ export function EventSimulator({
                         <div className='h-full bg-[var(--blue)] rounded-full' style={{ width: `${((dayIndex + 1) / allPrices.length) * 100}%` }}></div>
                     </div>
                     <div className='text-xs mt-1'>Day {dayIndex + 1} of {allPrices.length}</div>
-                </div>
+                </button>
 
                 <div className='w-64 space-y-4'>
-                    <div
+                    <button
                         id='tut-portfolio'
-                        role='button'
-                        tabIndex={0}
+                        type='button'
                         onClick={() => { if (step?.elementId === 'tut-portfolio') advanceStep(); }}
-                        onKeyDown={(e) => {
-                            if ((e.key === 'Enter' || e.key === ' ') && step?.elementId === 'tut-portfolio') {
-                                e.preventDefault();
-                                advanceStep();
-                            }
-                        }}
-                        className='p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'
+                        className='w-full text-left p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]'
                     >
                         <div className='font-bold mb-3 justify-center'>PORTFOLIO</div>
                         <div className='flex justify-between'>
@@ -738,7 +724,7 @@ export function EventSimulator({
                                 R{totalProfit >= 0 ? '+' : ''}{totalProfit.toFixed(2)} ({profitPct >= 0 ? '+' : ''}{profitPct.toFixed(1)}%)
                             </span>
                         </div>
-                    </div>
+                    </button>
                     <div className={`rounded-xl border border-[var(--border)] p-4 bg-[var(--background)]}`}>
                         <div className='text-xs font-bold mb-2'>TRADE AT {Number.parseFloat(currentPrice).toFixed(2)} / sh</div>
                         <input

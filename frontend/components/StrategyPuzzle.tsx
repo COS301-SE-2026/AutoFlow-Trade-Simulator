@@ -90,7 +90,7 @@ export function StrategyPuzzle({
             if (res) setPuzzle(res);
             else setLoadError('Failed to load puzzle. Please try again.')
         };
-        load();
+        void load();
         return () => { cancelled = true; };
     }, [strategyId, asset, startPuzzle]);
 
@@ -566,6 +566,7 @@ function GradeView({
 
                 <div className='flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-blue-900/30 border border-blue-700/40 text-blue-300 text-sm'>
                     <span className='font-bold'>+{result.xp_awarded} XP</span>
+                    {' '}
                     <span className='text-xs text-blue-400/70'>awarded to your account</span>
                 </div>
 
