@@ -69,8 +69,10 @@ class MatchSession:
         initial_balance: Decimal,
         players: List[PlayerState],
         session_factory: Callable[[], Session],
+        on_finished: Optional[Callable[[int], None]] = None,
     ) -> None:
         self.match_id: int = match_id
+        self.on_finished = on_finished
         self.seed: int = seed
         self.scenario_id = scenario_id
         self.symbol = symbol
@@ -411,8 +413,16 @@ class MatchSession:
             winner_user_id=winner_user_id,
             reason="completed",
         )
-        for player in self.players.values():
-            await player.socket.send_text(message.model_dump_json())
+        try:
+            for player in self.players.values():
+                await player.socket.send_text(message.model_dump_json())
+        finally:
+            self.notify_finished()
+
+    def notify_finished(self) -> None:
+        if self.on_finished is not None:
+            callback, self.on_finished = self.on_finished, None
+            callback(self.match_id)
 
     def start(self) -> None:
         # print(f"start: creating task for match={self.match_id}", flush=True)
@@ -491,8 +501,11 @@ class MatchSession:
             reason="opponent_disconnected",
         )
         winner = self.players[winner_user_id]
-        if winner.connected:
-            await winner.socket.send_text(message.model_dump_json())
+        try:
+            if winner.connected:
+                await winner.socket.send_text(message.model_dump_json())
+        finally:
+            self.notify_finished()
 
     def rebind_socket(self, user_id: int, socket: WebSocket) -> None:
         player = self.players.get(user_id)

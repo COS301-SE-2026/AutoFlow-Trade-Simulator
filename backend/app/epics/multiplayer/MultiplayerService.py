@@ -61,6 +61,9 @@ class MultiplayerService:
     def get_match(self, match_id: int) -> Optional[MatchSession]:
         return self.active_matches.get(match_id)
 
+    def remove_match(self, match_id: int) -> None:
+        self.active_matches.pop(match_id, None)
+
     def find_active_match_for_user(self, user_id: int) -> Optional[MatchSession]:
         for match in self.active_matches.values():
             if user_id in match.players:
@@ -144,6 +147,7 @@ class MultiplayerService:
                 initial_balance=DEFAULT_INITIAL_BALANCE,
                 players=[player_one, player_two],
                 session_factory=self.session_factory,
+                on_finished=self.remove_match,
             )
             await session.announce()
             # print(f"find_match: announce returned for match={match_id}", flush=True)
