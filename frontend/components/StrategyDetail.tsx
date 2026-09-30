@@ -161,15 +161,19 @@ function Shell({ title, tone, onClose, children }: { title: string; tone: 'defau
     }, [onClose]);
 
     return (
-        <div
-            className='fixed inset-0 z-50 flex items-center justify-center overscroll-contain bg-[rgba(4,4,10,0.72)] p-4 backdrop-blur-sm md:p-6'
-            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-        >
+        <div className='fixed inset-0 z-50 flex items-center justify-center overscroll-contain bg-[rgba(4,4,10,0.72)] p-4 backdrop-blur-sm md:p-6'>
+            <button
+                type='button'
+                aria-label='Close dialog'
+                tabIndex={-1}
+                onClick={onClose}
+                className='absolute inset-0 h-full w-full cursor-default'
+            />
             <div
                 role='dialog'
                 aria-modal='true'
                 aria-labelledby='strategy-detail-title'
-                className='flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#12121c] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]'
+                className='relative flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#12121c] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]'
             >
                 <div className='flex items-start justify-between gap-4 border-b border-[var(--border)] px-6 py-5'>
                     <h3 id='strategy-detail-title' className={`text-xl font-semibold ${tone === 'error' ? 'text-[#ff6b72]' : ''}`}>{title}</h3>

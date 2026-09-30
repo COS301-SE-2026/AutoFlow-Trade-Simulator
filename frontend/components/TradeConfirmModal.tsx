@@ -34,15 +34,19 @@ export default function TradeConfirmModal({ side, quantity, price, orderType, li
 	];
 
 	return (
-		<div
-			className='fixed inset-0 z-50 flex items-center justify-center overscroll-contain bg-[rgba(4,4,10,0.72)] p-6 backdrop-blur-sm'
-			onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
-		>
+		<div className='fixed inset-0 z-50 flex items-center justify-center overscroll-contain bg-[rgba(4,4,10,0.72)] p-6 backdrop-blur-sm'>
+			<button
+				type='button'
+				aria-label='Close dialog'
+				tabIndex={-1}
+				onClick={onCancel}
+				className='absolute inset-0 h-full w-full cursor-default'
+			/>
 			<div
 				role='dialog'
 				aria-modal='true'
 				aria-labelledby='trade-confirm-title'
-				className='w-full max-w-md rounded-2xl border border-white/10 bg-[#12121c] p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]'
+				className='relative w-full max-w-md rounded-2xl border border-white/10 bg-[#12121c] p-6 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]'
 			>
 				<div className='mb-5 flex items-center gap-3'>
 					<span className={`h-2.5 w-2.5 rounded-full ${isBuy ? 'bg-[var(--green)]' : 'bg-[var(--red)]'}`} aria-hidden='true' />
