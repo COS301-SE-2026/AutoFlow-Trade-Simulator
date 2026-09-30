@@ -1,4 +1,4 @@
-import { render, screen,  } from '@testing-library/react';
+import { render, screen, } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import HelpMenu from '@/app/help/page';
@@ -11,6 +11,10 @@ jest.mock('@/lib/hooks/useAuth', () => ({
         register: jest.fn(),
         isLoading: false,
     })
+}))
+
+jest.mock('@/hooks/useSandBoxCap', () => ({
+    useSandboxCap: () => ({ zarCap: 100000, loading: false, error: null }),
 }))
 
 jest.mock('next/navigation', () => ({
