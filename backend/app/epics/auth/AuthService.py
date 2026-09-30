@@ -30,7 +30,12 @@ class AuthService:
             if not any(char in string.punctuation for char in data.password):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Password field must contain a symbol")
         # Create user
-            user = User(email=data.email,full_name=data.full_name,password_hash=create_password_hash(data.password))
+            user = User(
+                email=data.email,
+                full_name=data.full_name,
+                password_hash=create_password_hash(data.password),
+                upgrades=['strategy_basic', 'strategy_mean_reversion'],
+            )
             self.session.add(user)
             self.session.flush()
 
