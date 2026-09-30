@@ -121,9 +121,9 @@ export default function SplashPage() {
 
                         <div className='space-x-2 space-y-2 bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--seafoam)] transition-colors'>
                             <BrainCircuit className='w-6 h-6 text-[var(--seafoam)]' />
-                            <h4 className='text-xl font-bold mt-2 mb-2'>AI Insights</h4>
+                            <h4 className='text-xl font-bold mt-2 mb-2'>Multiplayer Mode</h4>
                             <p>
-                                Get intelligent feedback on your trading decisions and learn from your mistakes with AI-powered analysis.
+                                Test your skills against fellow traders in exciting 1v1 pertured scenarios.
                             </p>
                         </div>
                     </div>
