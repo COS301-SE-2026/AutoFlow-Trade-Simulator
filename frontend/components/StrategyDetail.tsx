@@ -170,7 +170,8 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                             <button
                                 className='w-full bg-green-600 hover:bg-green-700 text-white font-bold 
                                     py-6 px-6 rounded-xl text-lg transition-colors'
-                                onClick={openStrategyTutorial}
+                                data-testid="Try it now button"
+                                onClick={() => openStrategyTutorial(strategy.id)}
                             >
                                 Try it now!
                             </button>
