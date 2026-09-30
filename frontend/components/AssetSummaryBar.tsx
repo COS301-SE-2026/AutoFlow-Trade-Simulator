@@ -18,63 +18,71 @@ export default function AssetSummaryBar({ ticker, holding = null }: SummaryBarPr
 
   const openPrice = data?.open_price ?? null;
   const dayChangePct = data && openPrice ? ((data.current_price - openPrice) / openPrice) * 100 : null;
-  const priceColor = dayChangePct !== null && dayChangePct >= 0 ? 'text-green-600' : 'text-red-600';
+  const priceColor = dayChangePct !== null && dayChangePct >= 0 ? 'text-[var(--green-light)]' : 'text-[#ff6b72]';
+
+  const stat = (label: string, value: React.ReactNode, sub?: React.ReactNode, cls = '') => (
+    <div className="min-w-0">
+      <dt className="text-xs font-medium text-white/50">{label}</dt>
+      <dd className={`tabular mt-1 truncate text-2xl font-semibold ${cls}`}>{value}</dd>
+      {sub}
+    </div>
+  );
 
   return (
-    <div className="card p-6 w-full flex-1">
+    <div className="w-full min-w-0 flex-1 rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-5">
       {!ticker ? (
         <p className='text-sm text-muted-foreground'>Select a holding to view its summary</p>
       ) : loading ? (
-        <p className="text-sm text-muted-foreground">Loading summary...</p>
+        <div aria-busy="true" className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-2">
+              <div className="h-3 w-16 animate-pulse rounded bg-white/[0.06]" />
+              <div className="h-7 w-24 animate-pulse rounded bg-white/[0.06]" />
+            </div>
+          ))}
+          <span className="sr-only">Loading summary...</span>
+        </div>
       ) : !data ? (
         <p className="text-sm text-muted-foreground">No summary data available</p>
       ) : (
         <>
-          <div className="flex flex-row gap-6 justify-evenly">
-            <div>
-              <p className="text-sm text">Ticker</p>
-              <p className="text-2xl text">{data.ticker}</p>
-            </div>
-            <div>
-              <p className="text-sm">Current Price</p>
-              <p className={`text-2xl ${priceColor}`}>{data.current_price.toFixed(2)}</p>
-              {dayChangePct !== null && (
-                <p className={`text-sm ${priceColor}`}>
+          <dl className="grid grid-cols-2 gap-6 md:grid-cols-4">
+            {stat('Ticker', <span translate="no">{data.ticker}</span>)}
+            {stat(
+              'Current Price',
+              data.current_price.toFixed(2),
+              dayChangePct !== null && (
+                <p className={`tabular mt-0.5 text-sm ${priceColor}`}>
                   {dayChangePct >= 0 ? '+' : ''}{dayChangePct.toFixed(2)}% today
                 </p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm">Daily High</p>
-              <p className="text-2xl">{data.daily_high.toFixed(2)}</p>
-            </div>
-            <div>
-              <p className="text-sm">Daily Low</p>
-              <p className="text-2xl">{data.daily_low.toFixed(2)}</p>
-            </div>
-          </div>
+              ),
+              priceColor,
+            )}
+            {stat('Daily High', data.daily_high.toFixed(2))}
+            {stat('Daily Low', data.daily_low.toFixed(2))}
+          </dl>
 
           {holding && (
-            <div className="flex flex-row gap-6 justify-evenly mt-4 pt-4 border-t border-border/60">
+            <dl className="mt-5 grid grid-cols-3 gap-6 border-t border-[var(--border)] pt-5">
               <div>
-                <p className="text-sm">Shares Owned</p>
-                <p className="text-xl">{holding.net_quantity}</p>
+                <dt className="text-xs font-medium text-white/50">Shares Owned</dt>
+                <dd className="tabular mt-1 text-xl font-semibold">{holding.net_quantity}</dd>
               </div>
               <div>
-                <p className="text-sm">Avg. Cost</p>
-                <p className="text-xl">{fmt(holding.average_cost)}</p>
+                <dt className="text-xs font-medium text-white/50">Avg. Cost</dt>
+                <dd className="tabular mt-1 text-xl font-semibold">{fmt(holding.average_cost)}</dd>
               </div>
               <div>
-                <p className="text-sm">Total Value</p>
-                <p className="text-xl">{fmt(holding.net_quantity * data.current_price)}</p>
+                <dt className="text-xs font-medium text-white/50">Total Value</dt>
+                <dd className="tabular mt-1 text-xl font-semibold">{fmt(holding.net_quantity * data.current_price)}</dd>
               </div>
-            </div>
+            </dl>
           )}
         </>
       )}
 
       {ticker && (
-        <div className="mt-4 pt-4 border-t border-border/60">
+        <div className="mt-5 border-t border-[var(--border)] pt-5">
           <PriceChart ticker={ticker} />
         </div>
       )}

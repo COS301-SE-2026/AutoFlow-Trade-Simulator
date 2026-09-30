@@ -65,11 +65,12 @@ describe('LearningNavbar', () => {
         const greeksLink = screen.getByRole('link', { name: /options greeks/i});
         const eventsLink = screen.getByRole('link', { name: /historical events/i });
 
-        expect(greeksLink).toHaveClass('bg-[var(--background)]');
-        expect(greeksLink).toHaveClass('text-[var(--blue)]');
+        expect(greeksLink).toHaveClass('border-[var(--blue)]');
+        expect(greeksLink).toHaveAttribute('aria-current', 'page');
 
-        expect(strategiesLink).toHaveClass('bg-[var(--blue)]/50');
-        expect(eventsLink).toHaveClass('bg-[var(--blue)]/50');
+        expect(strategiesLink).toHaveClass('border-transparent');
+        expect(strategiesLink).not.toHaveAttribute('aria-current');
+        expect(eventsLink).toHaveClass('border-transparent');
     });
 
     it('renders all navigation tab icons', () => {

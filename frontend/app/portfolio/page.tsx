@@ -30,17 +30,18 @@ export default function PortfolioPage() {
   return (
     <>
       <Navbar />
-      <div className="grid w-full grid-cols-1 gap-6 p-4 md:grid-cols-3">
+      <h1 className="sr-only">Portfolio</h1>
+      <div className="mx-auto grid w-full max-w-[1400px] grid-cols-1 gap-5 px-4 pt-6 pb-16 md:grid-cols-3 md:px-6">
         {activeAccount ? (
           <>
             <PortfolioCashBalance accountId={activeAccount.id} />
             <PortfolioInvested accountId={activeAccount.id} />
             <PortfolioTotalValue accountId={activeAccount.id} />
 
-            <div className="w-full p-4">
+            <div className="w-full min-w-0 md:col-span-3">
               <PortfolioPerformanceChart accountId={activeAccount.id} />
             </div>
-            <div className="flex w-full gap-6 p-4">
+            <div className="flex w-full min-w-0 flex-col gap-5 md:col-span-3 lg:flex-row">
               <HoldingsSummary
                 holdings={holdings}
                 loading={holdingsLoading}
@@ -55,7 +56,7 @@ export default function PortfolioPage() {
 
           </>
         ) :
-          <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
+          <div className="min-h-[calc(100dvh-4rem)] flex items-center justify-center p-4 md:col-span-3">
             <TradingAuthPrompt />
           </div>}
       </div>

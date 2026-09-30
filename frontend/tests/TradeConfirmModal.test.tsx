@@ -29,7 +29,7 @@ describe('TradeConfirmModal', () => {
         expect(screen.getByText('1500.00')).toBeInTheDocument();
 
         const confirmButton = screen.getByRole('button', { name: /confirm/i });
-        expect(confirmButton).toHaveClass('bg-green-600');
+        expect(confirmButton).toHaveClass('bg-[var(--green)]');
     });
 
     it('renders correctly for a sell order', () => {
@@ -38,7 +38,7 @@ describe('TradeConfirmModal', () => {
         expect(screen.getByRole('heading', { name: /confirm sell/i })).toBeInTheDocument();
 
         const confirmButton = screen.getByRole('button', {name: /confirm/i });
-        expect(confirmButton).toHaveClass('bg-red-600');
+        expect(confirmButton).toHaveClass('bg-[#d4262d]');
     });
 
     it('calculates total using limitPrice when the order detail in limit', () => {

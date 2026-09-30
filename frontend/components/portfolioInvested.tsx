@@ -9,7 +9,7 @@ export function PortfolioInvested({ accountId }: { accountId: number | null }) {
         <div className='rounded-xl w-full p-6' style={{ background: 'var(--panel)' }}>
             <div className='flex items-center gap-3 mb-3'>
                 <div className='p-2 rounded-lg' style={{ background: 'rgba(74, 222, 128, 0.15)' }}>
-                    <Activity className="w-5 h-5 text-green-400" />
+                    <Activity className="w-5 h-5 text-[#6fb4ea]" />
                 </div>
                 <span style={{ color: 'var(--muted)' }}>Invested</span>
             </div>

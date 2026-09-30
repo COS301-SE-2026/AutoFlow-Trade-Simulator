@@ -10,24 +10,10 @@ import { useAccount } from "@/lib/hooks/accountContext"
 
 import { convertCurrency } from "@/lib/currency"
 import {useSandboxCap} from "@/hooks/useSandBoxCap";
+import { Plus } from "lucide-react";
 
-const actionStyle = {
-    border: '1px solid rgba(105, 80, 161, 0.55)',
-    background: 'rgba(38, 34, 98, 0.45)',
-    color: '#fff',
-    borderRadius: '12px',
-} as const;
-
-const glassInput = {
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    color: '#fff',
-    borderRadius: '10px',
-    padding: '9px 12px',
-    fontSize: '14px',
-    width: '100%',
-    outline: 'none',
-} as const;
+const fieldLabel = "mb-1.5 block text-xs font-medium text-white/60"
+const fieldInput = "h-10 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white transition-colors hover:border-white/20 focus:border-[var(--blue)] focus:outline-none focus:ring-2 focus:ring-[rgba(28,117,188,0.35)]"
 
 export function CreateNewInternationalAccount() {
     const { create } = useAccount()
@@ -68,30 +54,32 @@ export function CreateNewInternationalAccount() {
             }
         }}>
             <DialogTrigger asChild>
-                <button style={{ ...actionStyle, display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '9px 16px', fontSize: '13.5px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s' }}
-                        className="hover:bg-[rgba(38,34,98,0.7)] hover:border-purple-500/60">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <button
+                    type="button"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[rgba(28,117,188,0.18)] px-3.5 text-[13.5px] font-semibold text-[#8cc4ef] ring-1 ring-inset ring-[rgba(28,117,188,0.4)] transition-colors hover:bg-[rgba(28,117,188,0.28)] hover:text-white active:scale-[0.98]"
+                >
+                    <Plus aria-hidden="true" className="h-4 w-4" strokeWidth={2.5} />
                     Add account
                 </button>
             </DialogTrigger>
 
-            <DialogContent style={{ background: 'rgba(20, 20, 38, 0.97)', border: '1px solid rgba(105, 80, 161, 0.35)', borderRadius: '20px', color: '#fff', backdropFilter: 'blur(20px)' }}>
+            <DialogContent className="rounded-2xl border border-white/10 bg-[#12121c] text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle style={{ color: '#fff', fontWeight: 700, fontSize: '17px' }}>Add international account</DialogTitle>
-                    <DialogDescription style={{ color: 'var(--muted)', fontSize: '13.5px' }}>Open a demo account in a major world currency.</DialogDescription>
+                    <DialogTitle className="text-lg font-semibold text-white">Add international account</DialogTitle>
+                    <DialogDescription className="text-sm text-[var(--muted)]">Open a demo account in a major world currency.</DialogDescription>
                 </DialogHeader>
 
-                <FieldGroup style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '8px' }}>
+                <FieldGroup className="mt-2 flex flex-col gap-4">
                     <Field>
-                        <Label style={{ fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Currency</Label>
+                        <Label id="new-acc-currency" className={fieldLabel}>Currency</Label>
                         <Select name="role" value={currency ?? undefined} onValueChange={(val) => setCurrency(val as Currency)}>
-                            <SelectTrigger style={{ ...glassInput, display: 'flex', alignItems: 'center', height: 'auto' }} className="hover:border-white/20">
+                            <SelectTrigger aria-labelledby="new-acc-currency" className={`${fieldInput} flex items-center`}>
                                 <SelectValue placeholder="Select a currency" />
                             </SelectTrigger>
-                            <SelectContent style={{ background: 'rgba(20,20,38,0.97)', border: '1px solid rgba(105,80,161,0.35)', borderRadius: '12px', color: '#fff', backdropFilter: 'blur(20px)' }}>
+                            <SelectContent className="rounded-xl border border-white/10 bg-[#12121c] text-white">
                                 <SelectGroup>
                                     {Object.values(Currency)?.map((curr) => (
-                                        <SelectItem key={curr} value={curr} className="focus:bg-white/10" style={{ fontSize: '14px' }}>{curr}</SelectItem>
+                                        <SelectItem key={curr} value={curr} className="text-sm focus:bg-white/10">{curr}</SelectItem>
                                     ))}
                                 </SelectGroup>
                             </SelectContent>
@@ -99,42 +87,65 @@ export function CreateNewInternationalAccount() {
                     </Field>
 
                     <Field>
-                        <Label style={{ fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px', display: 'block' }}>Initial balance</Label>
-                        <Input type="number" value={initialBalance} onChange={(e) => setInitialBalance(Number(e.target.value))} max={cap ?? undefined} min={0} style={glassInput} className="hover:border-white/20 focus:border-purple-500/50" />
+                        <Label htmlFor="new-acc-balance" className={fieldLabel}>Initial balance</Label>
+                        <div className="flex gap-2">
+                            <Input
+                                id="new-acc-balance"
+                                name="initial-balance"
+                                type="number"
+                                inputMode="decimal"
+                                autoComplete="off"
+                                value={initialBalance}
+                                onChange={(e) => setInitialBalance(Number(e.target.value))}
+                                max={cap ?? undefined}
+                                min={0}
+                                aria-invalid={overCap || undefined}
+                                className={`${fieldInput} tabular-nums [color-scheme:dark] ${overCap ? 'border-[rgba(237,28,36,0.6)]' : ''}`}
+                            />
+                            {cap !== null && !capLoading && (
+                                <button
+                                    type="button"
+                                    onClick={() => setInitialBalance(cap)}
+                                    className="h-10 shrink-0 rounded-lg border border-white/10 px-3 text-xs font-semibold text-white/75 transition-colors hover:border-white/25 hover:text-white"
+                                >
+                                    Use max
+                                </button>
+                            )}
+                        </div>
                         {currency && capLoading && (
-                            <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '6px' }}>Loading your unlocked limit…</p>
+                            <p className="mt-1.5 text-xs text-[var(--muted)]">Loading your unlocked limit…</p>
                         )}
                         {currency && !capLoading && cap !== null && (
-                            <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '6px' }}>
-                                Max for {currency}: <strong>{cap.toLocaleString()}</strong> ({zarCap.toLocaleString()} ZAR)
+                            <p className="tabular-nums mt-1.5 text-xs text-[var(--muted)]">
+                                Max for {currency}: <strong className="text-white/85">{cap.toLocaleString()}</strong> ({zarCap.toLocaleString()} ZAR)
                             </p>
                         )}
                         {currencyUnsupported && (
-                            <p style={{ fontSize: '12px', color: '#f87171', marginTop: '6px' }}>This currency is not yet supported for account creation.</p>
+                            <p role="alert" className="mt-1.5 text-xs text-[#ff6b72]">This currency is not yet supported for account creation.</p>
                         )}
                         {overCap && (
-                            <p style={{ fontSize: '12px', color: '#f87171', marginTop: '6px' }}>Exceeds your unlocked maximum. Unlock higher tiers in the tech tree.</p>
+                            <p role="alert" className="mt-1.5 text-xs text-[#ff6b72]">Exceeds your unlocked maximum. Unlock higher tiers in the tech tree.</p>
                         )}
                     </Field>
                 </FieldGroup>
 
                 {submitError && (
-                    <p style={{ fontSize: '12px', color: '#f87171', marginTop: '4px' }}>{submitError}</p>
+                    <p role="alert" className="mt-1 text-xs text-[#ff6b72]">{submitError}</p>
                 )}
 
-                <DialogFooter style={{ gap: '8px', marginTop: '8px' }}>
+                <DialogFooter className="mt-2 gap-2">
                     <DialogClose asChild>
-                        <button style={{ ...glassInput, width: 'auto', padding: '9px 18px', fontWeight: 600, cursor: 'pointer', borderRadius: '10px' }} className="hover:border-white/20">
+                        <button type="button" className="h-10 rounded-lg border border-white/10 px-4 text-sm font-semibold text-white/80 transition-colors hover:bg-white/[0.05] hover:text-white">
                             Cancel
                         </button>
                     </DialogClose>
                     <button
+                        type="button"
                         disabled={!currency || isSubmitting || overCap || currencyUnsupported || capLoading}
                         onClick={handleSubmit}
-                        style={{ ...actionStyle, padding: '9px 20px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', transition: 'background 0.15s', opacity: (!currency || isSubmitting || overCap || currencyUnsupported || capLoading) ? 0.45 : 1 }}
-                        className="hover:bg-[rgba(38,34,98,0.7)]"
+                        className="h-10 rounded-lg bg-[var(--blue)] px-5 text-sm font-semibold text-white transition-[background-color,transform,opacity] hover:bg-[#2385d1] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100"
                     >
-                        {isSubmitting ? "Creating..." : "Confirm"}
+                        {isSubmitting ? "Creating…" : "Confirm"}
                     </button>
                 </DialogFooter>
             </DialogContent>

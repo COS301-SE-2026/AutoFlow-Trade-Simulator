@@ -37,7 +37,7 @@
   --ui-card-foreground: 0 0% 100%;
   --ui-popover: 240 23% 10%;
   --ui-popover-foreground: 0 0% 100%;
-  --ui-primary: 245 50% 27%;
+  --ui-primary: 207 74% 42%;
   --ui-primary-foreground: 0 0% 100%;
   --ui-secondary: 240 8% 18%;
   --ui-secondary-foreground: 0 0% 100%;
@@ -47,8 +47,8 @@
   --ui-accent-foreground: 0 0% 100%;
   --ui-destructive: 358 85% 52%;
   --ui-destructive-foreground: 0 0% 100%;
-  --ui-border: 0 0% 100%;
-  --ui-input: 0 0% 100%;
+  --ui-border: 240 10% 20%;
+  --ui-input: 240 10% 26%;
   --ui-ring: 207 74% 42%;
   --radius: 0.75rem;
 }
@@ -60,6 +60,38 @@
 
   html {
     @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button,
+  a,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -284,4 +316,17 @@ h1 {
 @keyframes mpCardIn {
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blurred-animated-bg::before {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

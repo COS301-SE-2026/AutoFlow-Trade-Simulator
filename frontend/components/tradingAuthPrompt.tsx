@@ -10,11 +10,13 @@ export function TradingAuthPrompt() {
 
   if (!token) {
     return (
-        <div className="flex items-center justify-center py-10">
-          <div className="flex flex-col items-center gap-2.5 text-center max-w-xs">
-            <Lock className="w-5 h-5 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              <Link href="/login" className="text-foreground underline underline-offset-4">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex max-w-xs flex-col items-center gap-3 text-center">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05]">
+              <Lock aria-hidden="true" className="h-5 w-5 text-white/50" />
+            </div>
+            <p className="text-sm leading-relaxed text-[var(--muted)]">
+              <Link href="/login" className="font-medium text-white underline underline-offset-4">
                 Log in
               </Link>
               {' '}to access this data.
@@ -25,11 +27,15 @@ export function TradingAuthPrompt() {
   }
 
   return (
-      <div className="flex items-center justify-center py-10">
-        <div className="flex flex-col items-center gap-2.5 text-center max-w-xs">
-          <ChartCandlestick className="w-5 h-5 text-muted-foreground/50" />
-            <CreateNewInternationalAccount/>
-            {' '}to access this data.
+      <div className="flex items-center justify-center py-12">
+        <div className="flex max-w-sm flex-col items-center gap-4 text-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05]">
+            <ChartCandlestick aria-hidden="true" className="h-5 w-5 text-white/50" />
+          </div>
+          <p className="text-sm leading-relaxed text-[var(--muted)]">
+            Create a trading account to access this data.
+          </p>
+          <CreateNewInternationalAccount/>
         </div>
       </div>
   );

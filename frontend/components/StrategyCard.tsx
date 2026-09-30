@@ -1,8 +1,7 @@
 'use client';
 
 import { StrategySummary } from '@/hooks/useStrategies';
-import { Button } from './ui/button';
-import { Lock } from 'lucide-react';
+import { Lock, ArrowUpRight } from 'lucide-react';
 
 interface StrategyCardProps {
     readonly strategy: StrategySummary,
@@ -20,34 +19,33 @@ export type strategyLevel = keyof typeof strategyLevelColors;
 
 export function StrategyCard({ strategy, onClick }: StrategyCardProps) {
     const locked = !strategy.unlocked;
+    const levelColor = strategyLevelColors[strategy.level.toLowerCase() as strategyLevel] ?? '';
 
     return (
-        <Button
-            className='space-2 bg-[var(--background)] border border-[var(--border)] rounded-xl hover:border-[var(--seafoam)] transition-colors my-2 p-12'
+        <button
+            type="button"
             onClick={onClick}
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                width: '100%',
-                opacity: locked ? 0.55 : 1,
-            }}>
-            <div className='flex' style={{ width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div className='font-bold my-1'>{strategy.name}</div>
-                    <div className='inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border)] text-sm'>
-                        <span className={`${strategyLevelColors[strategy.level.toLowerCase() as strategyLevel]}`}>{strategy.level}</span> -
-                        <span>{strategy.category}</span>
-                    </div>
-                </div>
-                {locked && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--muted)', fontSize: '12px', fontWeight: 600 }}>
-                        <Lock className='w-3.5 h-3.5' />
+            aria-label={locked ? `${strategy.name} (locked)` : strategy.name}
+            className={`group flex w-full flex-col items-start gap-3 rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-5 text-left transition-[border-color,background-color,transform] hover:border-[rgba(28,117,188,0.5)] hover:bg-[rgba(20,20,32,0.85)] active:scale-[0.99] ${
+                locked ? 'opacity-60' : ''
+            }`}
+        >
+            <div className="flex w-full items-start justify-between gap-3">
+                <h3 className="text-base font-semibold text-white">{strategy.name}</h3>
+                {locked ? (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 text-xs font-medium text-[var(--muted)]">
+                        <Lock aria-hidden="true" className="h-3 w-3" />
                         Locked
-                    </div>
+                    </span>
+                ) : (
+                    <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0 text-white/30 transition-[color,transform] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#6fb4ea]" />
                 )}
             </div>
-            <span style={{ color: 'var(--muted)' }}>{strategy.description}</span>
-        </Button>
+            <div className="inline-flex items-center gap-2 text-xs">
+                <span className={`rounded-full bg-white/[0.05] px-2.5 py-1 font-medium ${levelColor}`}>{strategy.level}</span>
+                <span className="text-white/50">{strategy.category}</span>
+            </div>
+            <p className="line-clamp-3 text-sm leading-relaxed text-[var(--muted)]">{strategy.description}</p>
+        </button>
     );
 }

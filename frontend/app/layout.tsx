@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { AuthProvider } from '../context/AuthContext';
 import "./globals.css";
@@ -10,6 +10,11 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: "AutoFlow Trade Simulator",
   description: "Local-first starter for the AutoFlow trading simulator stack.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#08080f",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

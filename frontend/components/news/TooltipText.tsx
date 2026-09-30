@@ -20,8 +20,8 @@ export function TooltipText({text}: Readonly<{ text: string }>) {
         if (el) {
             const rect = el.getBoundingClientRect();
             setCoords({
-                top: rect.top + window.scrollY - 8,
-                left: rect.left + window.scrollX + rect.width / 2,
+                top: rect.top - 8,
+                left: rect.left + rect.width / 2,
             });
             setOpenIndex(index);
         }
@@ -52,7 +52,7 @@ export function TooltipText({text}: Readonly<{ text: string }>) {
                             onFocus={() => handleMouseEnter(i)}
                             onBlur={() => setOpenIndex(null)}
                             onClick={() => handleActivate(i)}
-                            className="underline decoration-dotted decoration-blue-400 underline-offset-2 cursor-pointer text-blue-300 font-medium hover:text-blue-200 outline-none focus:ring-1 focus:ring-blue-400 rounded-sm"
+                            className="cursor-help rounded-sm font-medium text-[#8cc4ef] underline decoration-[rgba(111,180,234,0.6)] decoration-dotted underline-offset-2 transition-colors hover:text-white"
                         >
                             {seg.text}
                         </button>
@@ -66,7 +66,7 @@ export function TooltipText({text}: Readonly<{ text: string }>) {
                                     left: `${coords.left}px`,
                                     transform: 'translate(-50%, -100%)',
                                 }}
-                                className="fixed z-[9999] w-64 p-3 rounded-xl border border-[var(--border)] bg-gray-900 text-gray-100 text-xs shadow-xl font-normal normal-case whitespace-normal leading-normal pointer-events-none"
+                                className="pointer-events-none fixed z-[9999] w-64 whitespace-normal rounded-xl border border-white/10 bg-[#12121c] p-3 text-left text-xs font-normal normal-case leading-relaxed text-white/85 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.8)]"
                             >
                                 {seg.definition}
                             </span>

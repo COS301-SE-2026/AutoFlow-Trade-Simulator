@@ -2,30 +2,26 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { LogOut } from 'lucide-react';
 import { AccountProvider } from "@/lib/hooks/accountContext";
 import { AccountSelector } from "@/components/intAccSwitcher";
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { CreateNewInternationalAccount } from "@/components/ui/createNewInternationalAccount";
 import { useAuth } from "@/lib/hooks/useAuth";
 
-const actionBtn = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '7px',
-    padding: '9px 16px',
-    borderRadius: '12px',
-    fontSize: '13.5px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    border: '1px solid rgba(105, 80, 161, 0.55)',
-    background: 'rgba(38, 34, 98, 0.45)',
-    color: '#fff',
-    transition: 'background 0.15s, border-color 0.15s',
-} as const;
+const links = [
+    { label: 'Dashboard', href: '/dashboard', match: '/dashboard' },
+    { label: 'Portfolio', href: '/portfolio', match: '/portfolio' },
+    { label: 'Markets', href: '/assets/BTC', match: '/assets' },
+    { label: 'Multiplayer', href: '/multiplayer', match: '/multiplayer' },
+    { label: 'Learning', href: '/learning', match: '/learning' },
+    { label: 'Help', href: '/help', match: '/help' },
+];
 
 export function Navbar() {
     const { logout } = useAuth();
     const router = useRouter();
+    const pathname = usePathname() ?? '';
 
     const handleLogout = () => {
         logout();
@@ -33,83 +29,49 @@ export function Navbar() {
     };
 
     return (
-        <nav style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '14px 28px',
-            background: 'rgba(20, 20, 32, 0.6)',
-            borderBottom: '1px solid var(--border)',
-            backdropFilter: 'blur(12px)',
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-        }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                <Image
-                    src='/logo.svg'
-                    alt='Logo'
-                    width={32}
-                    height={32}
-                    style={{ borderRadius: '8px' }}
-                ></Image>
-                <span style={{
-                    fontSize: '17px',
-                    fontWeight: 700,
-                    color: '#ffffff',
-                    letterSpacing: '-0.2px',
-                }}>
-                    AutoFlow
-                </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {[
-                    { label: 'Dashboard', href: '/dashboard' },
-                    { label: 'Portfolio', href: '/portfolio' },
-                    { label: 'Markets', href: '/assets/BTC' },
-                    { label: 'Multiplayer', href: '/multiplayer' },
-                    { label: 'Learning', href: '/learning' },
-                    { label: 'Help', href: '/help' },
-                ].map(({ label, href }) => (
-                    <Link
-                        key={label}
-                        href={href}
-                        style={{
-                            padding: '8px 14px',
-                            borderRadius: '10px',
-                            fontSize: '13.5px',
-                            fontWeight: 500,
-                            color: 'rgba(255,255,255,0.65)',
-                            transition: 'background 0.15s, color 0.15s',
-                        }}
-                        className="hover:bg-white/[0.07] hover:text-white"
-                    >
-                        {label}
-                    </Link>
-                ))}
+        <nav
+            aria-label="Main"
+            className="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-[var(--border)] bg-[rgba(12,12,20,0.78)] px-4 py-3 backdrop-blur-xl md:px-7 lg:h-16 lg:flex-nowrap lg:py-0"
+        >
+            <div className="flex shrink-0 items-center gap-2.5">
+                <Image src="/logo.svg" alt="" width={28} height={28} className="rounded-md" />
+                <span className="text-[16px] font-semibold tracking-tight text-white">AutoFlow</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="order-last -mx-1 flex w-full min-w-0 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] lg:order-none lg:mx-0 lg:w-auto">
+                {links.map(({ label, href, match }) => {
+                    const active = pathname.startsWith(match);
+                    return (
+                        <Link
+                            key={label}
+                            href={href}
+                            aria-current={active ? 'page' : undefined}
+                            className={`whitespace-nowrap rounded-lg px-3.5 py-2 text-[13.5px] font-medium transition-colors ${
+                                active
+                                    ? 'bg-white/[0.08] text-white'
+                                    : 'text-white/60 hover:bg-white/[0.05] hover:text-white'
+                            }`}
+                        >
+                            {label}
+                        </Link>
+                    );
+                })}
+            </div>
+
+            <div className="flex w-full min-w-0 flex-wrap items-center gap-2.5 sm:w-auto sm:shrink-0 sm:justify-end">
                 <AccountProvider>
                     <AccountSelector />
-                    <div style={{ width: 1, height: 28, background: 'var(--border)', margin: '0 2px' }} />
+                    <div aria-hidden="true" className="mx-0.5 hidden h-7 w-px bg-[var(--border)] sm:block" />
                     <CreateNewInternationalAccount />
                 </AccountProvider>
 
                 <button
+                    type="button"
                     onClick={handleLogout}
-                    style={{
-                        ...actionBtn,
-                        border: '1px solid rgba(237, 28, 36, 0.4)',
-                        background: 'rgba(237, 28, 36, 0.12)',
-                        color: '#ff6b6b',
-                    }}
-                    className="hover:bg-red-500/20 hover:border-red-500/60"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-3.5 py-2 text-[13.5px] font-medium text-white/70 transition-colors hover:border-[rgba(237,28,36,0.5)] hover:bg-[rgba(237,28,36,0.1)] hover:text-[#ff8a8f] active:scale-[0.98]"
                 >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                    Log out
+                    <LogOut aria-hidden="true" className="h-4 w-4" strokeWidth={2} />
+                    <span className="sr-only sm:not-sr-only">Log Out</span>
                 </button>
             </div>
         </nav>

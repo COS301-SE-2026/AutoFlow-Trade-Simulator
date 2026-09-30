@@ -53,7 +53,7 @@ describe('ReportCard', () => {
         render(<ReportCard report={mockPositiveReport} />);
 
         expect(
-            screen.getByText((_, el) => el?.textContent?.replace(/\s+/g, ' ').trim() === '+ 5.00%')
+            screen.getByText((_, el) => el?.textContent?.replace(/\s+/g, ' ').trim() === '+5.00%')
         ).toBeInTheDocument();
     });
 
@@ -69,7 +69,7 @@ describe('ReportCard', () => {
         render(<ReportCard report={mockZeroReport}/>);
 
         expect(
-            screen.getByText((_, el) => el?.textContent?.replace(/\s+/g, ' ').trim() === '+ 0.00%')
+            screen.getByText((_, el) => el?.textContent?.replace(/\s+/g, ' ').trim() === '+0.00%')
         ).toBeInTheDocument();
     })
 });

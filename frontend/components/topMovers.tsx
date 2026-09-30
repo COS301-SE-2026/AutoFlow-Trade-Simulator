@@ -4,7 +4,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {Input} from '@/components/ui/input';
-import {Search} from 'lucide-react';
+import {Search, TrendingUp, TrendingDown} from 'lucide-react';
 import {fetchChartBars, fetchTopMovers} from '@/lib/api/assets';
 import type {ChartBar} from '@/lib/types/assets';
 import {useRouter} from "next/navigation";
@@ -52,55 +52,8 @@ function fmt(n: number, decimals = 2): string {
 }
 
 function TrendIcon({up}: { up: boolean }) {
-    return up ? (
-        <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            aria-hidden="true"
-            className="inline-block shrink-0"
-        >
-            <polyline
-                points="1,11 5,5 8,8 13,2"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-            <polyline
-                points="9,2 13,2 13,6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-        </svg>
-    ) : (
-        <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            aria-hidden="true"
-            className="inline-block shrink-0"
-        >
-            <polyline
-                points="1,3 5,9 8,6 13,12"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-            <polyline
-                points="9,12 13,12 13,8"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-        </svg>
-    );
+    const Icon = up ? TrendingUp : TrendingDown;
+    return <Icon aria-hidden="true" className="inline-block h-3.5 w-3.5 shrink-0" strokeWidth={2}/>;
 }
 
 function RangeBar({low, high, current}: { low: number; high: number; current: number }) {
@@ -108,10 +61,10 @@ function RangeBar({low, high, current}: { low: number; high: number; current: nu
     const pct = range === 0 ? 50 : Math.min(100, Math.max(0, ((current - low) / range) * 100));
     return (
         <div className="flex items-center gap-2 mt-1">
-            <span className="font-mono text-[10px] text-muted-foreground">{fmt(low)}</span>
-            <div className="relative flex-1 h-[3px] rounded-full bg-muted overflow-visible">
+            <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{fmt(low)}</span>
+            <div className="relative flex-1 h-[3px] rounded-full bg-white/[0.08] overflow-visible">
                 <div
-                    className="absolute inset-y-0 left-0 rounded-full bg-border"
+                    className="absolute inset-y-0 left-0 rounded-full bg-white/25"
                     style={{width: `${pct}%`}}
                 />
                 <div
@@ -119,7 +72,7 @@ function RangeBar({low, high, current}: { low: number; high: number; current: nu
                     style={{left: `${pct}%`}}
                 />
             </div>
-            <span className="font-mono text-[10px] text-muted-foreground">{fmt(high)}</span>
+            <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{fmt(high)}</span>
         </div>
     );
 }
@@ -128,25 +81,25 @@ function MoverRow({mover, index, onSelect}: { mover: MoverData; index: number; o
     const isUp = mover.pct_change >= 0;
 
     const trendClass = isUp
-        ? 'text-emerald-500 dark:text-emerald-400'
-        : 'text-rose-500 dark:text-rose-400';
+        ? 'text-[var(--green-light)]'
+        : 'text-[#ff6b72]';
 
     const badgeClass = isUp
-        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10'
-        : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 hover:bg-rose-500/10';
+        ? 'bg-[rgba(141,198,63,0.12)] text-[var(--green-light)] border-[rgba(141,198,63,0.25)] hover:bg-[rgba(141,198,63,0.12)]'
+        : 'bg-[rgba(237,28,36,0.12)] text-[#ff6b72] border-[rgba(237,28,36,0.25)] hover:bg-[rgba(237,28,36,0.12)]';
 
     return (
         <li
-            className="animate-in fade-in slide-in-from-bottom-2"
+            className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
             style={{animationDelay: `${index * 60}ms`, animationFillMode: 'both'}}
         >
             <button
                 type="button"
                 onClick={() => onSelect(mover.ticker)}
-                className="group flex w-full flex-col gap-1 rounded-xl border border-border/60 bg-card px-4 py-3 text-left transition-all duration-200 hover:border-border hover:bg-accent/40 hover:shadow-sm"
+                className="group flex w-full flex-col gap-1.5 rounded-xl border border-[var(--border)] bg-white/[0.02] px-4 py-3 text-left transition-[background-color,border-color] duration-200 hover:border-[rgba(28,117,188,0.45)] hover:bg-white/[0.04]"
             >
             <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-sm font-semibold tracking-widest uppercase text-foreground">
+        <span className="font-mono text-sm font-semibold tracking-widest uppercase text-foreground" translate="no">
           {mover.ticker}
         </span>
 
@@ -264,12 +217,16 @@ export function TopMovers() {
     const latestTimestamp = displayedMovers?.[0]?.timestamp;
 
     return (
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md border-[var(--border)] bg-[rgba(14,14,22,0.75)]">
             <CardHeader className="pb-3">
                 <div className="relative mt-2">
-                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/>
+                    <Search aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/>
                     <Input
-                        placeholder="Search tickers..."
+                        type="search"
+                        aria-label="Search tickers"
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder="Search tickers…"
                         value={query}
                         onChange={(e) => setQuery(e.target.value.toUpperCase())}
                         className="h-9 w-full pl-8"
@@ -281,8 +238,8 @@ export function TopMovers() {
                     ) : (
                         <>
                             <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"/>
-                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"/>
+                                <span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-[var(--green-light)] opacity-75"/>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--green-light)]"/>
                             </span>
                             Top Movers Today
                         </>
@@ -292,20 +249,20 @@ export function TopMovers() {
 
             <CardContent>
                 {isSearching && matchedTickers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground font-mono">No matching tickers.</p>
+                    <p className="text-sm text-muted-foreground">No matching tickers.</p>
                 ) : !isSearching && error ? (
-                    <p className="text-sm text-destructive font-mono">{error}</p>
+                    <p role="alert" className="text-sm text-[#ff6b72]">{error}</p>
                 ) : displayedLoading ? (
                     <ul className="flex flex-col gap-2">
                         {Array.from({length: isSearching ? matchedTickers.length : MOVERS_LIMIT}).map((_, i) => (
                             <li
                                 key={i}
-                                className="h-[62px] rounded-xl border border-border/40 bg-muted/40 animate-pulse"
+                                className="h-[62px] rounded-xl border border-[var(--border)] bg-white/[0.03] animate-pulse"
                             />
                         ))}
                     </ul>
                 ) : displayedMovers === null || displayedMovers.length === 0 ? (
-                    <p className="text-sm text-muted-foreground font-mono">
+                    <p className="text-sm text-muted-foreground">
                         {isSearching ? 'No data available for matching tickers.' : 'No data available.'}
                     </p>
                 ) : (
@@ -317,7 +274,7 @@ export function TopMovers() {
                 )}
 
                 {latestTimestamp && (
-                    <p className="mt-3 text-right font-mono text-[10px] text-muted-foreground">
+                    <p className="mt-3 text-right font-mono text-[10px] tabular-nums text-muted-foreground">
                         Last updated{' '}
                         {new Date(latestTimestamp).toLocaleTimeString([], {
                             hour: '2-digit',

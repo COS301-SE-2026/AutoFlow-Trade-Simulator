@@ -86,8 +86,8 @@ export function SignupForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create an account </CardTitle>
-        <CardDescription> Enter your information below to create your account </CardDescription>
+        <CardTitle>Create an account</CardTitle>
+        <CardDescription>Enter your information below to create your account</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className={cn("flex flex-col gap-6", className)} {...props}>
@@ -96,8 +96,10 @@ export function SignupForm({
               <FieldLabel htmlFor="name">Full Name</FieldLabel>
               <Input
                 id="name"
+                name="name"
                 type="text"
-                placeholder="John Doe"
+                autoComplete="name"
+                placeholder="Thandi Mokoena"
                 required
                 value={fullName}
                 className="bg-background"
@@ -108,7 +110,10 @@ export function SignupForm({
               <FieldLabel htmlFor="email">Email</FieldLabel>
               <Input
                 id="email"
+                name="email"
                 type="email"
+                autoComplete="email"
+                spellCheck={false}
                 placeholder="m@example.com"
                 required
                 value={email}
@@ -124,21 +129,25 @@ export function SignupForm({
               <FieldLabel htmlFor="password">Password</FieldLabel>
               <Input
                 id="password"
+                name="password"
                 type="password"
+                autoComplete="new-password"
                 required
                 value={password}
                 className="bg-background"
                 onChange={(e) => setPassword(e.target.value)}
               />
               <FieldDescription>
-                Must be at least 8 characters long.
+                Must be at least 8 characters long and include at least 1 symbol.
               </FieldDescription>
             </Field>
             <Field>
               <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
               <Input
                 id="confirm-password"
+                name="confirm-password"
                 type="password"
+                autoComplete="new-password"
                 required
                 value={cpassword}
                 className="bg-background"
@@ -146,14 +155,15 @@ export function SignupForm({
               />
               <FieldDescription>Please confirm your password.</FieldDescription>
             </Field>
+            {error && (<Field><p role="alert" className="text-sm text-[#ff6b72]">{error}</p></Field>)}
             <Field>
-              <Button type="submit" disabled={isLoading}>{isLoading ? 'Signing up...' : 'Create Account'}</Button>
+              <Button type="submit" disabled={isLoading}>{isLoading ? 'Signing Up…' : 'Create Account'}</Button>
             </Field>
             <FieldSeparator>Or continue with</FieldSeparator>
             <Field>
               <GoogleSignInButton onCredential={handleGoogleCredential} text="signup_with" />
               <FieldDescription className="px-6 text-center">
-                Already have an account? <a href="/login">Sign in</a>
+                Already have an account? <a href="/login" className="underline underline-offset-4">Sign in</a>
               </FieldDescription>
             </Field>
           </FieldGroup>

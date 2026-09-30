@@ -1,24 +1,20 @@
 'use client';
 
+import { AlertCircle } from 'lucide-react';
 import { Navbar } from '@/components/navbar';
 
 export function PageError({ message }: { message: string }) {
     return (
         <>
             <Navbar />
-            <div className="flex items-center justify-center min-h-screen ">
-                <div className="flex flex-col items-center gap-3 text-center px-6">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-destructive">
-                            <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" />
-                            <path d="M10 6v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                            <circle cx="10" cy="14" r="0.75" fill="currentColor" />
-                        </svg>
+            <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-6">
+                <div role="alert" className="flex max-w-md flex-col items-center gap-3 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(237,28,36,0.1)]">
+                        <AlertCircle aria-hidden="true" className="h-5 w-5 text-[#ff6b72]" strokeWidth={1.75} />
                     </div>
-                    <p className="font-mono text-sm text-destructive">{message}</p>
+                    <p className="break-words text-sm text-white/80">{message}</p>
                 </div>
             </div>
-
         </>
     );
 }

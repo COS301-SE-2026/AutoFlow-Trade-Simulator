@@ -15,7 +15,9 @@ import { PageError } from '@/components/PageError';
 
 function PageSkeleton() {
     return (
-        <div className="flex min-h-screen ">
+        <>
+        <Navbar />
+        <div aria-busy="true" aria-label="Loading dashboard" className="flex min-h-[calc(100dvh-4rem)]">
             <aside className="hidden lg:flex flex-col w-72 shrink-0 border-r border-border/60 p-4 gap-3">
                 <Skeleton className="h-6 w-32 mb-2" />
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -29,13 +31,14 @@ function PageSkeleton() {
                 <Skeleton className="flex-1 w-full rounded-xl min-h-[400px]" />
             </main>
         </div>
+        </>
     );
 }
 
 function TickerHeader({ ticker }: { ticker: string }) {
     return (
-        <div className="flex items-baseline gap-3 pb-4 border-b border-border/40">
-            <h1 className="font-mono text-2xl font-bold tracking-widest uppercase text-foreground">
+        <div className="flex items-baseline gap-3 pb-4 border-b border-[var(--border)]">
+            <h1 className="font-mono text-2xl font-bold tracking-widest uppercase text-foreground" translate="no">
                 {ticker}
             </h1>
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
@@ -59,9 +62,9 @@ export default function Dashboard() {
     return (
         <>
             <Navbar />
-            <div className="flex min-h-screen ">
+            <div className="flex">
                 <aside
-                    className="hidden lg:flex flex-col w-100 shrink-0 border-r border-border/60 p-4 gap-0 overflow-y-auto">
+                    className="hidden lg:flex flex-col w-100 shrink-0 border-r border-[var(--border)] p-4 gap-0 overflow-y-auto">
                     <TopMovers />
                 </aside>
 
@@ -79,15 +82,15 @@ export default function Dashboard() {
 
                 </main>
             </div>
-            <div className="w-full mt-6">
-                <Tabs defaultValue="Transactions" className="w-full flex flex-col">   {/* ← added flex flex-col */}
-                    <div className="border-b border-border/60">
+            <div className="w-full mt-6 px-4 pb-16 md:px-6">
+                <Tabs defaultValue="Transactions" className="w-full flex flex-col">
+                    <div className="border-b border-[var(--border)]">
                         <TabsList className="inline-flex h-9 items-center gap-0 bg-transparent p-0 rounded-none">
                             {(['Transactions', 'Report'] as const).map((tab) => (
                                 <TabsTrigger
                                     key={tab}
                                     value={tab}
-                                    className="inline-flex items-center justify-center h-9 px-4 bg-transparent border-0 rounded-none font-mono text-xs uppercase tracking-widest text-muted-foreground border-b-2 border-transparent -mb-px
+                                    className="inline-flex items-center justify-center h-9 px-4 bg-transparent border-0 rounded-none font-mono text-xs uppercase tracking-widest text-muted-foreground border-b-2 border-transparent -mb-px transition-colors hover:text-foreground
                        data-[state=active]:text-foreground data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                 >
                                     {tab}
