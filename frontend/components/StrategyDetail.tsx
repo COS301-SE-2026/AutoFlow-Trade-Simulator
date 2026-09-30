@@ -1,19 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useStrategies, type StrategyDetail as StrategyDetailData } from '@/hooks/useStrategies';
 import { useLearning } from '@/context/LearningContext';
 import { strategyLevelColors, strategyLevel } from '@/components/StrategyCard'
-import { X, Lock } from 'lucide-react';
+import { X, Lock, Brain } from 'lucide-react';
 import Link from 'next/link';
+import { getPuzzleGuide } from '@/lib/puzzleGuides';
 
 export function StrategyDetail({ id, onClose }: { id: number | null, onClose: () => void }) {
     const { fetchDetail } = useStrategies();
-    const { openStrategyTutorial } = useLearning();
+    const { openStrategyTutorial, openStrategyPuzzle } = useLearning();
 
     const [strategy, setStrategy] = useState<StrategyDetailData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const puzzleGuide = useMemo(() => (strategy ? getPuzzleGuide(strategy.name) : null),
+        [strategy],
+    );
 
     useEffect(() => {
         if (!id) return;
@@ -161,13 +166,28 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                 {/* Try it now button */}
                 <div className='flex flex-col gap-3 mt-4'>
                     {strategy.unlocked ? (
-                        <button
-                            data-testid="Try it now button"
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-6 rounded-xl text-lg transition-colors mb-4"
-                            onClick={openStrategyTutorial}
-                        >
-                            Try it now!
-                        </button>
+                        <>
+                            <button
+                                className='w-full bg-green-600 hover:bg-green-700 text-white font-bold 
+                                    py-6 px-6 rounded-xl text-lg transition-colors'
+                                onClick={openStrategyTutorial}
+                            >
+                                Try it now!
+                            </button>
+                            {puzzleGuide && (
+                                <button
+                                    className='w-full text-white font-bold py-4 px-6 rounded-xl 
+                                        transition-colors flex items-center justify-center gap-2
+                                        border border-[var(--border)] bg-purple-600/80 hover:bg-purple-700/80'
+                                    onClick={() => 
+                                        openStrategyPuzzle({ id: strategy.id, name: strategy.name })
+                                    }
+                                >
+                                    <Brain className='w-4 h-4' />
+                                    Try the Puzzle
+                                </button>
+                            )}
+                        </>
                     ) : (
                         <div className='w-full text-center bg-[var(--background)] border border-[var(--border)] rounded-xl py-6 px-6 mb-4'>
                             <p className='font-bold text-sm inline-flex items-center justify-center gap-2'>

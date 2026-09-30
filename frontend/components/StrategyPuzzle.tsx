@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     ResponsiveContainer,
     AreaChart,
@@ -12,7 +12,6 @@ import {
 } from 'recharts';
 import { apiClient } from '@/lib/api';
 import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, Gauge, Brain, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import type { 
     PuzzleBar,
     PuzzleStartResponse,
@@ -20,6 +19,7 @@ import type {
     PuzzleSubmitResponse,
 } from '@/lib/types/puzzle';
 import { usePuzzle } from '@/hooks/usePuzzle';
+import { getPuzzleGuide } from '@/lib/puzzleGuides';
 
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload?.length) {
@@ -43,21 +43,6 @@ const SPEEDS = [1, 2, 4] as const;
 const BASE_INTERVAL_MS = 3000;
 const PUZZLE_STARTING_BALANCE = 100000;
 
-const STRATEGY_GUIDES: Record<string, string[]> = {
-    'dollar-cost averaging': [
-        'Invest a fixed rand amount at regular invervals - regardless of the price.',
-        'Do not try to time the market, consistency is the edge.',
-        'Hold through any dip. Do not panic sell into weakness.',
-        'Aim for at least 4 - 5 purchases spread evenly across the period.'
-    ],
-};
-
-function guideFor(strategyName: string): string[] | null {
-    const n = strategyName.toLowerCase();
-    const key = Object.keys(STRATEGY_GUIDES).find(k => n.includes(k));
-    return key ? STRATEGY_GUIDES[key] : null;
-}
-
 export function StrategyPuzzle({ 
     strategyId,
     strategyName,
@@ -69,7 +54,7 @@ export function StrategyPuzzle({
     asset?: string;
     onBack: () => void;
 }) {
-    const guide = useMemo(() => guideFor(strategyName), [strategyName]);
+    const guide = useMemo(() => getPuzzleGuide(strategyName), [strategyName]);
     const { startPuzzle, submitPuzzle: submitPuzzleApi } = usePuzzle();
 
     const [puzzle, setPuzzle] = useState<PuzzleStartResponse | null>(null);
@@ -129,6 +114,24 @@ export function StrategyPuzzle({
     }, [isPlaying, isFinished, totalDays, speed]);
 
     const stepForward = () => setDayIndex(d => Math.min(d + 1, totalDays - 1));
+
+    if (loadError) {
+        return (
+            <div>
+                <div>
+                    <p>Puzzle unavailable</p>
+                    <p>{loadError}</p>
+                    <button
+                        type='button'
+                        onClick={onBack}
+                        className='px-4 py-2 rounded-xl text-sm font-semibold'
+                    >
+                        Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='flex flex-col p-4 h-full'>
