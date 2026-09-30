@@ -1,17 +1,24 @@
 import secrets
 from datetime import datetime
 from decimal import Decimal
-from typing import List
+from typing import List, Annotated
 
-from fastapi import HTTPException, WebSocket, status
+from fastapi import HTTPException, WebSocket, status, Depends
 from sqlalchemy import func
 from sqlmodel import Session, select
+
+from ..RubricEngine.RubricEngineController import get_rubric_service
+from ..RubricEngine.RubricEngineDTO import EvaluationResultDTO
+from ...models.user import User
+from ..tech_tree.TechTreeService import TechTreeService
 
 from ...models.asset import Asset
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.puzzle_run import PuzzleRun
 from ...models.strategies import Strategies
 from ..market_data.generator import LCGPseudoRandomGenerator
+from ..rewards.RewardService import award_tutorial_progression, award_puzzle_progression
+from ..RubricEngine.RubricEngineService import RubricEngineService
 from ..simulation.SimulationService import SimulationService
 from ..multiplayer.PerturbationService import perturb_bars
 from .PuzzleDTOs import PuzzleActionDTO, PuzzleBarDTO, PuzzleStartResponse, PuzzleSubmitResponse
@@ -19,14 +26,33 @@ from .PuzzleDTOs import PuzzleActionDTO, PuzzleBarDTO, PuzzleStartResponse, Puzz
 PUZZLE_DAYS = 30
 PUZZLE_INITIAL_BALANCE = Decimal("100000")
 
+ServiceDep = Annotated[RubricEngineService, Depends(get_rubric_service)]
+
 
 class PuzzleService:
 
     def __init__(self, session: Session):
         self.session = session
 
-    def get_puzzle(self,asset:str,user_id:int,strat_id:int) -> PuzzleStartResponse:
-        puzzle = self.generate_random_puzzle(asset,user_id,strat_id)
+    def get_puzzle(self, asset: str, user: User, strat_id: int) -> PuzzleStartResponse:
+        strategy = self.session.get(Strategies, strat_id)
+        if strategy is None:
+            raise HTTPException(status_code=404, detail="Strategy not found")
+
+        if not strategy.slug:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Strategy '{strategy.name}' cannot be scored yet",
+            )
+
+        if strategy.tech_tree_node and not TechTreeService.is_unlocked(user, strategy.tech_tree_node):
+            raise HTTPException(403, f"Strategy '{strategy.name}' is not unlocked")
+
+        tech_name = TechTreeService.strategy_tech_name(strategy)
+        if tech_name and not TechTreeService.is_unlocked(user, tech_name):
+            raise HTTPException(403, f"Strategy '{strategy.name}' is not unlocked")
+
+        puzzle = self.generate_random_puzzle(asset, user.id, strat_id)
         bars = self.build_bars(puzzle)
         return PuzzleStartResponse(
             puzzle_id=puzzle.id,
@@ -47,12 +73,16 @@ class PuzzleService:
         base_bars = SimulationService(self.session).load_bars(puzzle.symbol, puzzle.start_date, puzzle.end_date)
         return perturb_bars(base_bars, LCGPseudoRandomGenerator(seed=puzzle.seed))
 
-    def submit_puzzle(self, puzzle_id:int, user_id:int, actions:List[PuzzleActionDTO]) -> PuzzleSubmitResponse:
+    def submit_puzzle(self, puzzle_id:int, user_id:int, actions:List[PuzzleActionDTO], service: ServiceDep) -> PuzzleSubmitResponse:
         puzzle = self.session.exec(select(PuzzleRun).where(PuzzleRun.id == puzzle_id).with_for_update()).first()
         if puzzle is None or puzzle.user_id != user_id:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Puzzle not found")
         if puzzle.completed_at is not None:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Puzzle already submitted")
+
+        strategy = self.session.get(Strategies, puzzle.strategy_id)
+        if strategy is None or not strategy.slug:
+            raise HTTPException(status_code=400, detail="Strategy has no rubric mapping")
 
         bars = self.build_bars(puzzle)
         cash = puzzle.initial_balance
@@ -89,6 +119,19 @@ class PuzzleService:
         self.session.commit()
         self.session.refresh(puzzle)
 
+        result: EvaluationResultDTO = service.evaluate_puzzle_for_user(
+            strat_key=strategy.slug,
+            puzzle_id=puzzle.id,
+            user_id=user_id,
+        )
+
+        xp_awarded = award_puzzle_progression(
+            self.session,
+            puzzle.id,
+            user_id,
+            puzzle.rubric_score,
+        )
+
         return PuzzleSubmitResponse(
             puzzle_id=puzzle.id,
             initial_balance=float(puzzle.initial_balance),
@@ -96,7 +139,12 @@ class PuzzleService:
             return_pct=float(((final_balance / puzzle.initial_balance) - 1) * 100),
             trades_count=len(actions),
             rubric_score=puzzle.rubric_score,
+            evaluation=result,
+            xp_awarded=xp_awarded,
         )
+
+    def complete_tutorial(self, strategy_id: int, user_id: int) -> None:
+        award_tutorial_progression(self.session, strategy_id, user_id)
 
     def invalid_action(self, position:int, reason:str) -> HTTPException:
         return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Action {position}: {reason}")

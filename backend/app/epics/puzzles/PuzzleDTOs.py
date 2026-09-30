@@ -2,9 +2,11 @@ from typing import List, Literal, Optional
 
 from sqlmodel import Field, SQLModel
 
+from ..RubricEngine.RubricEngineDTO import EvaluationResultDTO
+
 
 class TutorialCompleteRequest(SQLModel):
-    tutorial_id:int
+    strategy_id:int
 
 
 class PuzzleStartRequest(SQLModel):
@@ -46,3 +48,5 @@ class PuzzleSubmitResponse(SQLModel):
     return_pct:float
     trades_count:int
     rubric_score:Optional[int] = None
+    evaluation:EvaluationResultDTO
+    xp_awarded:int

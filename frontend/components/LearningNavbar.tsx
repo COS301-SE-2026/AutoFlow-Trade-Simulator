@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpen, Activity, History } from 'lucide-react';
+import { BookOpen, Activity, History, TreePine } from 'lucide-react';
 import Link from 'next/link';
 
 import { usePathname } from 'next/navigation';
@@ -11,7 +11,7 @@ type TabId = 'strategies' | 'greeks' | 'events';
 
 const tabs: { id: TabId, label: string, icon: typeof BookOpen, href: string }[] = [
     { id: 'strategies' as TabId, label: 'Strategies', icon: BookOpen, href: '/learning/strategies' },
-    { id: 'techTree' as TabId, label: 'Tech Tree', icon: History, href: '/learning/techTree' },
+    { id: 'techTree' as TabId, label: 'Tech Tree', icon: TreePine, href: '/learning/techTree' },
     { id: 'greeks' as TabId, label: 'Options Greeks', icon: Activity, href: '/learning/greeks' },
     { id: 'events' as TabId, label: 'Historical Events', icon: History, href: '/learning/events' },
 ];

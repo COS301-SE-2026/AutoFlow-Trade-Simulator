@@ -12,14 +12,15 @@ const mockStrategy = {
     steps: ['step 1', 'step 2', 'step 3'],
     pros: ['pros 1', 'pros 2', 'pros 3'],
     cons: ['cons 1', 'cons 2', 'cons 3'],
+    unlocked: true,
 }
 
 const mockOnClose = jest.fn();
 const mockSwitchToEvents = jest.fn();
 const mockSetStrategyId = jest.fn();
 
-jest.mock('@/hooks/useStrategy', () => ({
-    useStrategy: jest.fn(),
+jest.mock('@/hooks/useStrategies', () => ({
+    useStrategies: jest.fn(),
 }))
 
 jest.mock('@/context/LearningContext', () => ({
@@ -31,11 +32,13 @@ describe('StrategyDetail', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        const { useStrategy } = require('@/hooks/useStrategy');
-        useStrategy.mockReturnValue({
-            strategy: mockStrategy,
+        const { useStrategies } = require('@/hooks/useStrategies');
+        useStrategies.mockReturnValue({
+            strategies: [],
             loading: false,
             error: null,
+            refetch: jest.fn(),
+            fetchDetail: jest.fn().mockResolvedValue(mockStrategy),
         })
 
         const { useLearning } = require('@/context/LearningContext');
@@ -77,13 +80,17 @@ describe('StrategyDetail', () => {
             });
         });
 
-        it('close buttons can be clicked', () => {
+        it('close buttons can be clicked', async () => {
             render(
                 <StrategyDetail
                     id={mockStrategy.id}
                     onClose={mockOnClose}
                 />
             );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('close')).toBeInTheDocument();
+            });
 
             fireEvent.click(screen.getByTestId('close'));
             expect(mockOnClose).toHaveBeenCalled();
@@ -101,6 +108,11 @@ describe('StrategyDetail', () => {
 
             const link = screen.getByTestId('Try it now button');
             expect(link).toHaveAttribute('href', '/learning/events');
+            await waitFor(() => {
+                expect(screen.getByTestId('Try it now button')).toBeInTheDocument();
+            });
+
+            fireEvent.click(screen.getByTestId('Try it now button'));
         });
     });
 })

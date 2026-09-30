@@ -29,7 +29,7 @@ def get_greeks(
     symbol: str,
     service: Annotated[GreeksService, Depends(get_greeks_service)],user: Annotated[User, Depends(get_current_user)]
 ) -> GreekValues:
-    return service.get_greeks(symbol)
+    return service.get_greeks(symbol, user)
 
 
 @router.get("/{symbol}/history")
@@ -48,6 +48,7 @@ def calculate_greeks (
     user: Annotated[User, Depends(get_current_user)]
 ) -> GreekValues:
     return service.calc_greeks(
+        user,
         current_price = req.current_price,
         strike_price = req.strike_price,
         time_to_expire = req.time_to_expire,

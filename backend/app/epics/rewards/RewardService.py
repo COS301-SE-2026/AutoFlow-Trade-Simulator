@@ -1,14 +1,13 @@
 from typing import Optional, List, Dict
-from sqlmodel import Session, select
-from sqlalchemy import col
+from sqlmodel import Session, select, col
 
-from app.models import User, TutorialCompletion
+from app.models import User
 from app.models.progression_grant import ProgressionGrant, ProgressionSource
 
 XP_WINNER = 100
 XP_LOSER = 40
 XP_PUZZLE_BASE = 50
-XP_PUZZLE_PER_RUBRIC_POINT = 10
+XP_PUZZLE_PER_RUBRIC_POINT = 1
 ELO_K = 32
 ELO_DEFAULT = 500
 TUTORIAL_XP = 25
@@ -93,14 +92,14 @@ def award_puzzle_progression(
         puzzle_run_id: int,
         user_id: int,
         rubric_score: int,
-) -> None:
+) -> int:
     existing = db.exec(
         select(ProgressionGrant)
         .where(ProgressionGrant.source_type == ProgressionSource.puzzle)
         .where(ProgressionGrant.source_id == puzzle_run_id)
     ).first()
     if existing is not None:
-        return
+        return 0
 
     user = db.get(User, user_id)
     if user is None:
@@ -119,23 +118,27 @@ def award_puzzle_progression(
         )
     )
     db.commit()
+    return xp
 
 def award_tutorial_progression(
         db: Session,
         strategy_id: int,
         user_id: int,
 ) -> None:
-    existing = db.get(TutorialCompletion, (user_id, strategy_id))
+    existing = db.exec(
+        select(ProgressionGrant)
+        .where(ProgressionGrant.source_type == ProgressionSource.tutorial)
+        .where(ProgressionGrant.source_id == strategy_id)
+        .where(ProgressionGrant.user_id == user_id)
+    ).first()
+    if existing is not None:
+        return
 
     user = db.get(User, user_id)
     if user is None:
         raise ValueError(f"user {user_id} not found")
 
-    if existing is not None:
-        return
-
     user.experience_points += TUTORIAL_XP
-    db.add(TutorialCompletion(user_id=user_id, strategy_id=strategy_id))
     db.add(
         ProgressionGrant(
             user_id=user_id,

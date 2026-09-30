@@ -11,6 +11,7 @@ from sqlalchemy import func
 from sqlmodel import Session, select
 
 from ..market_data.generator import LCGPseudoRandomGenerator
+from ..rewards.RewardService import award_match_progression
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.multiplayer_match import MatchEventLog, MatchStatus, MultiplayerMatch, MultiplayerParticipant, QTEQuestion
 from .MultiplayerDTOs import (
@@ -91,6 +92,7 @@ class MatchSession:
         self.rnd_gen = LCGPseudoRandomGenerator(seed=seed)
         self.used_question_ids: List[int] = []
         self.pending_events: List[Dict] = []
+        self.action_counts: Dict[int, int] = {p.user_id: 0 for p in players}
 
         self.lock = asyncio.Lock()
         self.task: Optional[asyncio.Task] = None
@@ -175,6 +177,7 @@ class MatchSession:
                     error = self.apply_trade(player, bar, action, qty)
                     if error is None:
                         player.pending_action = PendingAction(type=action, qty=qty or 0.0, price=bar.close)
+                        self.action_counts[user_id] += 1
                         if action != "hold": # we don't need to remember that they did nothing
                             self.log_event(user_id, event_type=action, payload={"qty": qty or 0.0, "price": float(bar.close)})
                         if all(p.pending_action is not None for p in self.players.values()):
@@ -367,6 +370,8 @@ class MatchSession:
 
             db.commit()
 
+            award_match_progression(db, self.match_id, winner_user_id, list(balances.keys()), self.action_counts)
+
         self.status = MatchStatus.completed
         self.flush_events()
 
@@ -442,6 +447,8 @@ class MatchSession:
             match.ended_at = datetime.now(timezone.utc)
             db.add(match)
             db.commit()
+
+            award_match_progression(db, self.match_id, winner_user_id, list(self.players.keys()), self.action_counts)
 
         self.status = MatchStatus.abandoned
 
