@@ -12,7 +12,7 @@ import {RegisterLoginResponse} from "@/lib/types/accounts";
 export interface AuthContextType {
     token: string | null;
     login: (email: string, password:string) => void;
-    loginWithGoogle: (idToken: string) => void;
+    loginWithGoogle: (idToken: string) => Promise<void>;
     logout: () => void;
     register: (fullName:string, email: string, password:string) => void;
     isLoading: boolean;
