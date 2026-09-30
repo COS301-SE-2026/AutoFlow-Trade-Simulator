@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { MoveLeft, TrendingUp, TrendingDown, Minus, Plus, Timer, CheckCircle2, XCircle, Lock } from 'lucide-react';
 import TradeConfirmModal from './TradeConfirmModal';
+import { ScrollableChart } from '@/components/ScrollableChart';
 import type { UseMultiplayerMatch } from '@/hooks/useMultiplayerMatch';
 
 type ChartPoint = { day: number; date: string; price: number };
@@ -225,7 +226,7 @@ export function MultiplayerArena({
                                 {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
                             </div>
                         </div>
-                        <div className='min-h-0 w-full flex-1'>
+                        <ScrollableChart points={chartData.length} className='min-h-0 w-full flex-1'>
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData} margin={{ top: 5, right: 16, left: 4, bottom: 5 }}>
                                     <defs>
@@ -241,7 +242,7 @@ export function MultiplayerArena({
                                     <Area type="monotone" dataKey="price" stroke='#1c75bc' strokeWidth={2.5} fill={`url(#grad-${gradId})`} dot={false} activeDot={{ r: 5, stroke: '#1c75bc', fill: '#12121c', strokeWidth: 2 }} isAnimationActive={false} />
                                 </AreaChart>
                             </ResponsiveContainer>
-                        </div>
+                        </ScrollableChart>
                         <div className='mt-4 flex items-center gap-3'>
                             <div role='progressbar' aria-label='Match progress' aria-valuemin={1} aria-valuemax={match.total_days} aria-valuenow={day.day_index + 1} className='h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.06]'>
                                 <div className='h-full rounded-full bg-[var(--blue)] transition-[width] duration-300' style={{ width: `${progressPct}%` }} />

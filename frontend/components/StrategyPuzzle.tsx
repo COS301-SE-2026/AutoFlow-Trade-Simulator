@@ -20,6 +20,7 @@ import type {
 } from '@/lib/types/puzzle';
 import { usePuzzle } from '@/hooks/usePuzzle';
 import { getPuzzleGuide } from '@/lib/puzzleGuides';
+import { ScrollableChart } from '@/components/ScrollableChart';
 
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload?.length) {
@@ -192,7 +193,7 @@ export function StrategyPuzzle({
 
     if (loadError) {
         return (
-            <div className='flex items-center justify-center h-full p-6'>
+            <div className='flex h-full items-center justify-center p-3 sm:p-6'>
                 <div className='p-6 bg-[var(--background)] border border-[var(--border)] rounded-xl max-w-md w-full text-center'>
                     <p className='font-bold mb-2 text-[var(--red)]'>Puzzle unavailable</p>
                     <p className='text-sm text-gray-400 mb-4'>{loadError}</p>
@@ -231,9 +232,9 @@ export function StrategyPuzzle({
     const total = Number.parseFloat(qty) > 0 ? Number.parseFloat(qty) * currentPrice : 0;
 
     return (
-        <div className='flex flex-col p-4 h-full min-h-0 gap-3'>
-            <div className='flex justify-between items-center gap-3 shrink-0'>
-                <div className='flex items-center gap-3'>
+        <div className='flex flex-col gap-3 p-3 sm:p-4 lg:h-full lg:min-h-0'>
+            <div className='flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                <div className='flex flex-wrap items-center gap-2 sm:gap-3'>
                     <button
                         type='button'
                         onClick={onBack}
@@ -250,10 +251,10 @@ export function StrategyPuzzle({
                         {strategyName}
                     </span>
                 </div>
-                <div className='flex items-center gap-2'>
+                <div className='flex flex-wrap items-center gap-2'>
                     <div className='flex flex-row gap-1 bg-blue-900 border border-[var(--border)] items-center px-3 rounded-xl font-semibold text-sm'>
                         <Gauge className='mr-2 w-4 h-4' />
-                        <span className='mr-2'>Speed Controls:</span>
+                        <span className='mr-2 hidden sm:inline'>Speed Controls:</span>
                         {[1, 2, 4].map((s) => {
 
                             return (
@@ -295,11 +296,11 @@ export function StrategyPuzzle({
                 </div>
             </div>
 
-            <div className='flex gap-4 flex-1 min-h-0'>
+            <div className='flex min-h-0 flex-1 flex-col gap-4 lg:flex-row'>
                 <div
-                    className='flex-1 rounded-xl border border-[var(--border)] p-4 flex flex-col min-w-0'
+                    className='flex min-w-0 flex-col rounded-xl border border-[var(--border)] p-3 sm:p-4 lg:min-h-0 lg:flex-1'
                 >
-                    <div className='flex justify-between items-center mb-2 shrink-0'>
+                    <div className='mb-2 flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1'>
                         <div className='text-lg font-bold'>Day {dayIndex + 1} of {totalDays}</div>
                         <div className='text-xl font-bold'>COST: R{Number(currentPrice).toFixed(2)}</div>
                         <div className={`text-sm flex items-center gap-1 ${priceChangePct >= 0 ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`}>
@@ -307,7 +308,7 @@ export function StrategyPuzzle({
                             {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
                         </div>
                     </div>
-                    <div className='flex-1 min-h-0'>
+                    <ScrollableChart points={chartData.length} className='h-[300px] lg:h-auto lg:min-h-0 lg:flex-1'>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
                                 data={chartData}
@@ -337,7 +338,7 @@ export function StrategyPuzzle({
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
-                    </div>
+                    </ScrollableChart>
                     <div className='mt-2 mb-2 h-1 bg-gray-800 rounded-full shrink-0'>
                         <div
                             className='h-full bg-[var(--blue)] rounded-full transition-all duration-200'
@@ -346,9 +347,9 @@ export function StrategyPuzzle({
                     </div>
                 </div>
 
-                <div className='w-64 flex flex-col gap-3 shrink-0 overflow-y-auto'>
+                <div className='flex w-full flex-col gap-3 lg:w-64 lg:shrink-0 lg:overflow-y-auto'>
                     {guide && (
-                        <div className='p-3 rounded-xl bg-[var(--background)] border border-[var(--border)]'>
+                        <div className='order-1 rounded-xl border border-[var(--border)] bg-[var(--background)] p-3 lg:order-none'>
                             <div className='text-xs font-bold uppercase tracking-wider mb-2'>
                                 Strategy Guide
                             </div>
@@ -404,7 +405,7 @@ export function StrategyPuzzle({
                                 if (Number.isNaN(n) || n < 1) setQty('1');
                             }}
                             placeholder='Quantity'
-                            className='w-full bg-gray-800 border border-[var(--border)] rounded-xl px-3 py-1.5 text-sm text-center mb-2'
+                            className='mb-2 w-full rounded-xl border border-[var(--border)] bg-gray-800 px-3 py-2 text-center text-base sm:py-1.5 sm:text-sm'
                         />
                         {total > 0 && (
                             <div className='text-xs mb-2 mt-2 text-center'>
@@ -420,14 +421,14 @@ export function StrategyPuzzle({
                             <button
                                 id='tut-buy'
                                 type='button'
-                                className='w-full py-1.5 px-3 rounded-xl bg-[var(--green)] border-[var(--border)]'
+                                className='w-full rounded-xl border-[var(--border)] bg-[var(--green)] px-3 py-2.5 sm:py-1.5'
                                 onClick={() => execute('buy')}
                             >
                                 Buy
                             </button>
                             <button
                                 type='button'
-                                className='w-full py-1.5 px-3 rounded-xl bg-[var(--red)] border-[var(--border)]'
+                                className='w-full rounded-xl border-[var(--border)] bg-[var(--red)] px-3 py-2.5 disabled:opacity-50 sm:py-1.5'
                                 onClick={() => execute('sell')}
                                 disabled={shares === 0}
                             >
@@ -498,8 +499,8 @@ function GradeView({
     };
 
     return (
-        <div className='flex justify-center p-6 h-full overflow-y-auto'>
-            <div className='max-w-lg w-full p-6 bg-[var(--background)] border border-[var(--border)] rounded-xl space-y-4 self-start'>
+        <div className='flex justify-center p-3 sm:p-6 lg:h-full lg:overflow-y-auto'>
+            <div className='max-w-lg w-full p-4 sm:p-6 bg-[var(--background)] border border-[var(--border)] rounded-xl space-y-4 self-start'>
                 <div className='text-center'>
                     <div className='text-xs uppercase tracking-wider text-gray-400 mb-1'>
                         Puzzle Complete
