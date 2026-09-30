@@ -93,7 +93,12 @@ class AuthService:
                 user = self.session.exec(select(User).where(User.email == email)).first()
 
             if user is None:
-                user = User(email=email, full_name=full_name, google_sub=google_sub)
+                user = User(
+                    email=email,
+                    full_name=full_name,
+                    google_sub=google_sub,
+                    upgrades=['strategy_basic', 'strategy_mean_reversion'],
+                )
                 self.session.add(user)
                 self.session.flush()
 
