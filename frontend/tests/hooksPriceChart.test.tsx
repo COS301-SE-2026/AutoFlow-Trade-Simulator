@@ -14,10 +14,10 @@ jest.mock('recharts', () => {
         ResponsiveContainer: ( { children } : { children: React.ReactNode }) => (
             <div data-testid="responsive-container">{children}</div>
         ),
-        LineChart: ({ children } : { children: React.ReactNode }) => (
-            <div data-testid="line-chart">{children}</div>
+        AreaChart: ({ children } : { children: React.ReactNode }) => (
+            <div data-testid="area-chart">{children}</div>
         ),
-        Line: () => <div data-testid="line"/>,
+        Area: () => <div data-testid="area"/>,
         XAxis: () => <div data-testid="x-axis"/>,
         YAxis: () => <div data-testid="y-axis"/>,
         CartesianGrid: () => <div data-testid="cartesian-grid"/>,
@@ -63,10 +63,10 @@ describe('PriceChart Component', () => {
             render(<PriceChart ticker="AAPL"/>);
 
             expect(screen.getByText('Loading...')).toBeInTheDocument();
-            expect(screen.queryByTestId('line-chart')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('area-chart')).not.toBeInTheDocument();
         });
 
-        it('renders LineChart and UI controls when loading is false', () => {
+        it('renders AreaChart and UI controls when loading is false', () => {
             mockUsePrices.mockReturnValue({
                 data: sampleData,
                 loading: false,
@@ -77,7 +77,7 @@ describe('PriceChart Component', () => {
 
             expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
             expect(screen.getByText('Select Chart Timeframe:')).toBeInTheDocument();
-            expect(screen.getByTestId('line-chart')).toBeInTheDocument();
+            expect(screen.getByTestId('area-chart')).toBeInTheDocument();
         });
 
         it('handles empty data gracefully without throwing', () => {
@@ -89,7 +89,7 @@ describe('PriceChart Component', () => {
 
             render(<PriceChart ticker="AAPL" />);
 
-            expect(screen.getByTestId('line-chart')).toBeInTheDocument();
+            expect(screen.getByTestId('area-chart')).toBeInTheDocument();
         });
     });
 
