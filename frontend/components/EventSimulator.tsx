@@ -18,6 +18,7 @@ import { MoveLeft, Play, ChevronsRight, Pause, Check, TrendingUp, TrendingDown, 
 import TradeConfirmModal from './TradeConfirmModal';
 import { Button } from '@/components/ui/button';
 import { useNews } from '@/hooks/useNews';
+import { ScrollableChart } from '@/components/ScrollableChart';
 import { useUnlockedGreeks } from '@/hooks/useUnlockedGreeks';
 import {NewsTicker} from "@/components/news/newsScroll";
 import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
@@ -648,7 +649,7 @@ export function EventSimulator({
                             {priceChangePct >= 0 ? '+' : ''}{priceChangePct.toFixed(2)}%
                         </div>
                     </div>
-                    <div className='min-h-0 w-full flex-1'>
+                    <ScrollableChart points={chartData.length} className='min-h-0 w-full flex-1'>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart
                                 data={chartData}
@@ -678,7 +679,7 @@ export function EventSimulator({
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
-                    </div>
+                    </ScrollableChart>
                     <div className='mt-4 flex items-center gap-3'>
                         <div
                             role='progressbar'
