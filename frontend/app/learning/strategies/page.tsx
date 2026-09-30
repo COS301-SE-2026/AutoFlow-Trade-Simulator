@@ -7,6 +7,8 @@ import { LearningNavbar } from '@/components/LearningNavbar';
 import { useLearning } from '@/context/LearningContext';
 import { EventSimulator } from '@/components/EventSimulator';
 import { StrategyPuzzle } from '@/components/StrategyPuzzle';
+import { useTechTreeContext } from '@/context/TechTreeContext';
+import { completeTutorial } from '@/lib/api/tutorials';
 
 const DCA_PRACTICE_EVENT = {
     id: 'dca-practice',
@@ -28,10 +30,22 @@ const DCA_PRACTICE_EVENT = {
 export default function LearningPage() {
     const { 
             strategyTutorialOpen, 
+            tutorialStrategyId,
             closeStrategyTutorial,
             puzzleStrategy,
             closeStrategyPuzzle 
         } = useLearning();
+    const { refetch: refetchXp } = useTechTreeContext();
+
+    const handleTutorialComplete = async () => {
+        if (tutorialStrategyId === null) return;
+        try {
+            await completeTutorial(tutorialStrategyId);
+            await refetchXp();
+        } catch (e) {
+            console.error('Failed to record tutorial completion', e);
+        }
+    };
 
     if (puzzleStrategy) {
         return (
@@ -50,6 +64,7 @@ export default function LearningPage() {
                     event={DCA_PRACTICE_EVENT}
                     mode='strategy'
                     onBack={closeStrategyTutorial}
+                    onTutorialComplete={handleTutorialComplete}
                 />
             </>
         )
