@@ -84,11 +84,14 @@ export function EventSimulator({
     event,
     mode = 'event',
     onBack,
+    onTutorialComplete,
 }: Readonly<{ 
     event: EventDefinition;
     mode?: 'event' | 'strategy';
-    onBack: () => void 
+    onBack: () => void;
+    onTutorialComplete?: () => void;
 }>) {
+    const tutorialCompletedRef = useRef(false);
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -492,6 +495,10 @@ export function EventSimulator({
                     per_symbol_results: {},
                 }
             });
+            if (!tutorialCompletedRef.current) {
+                tutorialCompletedRef.current = true;
+                onTutorialComplete?.();
+            }
             return;
         }
 
