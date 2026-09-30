@@ -110,13 +110,10 @@ describe('StrategyDetail', () => {
 
             await screen.findByText(mockStrategy.name);
 
-            const link = screen.getByTestId('Try it now button');
-            expect(link).toHaveAttribute('href', '/learning/events');
-            await waitFor(() => {
-                expect(screen.getByTestId('Try it now button')).toBeInTheDocument();
-            });
+            const button = screen.getByTestId('Try it now button');
+            expect(button).toBeInTheDocument();
 
-            fireEvent.click(screen.getByTestId('Try it now button'));
+            fireEvent.click(button);
             expect(mockOpenStrategyTutorial).toHaveBeenCalledWith(mockStrategy.id);
         });
     });

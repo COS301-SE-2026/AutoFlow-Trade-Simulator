@@ -19,7 +19,8 @@ jest.mock('@/components/XPindicator', () => ({
 jest.mock('lucide-react', () => ({
     BookOpen: (props: any) => <svg data-testid="book-open-icon" {...props} />,
     Activity: (props: any) => <svg data-testid="activity-icon" {...props}/>,
-    History: (props: any) => <svg data-testid="history-icon" {...props}/>
+    History: (props: any) => <svg data-testid="history-icon" {...props} />,
+    TreePine: (props: any) => <svg data-testid="tree-pine-icon" {...props} />,
 }));
 
 describe('LearningNavbar', () => {
@@ -28,9 +29,7 @@ describe('LearningNavbar', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseTechTreeContext.mockReturnValue({
-            xp: 150
-        });
+        mockUseTechTreeContext.mockReturnValue({ xp: 150 });
     });
 
     it('renders the header title and description', () => {
@@ -38,7 +37,9 @@ describe('LearningNavbar', () => {
         render(<LearningNavbar />);
 
         expect(screen.getByRole('heading', { name: /learning center/i } )).toBeInTheDocument();
-        expect( screen.getByText(/master strategies, understand the greeks, and replay real market history/i )).toBeInTheDocument();
+        expect(
+            screen.getByText(/master strategies, understand the greeks, and replay real market history/i)
+        ).toBeInTheDocument();
     });
 
     it('renders all three navigation links with correct links', () => {
@@ -77,7 +78,7 @@ describe('LearningNavbar', () => {
 
         expect(screen.getAllByTestId('book-open-icon')).toHaveLength(2);
         expect(screen.getByTestId('activity-icon')).toBeInTheDocument();
-
-        expect(screen.getAllByTestId('history-icon')).toHaveLength(2);
+        expect(screen.getByTestId('history-icon')).toBeInTheDocument();
+        expect(screen.getByTestId('tree-pine-icon')).toBeInTheDocument();
     });
 });
