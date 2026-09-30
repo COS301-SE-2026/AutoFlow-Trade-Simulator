@@ -83,6 +83,14 @@ export type ServerMsg = MatchFoundMsg | DayMsg | ActionAckMsg | QteResultMsg | M
 
 export type MatchStatus = "idle" | "connecting" | "queued" | "playing" | "ended" | "closed";
 
+export type MyTrade = {
+    day_index: number;
+    date: string;
+    action: "buy" | "sell";
+    qty: number;
+    price: number;
+};
+
 export type UseMultiplayerMatch = {
     status: MatchStatus;
     match: MatchFoundMsg | null;
@@ -93,6 +101,10 @@ export type UseMultiplayerMatch = {
     error: string | null;
     // true if current days action is acked/rejected
     actionSettled: boolean;
+    // true once the current day's QTE has been answered
+    qteAnswered: boolean;
+    // the current day's trade that was accepted, if any
+    myTrades: MyTrade[];
 
     buy: (qty: number) => void;
     sell: (qty: number) => void;
@@ -118,6 +130,8 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
     const [end, setEnd] = useState<MatchEndMsg | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [actionSettled, setActionSettled] = useState(false);
+    const [qteAnswered, setQteAnswered] = useState(false);
+    const [myTrades, setMyTrades] = useState<MyTrade[]>([]);
 
     const wsRef = useRef<WebSocket | null>(null);
     const dayRef = useRef<DayMsg | null>(null);
@@ -127,9 +141,14 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
     const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const manualCloseRef = useRef(false);
     const opponentActionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const qteAnsweredRef = useRef(false);
+    // what we've sent and not yet had acked (the server acks in order), so each ack can be matched
+    // to a trade or recognised as an answer-only send
+    const sentQueueRef = useRef<{ day_index: number; action: "buy" | "sell" | "hold"; qty?: number; answerOnly: boolean }[]>([]);
 
     useEffect(() => { dayRef.current = day; }, [day]);
     useEffect(() => { daySettledRef.current = actionSettled; }, [actionSettled]);
+    useEffect(() => { qteAnsweredRef.current = qteAnswered; }, [qteAnswered]);
 
     const clearReconnectTimer = () => {
         if (reconnectTimerRef.current) {
@@ -155,15 +174,38 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
                 setDay(null);
                 setEnd(null);
                 setLastQteResult(null);
+                setLastOpponentAction(null);
                 setError(null);
                 setActionSettled(false);
+                setQteAnswered(false);
+                setMyTrades([]);
+                sentQueueRef.current = [];
                 setStatus("playing");
                 break;
             }
             case "action_ack": {
-                setActionSettled(true);
-                if (msg.error) {
-                    setError(msg.error);
+                const sent = sentQueueRef.current.shift();
+                // an answer sent after the day's trade is rejected as a duplicate action, but the
+                // server still records the answer -- that "error" is expected, not something to show
+                const answerOnly = sent?.answerOnly ?? false;
+                if (!answerOnly) {
+                    setActionSettled(true);
+                    if (msg.error) {
+                        setError(msg.error);
+                    }
+                }
+                if (!msg.error && sent && sent.day_index === msg.day_index && (sent.action === "buy" || sent.action === "sell")) {
+                    const d = dayRef.current;
+                    setMyTrades((prev) => [
+                        ...prev,
+                        {
+                            day_index: msg.day_index,
+                            date: d?.date ?? "",
+                            action: sent.action as "buy" | "sell",
+                            qty: sent.qty ?? 0,
+                            price: d?.bar.close ?? 0,
+                        },
+                    ]);
                 }
                 setDay((d) => d && d.day_index === msg.day_index ? { ...d, cash_balance: msg.cash_balance, position_qty: msg.position_qty } : d);
                 break;
@@ -195,7 +237,8 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
             case "day": {
                 setDay(msg);
                 setActionSettled(false);
-                setLastQteResult(null);
+                setQteAnswered(false);
+                setError(null);
                 break;
             }
         }
@@ -233,6 +276,7 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
 
         setStatus((s) => (s === "idle" ? "connecting" : s));
         setError(null);
+        sentQueueRef.current = [];
 
         const url = `${wsBase}/multiplayer/ws?token=${encodeURIComponent(token)}`;
         const ws = new WebSocket(url);
@@ -320,7 +364,11 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
                 setError("socket not open");
                 return;
             }
+            sentQueueRef.current.push({ day_index: d.day_index, action, qty, answerOnly: false });
             setActionSettled(true);
+            if (answer !== undefined) {
+                setQteAnswered(true);
+            }
         },
         [sendRaw]
     );
@@ -329,13 +377,24 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
     const sell = useCallback((qty: number) => actWithQte("sell", qty), [actWithQte]);
     const hold = useCallback(() => actWithQte("hold"), [actWithQte]);
 
+    // The server takes the first action of the day as your move, so answering before trading
+    // locks in a hold. Answering after a trade still records the answer; the server's
+    // "already submitted" reply to that is expected and suppressed in the ack handler.
     const answerQte = useCallback((answer: string) => {
         const d = dayRef.current;
-        if (!d?.qte) {
+        if (!d?.qte || qteAnsweredRef.current) {
             return;
         }
-        actWithQte("hold", undefined, answer);
-    }, [actWithQte]);
+        const payload = { type: "action", day_index: d.day_index, action: "hold", qte_answer: answer };
+        const answerOnly = daySettledRef.current;
+        if (!sendRaw(payload)) {
+            setError("socket not open");
+            return;
+        }
+        sentQueueRef.current.push({ day_index: d.day_index, action: "hold", answerOnly });
+        setQteAnswered(true);
+        setActionSettled(true);
+    }, [sendRaw]);
 
     // user initiated connect
 
@@ -357,6 +416,8 @@ export function useMultiplayerMatch(wsBase: string, token: string | null): UseMu
         end,
         error,
         actionSettled,
+        qteAnswered,
+        myTrades,
         buy,
         sell,
         hold,
