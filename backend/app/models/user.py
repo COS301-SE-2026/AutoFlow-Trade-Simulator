@@ -1,7 +1,7 @@
 from typing import Optional
 from typing import List
 from sqlmodel import Field, SQLModel
-from sqlalchemy import Column, String
+from sqlalchemy import JSON, Column, String
 from sqlalchemy.dialects.postgresql import ARRAY
 import sqlalchemy as sa
 
@@ -23,7 +23,7 @@ class User(SQLModel, table=True):
     upgrades: List[str] = Field(
         default_factory=list,
         sa_column=Column(
-            ARRAY(String),
+            ARRAY(String).with_variant(JSON, "sqlite"),
             server_default="{}",
             nullable=False
         )

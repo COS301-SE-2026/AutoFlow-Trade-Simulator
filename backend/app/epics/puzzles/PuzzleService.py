@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Annotated
 
-from fastapi import HTTPException, WebSocket, status, Depends
+from fastapi import HTTPException, status, Depends
 from sqlalchemy import func
 from sqlmodel import Session, select
 

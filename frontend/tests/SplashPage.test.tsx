@@ -58,7 +58,7 @@ describe('SplashPage', () => {
             'Risk-Free Practice',
             'Options Greeks',
             'Live Charts',
-            'AI Insights',
+            'Multiplayer Mode',
         ];
         features.forEach((title) => {
             expect(screen.getByText(title)).toBeInTheDocument();

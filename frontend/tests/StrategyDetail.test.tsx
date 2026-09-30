@@ -28,6 +28,8 @@ jest.mock('@/context/LearningContext', () => ({
 }))
 
 
+const mockOpenStrategyTutorial = jest.fn();
+
 describe('StrategyDetail', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -43,6 +45,8 @@ describe('StrategyDetail', () => {
 
         const { useLearning } = require('@/context/LearningContext');
         useLearning.mockReturnValue({
+            openStrategyTutorial: mockOpenStrategyTutorial,
+            openStrategyPuzzle: jest.fn(),
             activeTab: 'strategies',
             setActiveTab: jest.fn(),
             setStrategyId: mockSetStrategyId,
@@ -113,6 +117,7 @@ describe('StrategyDetail', () => {
             });
 
             fireEvent.click(screen.getByTestId('Try it now button'));
+            expect(mockOpenStrategyTutorial).toHaveBeenCalledWith(mockStrategy.id);
         });
     });
 })

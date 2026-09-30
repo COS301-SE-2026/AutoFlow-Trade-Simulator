@@ -18,37 +18,44 @@ export default function HelpMenu() {
     // array containing tutorial objects. objects contain question string and answer array. answer array holds answer objects. answer objects contain answer and image reference strings
     getTutorial('1', 'How to create an account',
       [
-        { id: '1', text: 'After logging in, click on the "add accounts" button visible on the top right of the screen in the navigation bar.', image: '/help/create-account-0.png' },
-        { id: '2', text: 'Choose a currency and set a starting amount.', image: '/help/create-account-1.png' },
-        { id: '3', text: 'Then click confirm to create an account.', image: '/help/create-account-2.png' },
-      ]
-    ), getTutorial('2', 'How to buy and sell stocks',
-      [
-        { id: '1', text: 'Navigate to the market page using the navigation bar.', image: '/help/buy-sell-0.png' },
-        { id: '2', text: 'Choose either select or buy and enter a quantity by either using the input box or MAX to sell or buy the maximum amount of stock.', image: '/help/buy-sell-1.png' },
-        { id: '3', text: 'Click the buy or sell button at the bottom of the page.', image: '/help/buy-sell-2.png' },
-      ]
-    ), getTutorial('3', 'How to learn about strategies',
-      [
-        { id: '1', text: 'Go to the learning tab and select strategies.', image: '/help/strategy-learning-0.png' },
-        { id: '2', text: 'Choose a strategy you wish to learn or filter them using the selectors.', image: '/help/strategylist.png' },
-        { id: '3', text: 'Read about the strategies and practice them in the historical simulation page.', image: '/help/strategydetail.png' },
+        { id: '1', text: '1. Select the create account dropdown from the navigation bar.', image: '/help/help1/Untitled2.png' },
+        { id: '2', text: '2. Select the desired currency for the account.', image: '/help/help1/Untitled3.png' },
+        { id: '3', text: '3. Select a startin balance, higher balances can be unlocked with XP on the tech tree.', image: '/help/help1/Untitled4.png' },
+        { id: '4', text: '4. Click confirm.', image: '/help/help1/Untitled5.png' },
       ]
     ),
-    getTutorial('4', 'How to view account details',
+    getTutorial('2', 'How to unlock strategies',
       [
-        { id: '1', text: 'Navigate to the portfolio page using the navigation bar.', image: '/help/portfolio-0.png' },
-        { id: '2', text: 'The cash balance, amount invested and total value are visible.', image: '/help/portfolio.png' },
+        { id: '1', text: '1. Navigate to the learning page using the navbar', image: '/help/help2/Untitled.png' },
+        { id: '2', text: '2. Navigate to the tech tree tab', image: '/help/help2/Untitled2.png' },
+        { id: '3', text: '3. Use XP to unlock a strategy if you have its prerequisite unlocked already', image: '/help/help2/Untitled3.png' },
+        { id: '4', text: '4. You cannot unlock strategies / account balances if you lack XP or preceding tech tree node', image: '/help/help2/Untitled4.png' },
       ]
     ),
-
+    getTutorial('3', 'How to earn XP ',
+      [
+        { id: '1', text: '1. Navigate to the learning page using the navbar', image: '/help/help3/Untitled.png' },
+        { id: '2', text: '2. Select an unlocked strategy and use the guided learning', image: '/help/help3/Untitled2.png' },
+        { id: '3', text: '3. XP is awarded once complete', image: '/help/help3/Untitled3.png' },
+        { id: '4', text: '4. XP is also awarded when completing puzzles', image: '/help/help3/Untitled4.png' },
+      ]
+    ),
+    getTutorial('4', 'How to get holdings',
+      [
+        { id: '1', text: '1. Navigate to the live trading page', image: '/help/help4/Untitled.png' },
+        { id: '2', text: '2. Select a holding and choose how much you want to buy', image: '/help/help4/Untitled1.png' },
+        { id: '3', text: '3. Confirm the purchase', image: '/help/help4/Untitled2.png' },
+        { id: '4', text: '4. Navigate to the portfolio page to select and view the holding', image: '/help/help4/Untitled3.png' },
+      ]
+    ),
   ];
 
   const faq = [
     { id: '1', q: 'Is my money real?', a: 'No, money on autoflow trading simulator does not hold any real value and exists the help you practice trading.' },
-    { id: '2', q: 'How do I make more money?', a: 'You can make more money by investing in certain holdings which increase in value or create a new account with a starting amount of your choosing.' },
-    { id: '3', q: 'What is stop loss?', a: 'Stop loss is an order to sell your stock when it reaches a specific price so you are protected from losing too much of your investment.' },
-    { id: '4', q: 'Is the data real?', a: 'Yes, data on autoflow trading simulator uses historical and real time market data to make learning more engaging and effective.' },
+    { id: '2', q: 'What is a strategy?', a: 'A strategy is a common tactic employed in trading which discusses when and how to buy, sell and hold holdings.' },
+    { id: '3', q: 'What are Greeks?', a: 'Greeks are also known as risk indicators and measure how likely a given holding is to change in value quickly.' },
+    { id: '4', q: 'How does the tech tree work?', a: 'The tech tree provides a way to progressively unlock more complex strategies, greeks and higher account balances using XP.' },
+    { id: '5', q: 'What are my holdings?', a: 'Holdings are simulated earnings using real time market data. they are not worth real money but allow practice within the real market.' },
   ];
 
   return (

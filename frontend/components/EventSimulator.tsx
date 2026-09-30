@@ -84,11 +84,14 @@ export function EventSimulator({
     event,
     mode = 'event',
     onBack,
+    onTutorialComplete,
 }: Readonly<{ 
     event: EventDefinition;
     mode?: 'event' | 'strategy';
-    onBack: () => void 
+    onBack: () => void;
+    onTutorialComplete?: () => void;
 }>) {
+    const tutorialCompletedRef = useRef(false);
     const [simData, setSimData] = useState<SimCreateResponse | null>(null);
     const [dayIndex, setDayIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -492,6 +495,10 @@ export function EventSimulator({
                     per_symbol_results: {},
                 }
             });
+            if (!tutorialCompletedRef.current) {
+                tutorialCompletedRef.current = true;
+                onTutorialComplete?.();
+            }
             return;
         }
 
@@ -847,7 +854,7 @@ function GreekCell({ label, value, decimals, unlocked }: {
         <div className='bg-gray-800/60 p-2 rounded-lg border border-gray-700/50'>
             <span className='text-gray-400 block text-[10px]'>{label}</span>
             <span className={`font-mono font-bold text-sm ${value !== undefined ? 'text-white' : 'text-gray-500'}`}>
-                {value !== undefined ? value.toFixed(decimals) : '0.000'}
+                {(value ?? 0).toFixed(decimals)}
             </span>
         </div>
     );

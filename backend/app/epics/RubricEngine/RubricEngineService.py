@@ -4,11 +4,11 @@ from datetime import datetime, time
 
 from sqlmodel import Session, select
 from fastapi import HTTPException, status
-from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO, EvaluateMatchRequestDTO, Grade
+from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO, Grade
 from .base_strategy import BaseRubricStrategy
 from .mean_reversion_strategy import MeanReversionStrategy
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch, MultiplayerParticipant
