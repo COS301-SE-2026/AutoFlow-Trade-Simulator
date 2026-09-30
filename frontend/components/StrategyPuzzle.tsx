@@ -218,6 +218,16 @@ export function StrategyPuzzle({
         );
     }
 
+    if (phase === 'graded' && result) {
+        return (
+            <GradeView
+                strategyName={strategyName}
+                result={result}
+                onBack={onBack}
+            />
+        );
+    }
+
     const total = Number.parseFloat(qty) > 0 ? Number.parseFloat(qty) * currentPrice : 0;
 
     return (
@@ -457,4 +467,116 @@ export function StrategyPuzzle({
             </div>
         </div>
     );
+}
+
+function GradeView({
+    strategyName,
+    result,
+    onBack,
+}: {
+    strategyName: string;
+    result: PuzzleSubmitResponse;
+    onBack: () => void;
+}) {
+    const evaluation = result.evaluation;
+
+    const gradeColors: Record<typeof evaluation.grade, string> = {
+        S: 'text-yellow-400',
+        A: 'text-green-400',
+        B: 'text-blue-400',
+        C: 'text-cyan-400',
+        D: 'text-orange-400',
+        E: 'text-red-400',
+        F: 'text-red-600',
+    };
+
+    const categoryLabel = (key: string) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    const fmt = (n: number | null | undefined, decimals = 2) => {
+        const x = typeof n === 'number' ? n : Number(n);
+        return Number.isFinite(x) ? x.toFixed(decimals) : '0.00';
+    };
+
+    return (
+        <div className='flex justify-center p-6 h-full overflow-y-auto'>
+            <div className='max-w-lg w-full p-6 bg-[var(--background)] border border-[var(--border)] rounded-xl space-y-4 self-start'>
+                <div className='text-center'>
+                    <div className='text-xs uppercase tracking-wider text-gray-400 mb-1'>
+                        Puzzle Complete
+                    </div>
+                    <div className='text-xl font-bold'>{strategyName}</div>
+                </div>
+
+                <div className='grid grid-cols-2 gap-3 text-center text-sm'>
+                    <div className='p-3 bg-gray-800/40 rounded-xl'>
+                        <div className='text-xs text-gray-400'>Final Balance</div>
+                        <div className='text-lg font-bold'>R {fmt(result.final_balance)}</div>
+                    </div>
+                    <div className='p-3 bg-gray-800/40 rounded-xl'>
+                        <div className='text-xs text-gray-400'>Return</div>
+                        <div className={`text-lg font-bold ${result.return_pct >= 0 ? 'text-[var(--green)]' : 'text-[var(--red)]'}`}>
+                            {result.return_pct >= 0 ? '+' : ''}{fmt(result.return_pct)}%
+                        </div>
+                    </div>
+                    <div className='p-3 bg-gray-800/40 rounded-xl'>
+                        <div className='text-xs text-gray-400'>Trades</div>
+                        <div className='text-lg font-bold'>{result.trades_count}</div>
+                    </div>
+                    <div className='p-3 bg-gray-800/40 rounded-xl'>
+                        <div className='text-xs text-gray-400'>Starting Balance</div>
+                        <div className='text-lg font-bold'>R {fmt(result.initial_balance)}</div>
+                    </div>
+                </div>
+                
+                <div
+                    className='flex items-center justify-between p-3 rounded-xl border border-[var(--border)]'
+                >
+                    <div className='text-sm font-bold'>
+                        Rubric Score
+                        <span className='ml-2 text-xs font-normal text-gray-400'>
+                            {evaluation.passed ? 'Passed' : 'Failed'}
+                        </span>
+                    </div>
+                    <div className='flex items-center gap-3'>
+                        <span className={`text-2xl font-black ${gradeColors[evaluation.grade] ?? 'text-white'}`}>
+                            {evaluation.grade}
+                        </span>
+                        <span className='text-lg font-bold'>
+                            {Number(evaluation.final_score).toFixed(1)}
+                        </span>
+                    </div>
+                </div>
+
+                {evaluation.detail_breakdown && (
+                    <div className='space-y-1.5'>
+                        {Object.entries(evaluation.detail_breakdown).map(([key, cat]) => (
+                            <div key={key} className='p-2.5 bg-gray-800/40 rounded-lg'>
+                                <div className='flex justify-between text-xs mb-1'>
+                                    <span className='font-bold'>{categoryLabel(key)}</span>
+                                    <span className='text-gray-400 flex gap-2'>
+                                        <span>{ Number(cat.score.toFixed(1)) / 100} </span>
+                                        <span> w={Number(cat.weight).toFixed(2)} </span>
+                                    </span>
+                                </div>
+                                <div className='text-xs text-gray-400'>{cat.feedback}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div className='flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-blue-900/30 border border-blue-700/40 text-blue-300 text-sm'>
+                    <span className='font-bold'>+{result.xp_awarded} XP</span>
+                    <span className='text-xs text-blue-400/70'>awarded to your account</span>
+                </div>
+
+                <button
+                    type='button'
+                    onClick={onBack}
+                    className='w-full py-2 bg-blue-900 hover:bg-blue-800 rounded-xl font-bold text-sm'
+                >
+                    Back to Strategies
+                </button>
+            </div>
+        </div>
+    )
 }
