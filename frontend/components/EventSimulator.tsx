@@ -177,34 +177,8 @@ export function EventSimulator({
     }, [isStrategy, tutorial, simData, pendingTrade]);
 
     const prevQty = useRef(qty);
-
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-qty' && qty !== prevQty.current 
-            && Number.parseFloat(qty) >= 1) {
-            advanceStep();
-        }
-        prevQty.current = qty;
-    }, [qty, step, advanceStep]);
-
     const prevTradesLength = useRef(trades.length);
-
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-buy' && trades.length > prevTradesLength.current) {
-            advanceStep();
-        }
-        prevTradesLength.current = trades.length;
-    }, [trades.length, step, advanceStep]);
-
     const prevDayIndex = useRef(dayIndex);
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-skip' && dayIndex !== prevDayIndex.current) {
-            advanceStep();
-        }
-        prevDayIndex.current = dayIndex;
-    }, [dayIndex, step, advanceStep]);
 
     useEffect(() => {
         if (!step) return;
@@ -233,7 +207,7 @@ export function EventSimulator({
 
         prevQty.current = qty;
         prevTradesLength.current = trades.length;
-        prevDayIndex.current = dayIndex
+        prevDayIndex.current = dayIndex;
     }, [qty, trades.length, dayIndex, step, advanceStep]);
 
     useEffect(() => {
