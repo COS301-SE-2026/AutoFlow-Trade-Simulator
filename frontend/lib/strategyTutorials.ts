@@ -7,58 +7,159 @@ export interface TutorialStep {
 }
 
 export interface TutorialDef {
+    title: string;
     scenario: string;
     steps: TutorialStep[];
 }
 
+export type StrategyTutorialKey = keyof typeof STRATEGY_TUTORIALS;
+
 export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
     dca: {
+        title: "Dollar Cost Averaging Strategy Tutorial",
         scenario: "You have R2,000/month to invest and want to build a long-term AAPL position without trying to time the market.",
-    steps: [
-        { 
-            title: "Press Play",
-            instruction: "Start the replay. Each tick is one trading day of SHN.",
-            elementId: "tut-play",
-            hint: "Click the Play button",
-        },
-        {
-            title: "Watch the Price", 
-            instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
-            elementId: "tut-chart",
-            needsClick: true,
-        },
-        {
-            title: "Choose Quantity", 
-            instruction: "DCA uses a fixed rand amount each period. Because price changes, share count varies. Enter 10 shares for this purchase.",
-            elementId: "tut-qty",
-            hint: "Change the quantity to continue",
-        },
-        {
-            title: "Place Your Purchase", 
-            instruction: "Click Buy. This is your scheduled purchase - same time, same amount, every period.",
-            elementId: "tut-buy",
-            hint: "Click the Buy button",
-        },
-        {
-            title: "See Your Position", 
-            instruction: "Your cash drops, your shares rise. This is what disciplined accumulation looks like.",
-            elementId: "tut-chart",
-            needsClick: true,
-        },
-        {
-            title: "Advance Time", 
-            instruction: "Skip forward to your next buy window and repeat the process.",
-            elementId: "tut-skip",
-            hint: "Click Skip Forward",
-        },
-        {
-            title: "Wrap Up", 
-            instruction: "That's DCA. Consistent purchases, no market timing, compounding over time.",
-            elementId: "tut-finish",
-            needsClick: true,
-        },
-    ],
-},
+        steps: [
+            { 
+                title: "Press Play",
+                instruction: "Start the replay. Each tick is one trading day of SHN.",
+                elementId: "tut-play",
+                hint: "Click the Play button",
+            },
+            {
+                title: "Watch the Price", 
+                instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Choose Quantity", 
+                instruction: "DCA uses a fixed rand amount each period. Because price changes, share count varies. Enter 10 shares for this purchase.",
+                elementId: "tut-qty",
+                hint: "Change the quantity to continue",
+            },
+            {
+                title: "Place Your Purchase", 
+                instruction: "Click Buy. This is your scheduled purchase - same time, same amount, every period.",
+                elementId: "tut-buy",
+                hint: "Click the Buy button",
+            },
+            {
+                title: "See Your Position", 
+                instruction: "Your cash drops, your shares rise. This is what disciplined accumulation looks like.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Advance Time", 
+                instruction: "Skip forward to your next buy window and repeat the process.",
+                elementId: "tut-skip",
+                hint: "Click Skip Forward",
+            },
+            {
+                title: "Wrap Up", 
+                instruction: "That's DCA. Consistent purchases, no market timing, compounding over time.",
+                elementId: "tut-finish",
+                needsClick: true,
+            },
+        ],
+    },
+    buy_and_hold: {
+        title: "Buy and Hold Strategy Tutorial",
+        scenario:
+            "You've decided to invest into TSLA and hold. No timing the bottom, no selling on dips, no chasing rallies. You buy once and let time in the market do the work.",
+        steps: [
+            { 
+                title: "Press Play",
+                instruction: "Start the replay. Each tick is one trading day of JSE stock data.",
+                elementId: "tut-play",
+                hint: "Click the Play button",
+            },
+            {
+                title: "Watch the Price", 
+                instruction: "Buy and hold begins with a single decision: get in. You're not trying to pick the perfect entry - the whole premise is that you won't out-time the market.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Size Your Position",
+                instruction: "Unlike Dollar Cost Averaging, you commit your whole position at once. Enter 10 shares for this lump sum",
+                elementId: "tut-qty",
+                hint: "Change the quantity to continue",
+            },
+            {
+                title: "Place Your Purchase",
+                instruction: "Click Buy. This is your one entry - there is no second tranche, no averaging in later.",
+                elementId: "tut-buy",
+                needsClick: true,
+            },
+            {
+                title: "See Your Position",
+                instruction: "Cash drops, shares rise. From here on, you're a holder, not a trader.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Resist the Urge",
+                instruction: "Skip ahead. The price will move both ways - that's noise. Buy and Hold means doing nothing until your horizon ends.",
+                elementId: "tut-skip",
+                hint: "Click Skip Forward",
+            },
+            {
+                title: "Wrap Up",
+                instruction: "That's Buy and Hold. One purchase, then patience through the noise. Compounding handles the rest.",
+                elementId: "tut-finish",
+                needsClick: true,
+            },
+        ],
+    },
+    momentum: {
+        title: "Momentum Trading",
+        scenario: "A stock is in a clear uptrend. You want to ride the momentum, then exit when the trend shows signs of reversing.",
+        steps: [
+            {
+                title: "Press Play",
+                instruction: "Start the replay. Watch for a sustained directional move - that's momentum.",
+                elementId: "tut-play",
+                hint: "Click the Play button",
+            },
+            {
+                title: "Spot the Trend",
+                instruction: "Momentum traders look for sustained directional moves - higher highs and higher lows in an uptrend. Don't chase a single candle. Wait for the trend to confirm itself.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Size the Entry",
+                instruction: "Enter 10 shares. Position sizing matters - enough on the table to matter, not so much that one reversal wipes you out.",
+                elementId: "tut-qty",
+                hint: "Change the quantity to continue",
+            },
+            {
+                title: "Ride the Trend",
+                instruction: "Click Buy. You're entering in the direction of the trend - not against it. Moment traders never fight the tape.",
+                elementId: "tut-buy",
+                hint: "Click the Buy button",
+            },
+            {
+                title: "Let It Run",
+                instruction: "Skip forward. Momentum doesn't pay in a day. You hold while the trend holds - no scalping, no panic-selling on every decline.",
+                elementId: "tut-skip",
+                hint: "Click Skip Forward",
+            },
+            {
+                title: "Exit on Reversal",
+                instruction: "Sell your position. The trend is fading - holding any longer is hope, not strategy. Cut the trade the moment momentum is gone.",
+                elementId: "tut-sell",
+                hint: "Click the Sell button",
+            },
+            {
+                title: "Wrap Up",
+                instruction: "That's momentum trading. Enter with the trend, hold it while it runs, exit when it reverses. Discipline is the edge.",
+                elementId: "tut-finish",
+                needsClick: true,
+            },
+        ],
+    },
 }
 
 export interface MockBar {
@@ -92,3 +193,12 @@ export const MOCK_AAPL_BARS: MockBar[] = [
     { timestamp: '2023-01-30T00:00:00.000Z', open: 188.20, high: 190.55, low: 188.05, close: 190.20, volume: 57_900_000 },
     { timestamp: '2023-01-31T00:00:00.000Z', open: 190.40, high: 192.10, low: 190.15, close: 191.85, volume: 55_500_000 },
 ];
+
+export function getStrategyTutorialKey(
+    name: string | null | undefined,
+): StrategyTutorialKey {
+    const n = (name ?? '').toLowerCase();
+    if (n.includes('buy') && n.includes('hold')) return 'buy_and_hold';
+    if (n.includes('momentum')) return 'momentum';
+    return 'dca';
+}
