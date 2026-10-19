@@ -112,6 +112,54 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
             },
         ],
     },
+    momentum: {
+        title: "Momentum Trading",
+        scenario: "A stock is in a clear uptrend. You want to ride the momentum, then exit when the trend shows signs of reversing.",
+        steps: [
+            {
+                title: "Press Play",
+                instruction: "Start the replay. Watch for a sustained directional move - that's momentum.",
+                elementId: "tut-play",
+                hint: "Click the Play button",
+            },
+            {
+                title: "Spot the Trend",
+                instruction: "Momentum traders look for sustained directional moves - higher highs and higher lows in an uptrend. Don't chase a single candle. Wait for the trend to confirm itself.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Size the Entry",
+                instruction: "Enter 10 shares. Position sizing matters - enough on the table to matter, not so much that one reversal wipes you out.",
+                elementId: "tut-qty",
+                hint: "Change the quantity to continue",
+            },
+            {
+                title: "Ride the Trend",
+                instruction: "Click Buy. You're entering in the direction of the trend - not against it. Moment traders never fight the tape.",
+                elementId: "tut-buy",
+                hint: "Click the Buy button",
+            },
+            {
+                title: "Let It Run",
+                instruction: "Skip forward. Momentum doesn't pay in a day. You hold while the trend holds - no scalping, no panic-selling on every decline.",
+                elementId: "tut-skip",
+                hint: "Click Skip Forward",
+            },
+            {
+                title: "Exit on Reversal",
+                instruction: "Sell your position. The trend is fading - holding any longer is hope, not strategy. Cut the trade the moment momentum is gone.",
+                elementId: "tut-sell",
+                hint: "Click the Sell button",
+            },
+            {
+                title: "Wrap Up",
+                instruction: "That's momentum trading. Enter with the trend, hold it while it runs, exit when it reverses. Discipline is the edge.",
+                elementId: "tut-finish",
+                needsClick: true,
+            },
+        ],
+    },
 }
 
 export interface MockBar {
@@ -151,5 +199,6 @@ export function getStrategyTutorialKey(
 ): StrategyTutorialKey {
     const n = (name ?? '').toLowerCase();
     if (n.includes('buy') && n.includes('hold')) return 'buy_and_hold';
+    if (n.includes('momentum')) return 'momentum';
     return 'dca';
 }

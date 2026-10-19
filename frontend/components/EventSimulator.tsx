@@ -73,7 +73,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
-const INTERACTION_STEPS = ['tut-play', 'tut-qty', 'tut-buy', 'tut-skip'];
+const INTERACTION_STEPS = ['tut-play', 'tut-qty', 'tut-buy', 'tut-sell', 'tut-skip'];
 
 export function EventSimulator({ 
     event,
@@ -220,6 +220,10 @@ export function EventSimulator({
                     advanceStep();
                 }
                 break;
+            case 'tut-sell':
+                if (trades.length > prevTradesLength.current) {
+                    advanceStep();
+                }
             case 'tut-skip':
                 if (dayIndex !== prevDayIndex.current) {
                     advanceStep();
@@ -242,7 +246,10 @@ export function EventSimulator({
 
     useEffect(() => {
         if (!step) return;
-        const isFocusStep = step.elementId === 'tut-qty' || step.elementId === 'tut-buy';
+        const isFocusStep = 
+            step.elementId === 'tut-qty' || 
+            step.elementId === 'tut-buy' || 
+            step.elementId === 'tut-sell';
 
         if (isFocusStep && isPlaying) {
             setIsPlaying(false);
@@ -765,6 +772,7 @@ export function EventSimulator({
                                 Buy
                             </button>
                             <button
+                                id='tut-sell'
                                 type='button'
                                 className='h-10 flex-1 rounded-lg bg-[#d4262d] text-sm font-semibold text-white transition-[background-color,transform] hover:bg-[var(--red)] active:scale-[0.98]'
                                 onClick={() => setPendingTrade({ type: 'sell' })}
