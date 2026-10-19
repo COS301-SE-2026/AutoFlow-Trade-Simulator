@@ -1,3 +1,5 @@
+from sqlite3 import IntegrityError
+
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 import string
@@ -61,14 +63,15 @@ class AuthService:
     def login(self,data:LoginDTO)-> LoginResponseDTO:
         statement = select(User).where(User.email==data.email)
         user:User|None = self.session.exec(statement).first()
+        invalid_str = "Invalid email or password"
         if user is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid email or password")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=invalid_str)
 
         if not verify_password_hash(data.password,user.password_hash):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid email or password")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=invalid_str)
 
         if user.id is None:
-            raise ValueError("Invalid email or password")
+            raise ValueError(invalid_str)
 
         token:str =create_access_token(user.id)
         login_response:LoginResponseDTO= LoginResponseDTO(access_token=token)
@@ -84,43 +87,55 @@ class AuthService:
 
         google_sub: str = claims["sub"]
         email: str = claims["email"]
-        full_name: str = claims.get("name", email)
+        full_name: str = claims.get("name") or email
 
         try:
-            user = self.session.exec(select(User).where(User.google_sub == google_sub)).first()
+            user = self.session.exec(
+                select(User).where(User.google_sub == google_sub)
+            ).scalar_one_or_none()
 
             if user is None:
-                user = self.session.exec(select(User).where(User.email == email)).first()
+                user = self.session.exec(
+                    select(User).where(User.email == email)
+                ).scalar_one_or_none()
 
-            if user is None:
-                user = User(
-                    email=email,
-                    full_name=full_name,
-                    google_sub=google_sub,
-                    upgrades=['strategy_basic', 'strategy_mean_reversion'],
+                if user is None:
+                    user = User(email=email, full_name=full_name, google_sub=google_sub)
+                    self.session.add(user)
+                    self.session.flush()
+                    self.session.add(
+                        Portfolio(
+                            user_id=user.id,
+                            name=f"{user.full_name}'s portfolio",
+                        )
+                    )
+                elif user.google_sub is None:
+                    user.google_sub = google_sub
+                    self.session.add(user)
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Email is already linked to a different Google account",
+                    )
+
+            try:
+                self.session.commit()
+            except IntegrityError:
+                self.session.rollback()
+                user = self.session.exec(
+                    select(User).where(User.google_sub == google_sub)
+                ).scalar_one_or_none()
+                if user is None:
+                    raise
+
+            user_id: int | None = user.id
+            if user_id is None:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=self.ERROR_MESSAGE,
                 )
-                self.session.add(user)
-                self.session.flush()
 
-                if user.id is None:
-                    raise ValueError(self.ERROR_MESSAGE)
-
-                portfolio = Portfolio(
-                    user_id=user.id,
-                    name=f"{user.full_name}'s portfolio",
-                )
-                self.session.add(portfolio)
-            elif user.google_sub is None:
-                user.google_sub = google_sub
-                self.session.add(user)
-
-            self.session.commit()
-
-            if user.id is None:
-                raise ValueError(self.ERROR_MESSAGE)
-
-            token: str = create_access_token(user.id)
-            return LoginResponseDTO(access_token=token)
+            return LoginResponseDTO(access_token=create_access_token(user_id))
 
         except Exception:
             self.session.rollback()
