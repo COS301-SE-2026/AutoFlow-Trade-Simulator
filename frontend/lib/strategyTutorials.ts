@@ -59,6 +59,54 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
         },
     ],
 },
+    buy_and_hold: {
+        scenario:
+            "You've decided to invest into TSLA and hold. No timing the bottom, no selling on dips, no chasing rallies. You buy once and let time in the market do the work.",
+        steps: [
+            { 
+                title: "Press Play",
+                instruction: "Start the replay. Each tick is one trading day of JSE stock data.",
+                elementId: "tut-play",
+                hint: "Click the Play button",
+            },
+            {
+                title: "Watch the Price", 
+                instruction: "Buy and hold begins with a single decision: get in. You're not trying to pick the perfect entry - the whole premise is that you won't out-time the market.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Size Your Position",
+                instruction: "Unlike Dollar Cost Averaging, you commit your whole position at once. Enter 10 shares for this lump sum",
+                elementId: "tut-qty",
+                hint: "Change the quantity to continue",
+            },
+            {
+                title: "Place Your Purchase",
+                instruction: "Click Buy. This is your one entry - there is no second tranche, no averaging in later.",
+                elementId: "tut-buy",
+                needsClick: true,
+            },
+            {
+                title: "See Your Position",
+                instruction: "Cash drops, shares rise. From here on, you're a holder, not a trader.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Resist the Urge",
+                instruction: "Skip ahead. The price will move both ways - that's noise. Buy and Hold means doing nothing until your horizon ends.",
+                elementId: "tut-skip",
+                hint: "Click Skip Forward",
+            },
+            {
+                title: "Wrap Up",
+                instruction: "That's Buy and Hold. One purchase, then patience through the noise. Compounding handles the rest.",
+                elementId: "tut-finish",
+                needsClick: true,
+            },
+        ],
+    },
 }
 
 export interface MockBar {
