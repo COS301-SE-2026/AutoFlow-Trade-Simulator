@@ -7,7 +7,7 @@ from sqlmodel import Session
 from ...core.security import get_current_user_ws
 from ...database import engine
 from ...models.user import User
-from .MultiplayerDTOs import ErrorMessage
+from .MultiplayerDTOs import ErrorMessage, QueuedMessage
 from .MultiplayerService import MultiplayerService
 
 logger = logging.getLogger(__name__)
@@ -34,6 +34,12 @@ async def open_socket(
             connection.match_id = existing.match_id
             existing.rebind_socket(current_user.id, socket)
         else:
+            try:
+                await socket.send_text(
+                    QueuedMessage().model_dump_json()
+                )
+            except Exception:
+                logger.exception("Failed to send queued ack to user %s", current_user.id)
             await service.find_match(connection)
 
         while True:
@@ -49,4 +55,4 @@ async def open_socket(
                 logger.exception("Failed handling message from user %s", current_user.id)
                 await socket.send_text(ErrorMessage(detail="internal error handling message").model_dump_json())
     except WebSocketDisconnect:
-        await service.disconnect(current_user.id)
+        await service.disconnect(current_user.id, socket)
