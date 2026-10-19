@@ -7,59 +7,64 @@ export interface TutorialStep {
 }
 
 export interface TutorialDef {
+    title: string;
     scenario: string;
     steps: TutorialStep[];
 }
 
+export type StrategyTutorialKey = keyof typeof STRATEGY_TUTORIALS;
+
 export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
     dca: {
+        title: "Dollar Cost Averaging Strategy Tutorial",
         scenario: "You have R2,000/month to invest and want to build a long-term AAPL position without trying to time the market.",
-    steps: [
-        { 
-            title: "Press Play",
-            instruction: "Start the replay. Each tick is one trading day of SHN.",
-            elementId: "tut-play",
-            hint: "Click the Play button",
-        },
-        {
-            title: "Watch the Price", 
-            instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
-            elementId: "tut-chart",
-            needsClick: true,
-        },
-        {
-            title: "Choose Quantity", 
-            instruction: "DCA uses a fixed rand amount each period. Because price changes, share count varies. Enter 10 shares for this purchase.",
-            elementId: "tut-qty",
-            hint: "Change the quantity to continue",
-        },
-        {
-            title: "Place Your Purchase", 
-            instruction: "Click Buy. This is your scheduled purchase - same time, same amount, every period.",
-            elementId: "tut-buy",
-            hint: "Click the Buy button",
-        },
-        {
-            title: "See Your Position", 
-            instruction: "Your cash drops, your shares rise. This is what disciplined accumulation looks like.",
-            elementId: "tut-chart",
-            needsClick: true,
-        },
-        {
-            title: "Advance Time", 
-            instruction: "Skip forward to your next buy window and repeat the process.",
-            elementId: "tut-skip",
-            hint: "Click Skip Forward",
-        },
-        {
-            title: "Wrap Up", 
-            instruction: "That's DCA. Consistent purchases, no market timing, compounding over time.",
-            elementId: "tut-finish",
-            needsClick: true,
-        },
-    ],
-},
+        steps: [
+            { 
+                title: "Press Play",
+                instruction: "Start the replay. Each tick is one trading day of SHN.",
+                elementId: "tut-play",
+                hint: "Click the Play button",
+            },
+            {
+                title: "Watch the Price", 
+                instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Choose Quantity", 
+                instruction: "DCA uses a fixed rand amount each period. Because price changes, share count varies. Enter 10 shares for this purchase.",
+                elementId: "tut-qty",
+                hint: "Change the quantity to continue",
+            },
+            {
+                title: "Place Your Purchase", 
+                instruction: "Click Buy. This is your scheduled purchase - same time, same amount, every period.",
+                elementId: "tut-buy",
+                hint: "Click the Buy button",
+            },
+            {
+                title: "See Your Position", 
+                instruction: "Your cash drops, your shares rise. This is what disciplined accumulation looks like.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Advance Time", 
+                instruction: "Skip forward to your next buy window and repeat the process.",
+                elementId: "tut-skip",
+                hint: "Click Skip Forward",
+            },
+            {
+                title: "Wrap Up", 
+                instruction: "That's DCA. Consistent purchases, no market timing, compounding over time.",
+                elementId: "tut-finish",
+                needsClick: true,
+            },
+        ],
+    },
     buy_and_hold: {
+        title: "Buy and Hold Strategy Tutorial",
         scenario:
             "You've decided to invest into TSLA and hold. No timing the bottom, no selling on dips, no chasing rallies. You buy once and let time in the market do the work.",
         steps: [
@@ -140,3 +145,11 @@ export const MOCK_AAPL_BARS: MockBar[] = [
     { timestamp: '2023-01-30T00:00:00.000Z', open: 188.20, high: 190.55, low: 188.05, close: 190.20, volume: 57_900_000 },
     { timestamp: '2023-01-31T00:00:00.000Z', open: 190.40, high: 192.10, low: 190.15, close: 191.85, volume: 55_500_000 },
 ];
+
+export function getStrategyTutorialKey(
+    name: string | null | undefined,
+): StrategyTutorialKey {
+    const n = (name ?? '').toLowerCase();
+    if (n.includes('buy') && n.includes('hold')) return 'buy_and_hold';
+    return 'dca';
+}

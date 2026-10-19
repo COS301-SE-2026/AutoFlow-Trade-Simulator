@@ -21,7 +21,7 @@ import { useNews } from '@/hooks/useNews';
 import { ScrollableChart } from '@/components/ScrollableChart';
 import { useUnlockedGreeks } from '@/hooks/useUnlockedGreeks';
 import {NewsTicker} from "@/components/news/newsScroll";
-import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
+import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS, type StrategyTutorialKey } from '@/lib/strategyTutorials';
 import { driver, type Driver } from 'driver.js';
 import 'driver.js/dist/driver.css'
 
@@ -78,11 +78,13 @@ const INTERACTION_STEPS = ['tut-play', 'tut-qty', 'tut-buy', 'tut-skip'];
 export function EventSimulator({ 
     event,
     mode = 'event',
+    strategyKey = 'dca',
     onBack,
     onTutorialComplete,
 }: Readonly<{ 
     event: EventDefinition;
     mode?: 'event' | 'strategy';
+    strategyKey?: StrategyTutorialKey;
     onBack: () => void;
     onTutorialComplete?: () => void;
 }>) {
@@ -104,7 +106,7 @@ export function EventSimulator({
 
     const isStrategy = mode === 'strategy';
 
-    const tutorial = isStrategy ? STRATEGY_TUTORIALS.dca : null;
+    const tutorial = isStrategy ? (STRATEGY_TUTORIALS[strategyKey] ?? null) : null;
     const [stepIndex, setStepIndex] = useState(0);
     const step = tutorial?.steps[stepIndex];
 
@@ -523,7 +525,7 @@ export function EventSimulator({
                 <div className='w-full max-w-xl rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.85)] p-8'>
                     <div className='mb-6 text-center'>
                         <h2 className='text-2xl font-semibold'>Simulation Finished</h2>
-                        <p className='mt-1 text-sm text-[var(--muted)]'>{event.title}</p>
+                        <p className='mt-1 text-sm text-[var(--muted)]'>{tutorial?.title ?? event.title}</p>
                     </div>
                     <dl className='mb-8 grid grid-cols-2 gap-3'>
                         <div className='rounded-xl border border-[var(--border)] bg-white/[0.02] p-4'>
@@ -571,7 +573,7 @@ export function EventSimulator({
                         <span>Back</span>
                     </button>
                     <span className='rounded-md bg-[rgba(28,117,188,0.15)] px-2 py-0.5 font-mono text-sm font-semibold text-[#6fb4ea]' translate='no'>{event.ticker}</span>
-                    <h2 className='truncate font-semibold'>{event.title}</h2>
+                    <h2 className='truncate font-semibold'>{tutorial?.title ?? event.title}</h2>
                 </div>
                 <div className='flex flex-wrap items-center gap-2'>
                     <button
