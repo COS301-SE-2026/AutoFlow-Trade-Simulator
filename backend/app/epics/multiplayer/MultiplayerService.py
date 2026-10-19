@@ -82,10 +82,10 @@ class MultiplayerService:
         self.active_connections.append(connection)
         return connection
 
-    async def disconnect(self, user_id: int) -> None:
+    async def disconnect(self, user_id: int, socket: WebSocket) -> None:
         connection = None
         for c in self.active_connections:
-            if c.user_id == user_id:
+            if c.user_id == user_id and c.socket is socket:
                 connection = c
                 break
 
@@ -116,9 +116,13 @@ class MultiplayerService:
         return self.active_matches.get(match_id)
 
     def find_active_match_for_user(self, user_id: int) -> Optional[MatchSession]:
-        for match in self.active_matches.values():
-            if user_id in match.players:
-                return match
+        for match_id, match in self.active_matches.items():
+            if user_id not in match.players:
+                continue
+            if match.status != MatchStatus.in_progress:
+                del self.active_matches[match_id]
+                continue
+            return match
         return None
 
     def pick_scenario_for_players(self) -> Scenario:
@@ -130,6 +134,7 @@ class MultiplayerService:
         return rng.choice(scenarios)
 
     async def find_match(self, connection: Connection) -> Optional[MatchSession]:
+        print(f"[find_match] called for user {connection.user_id}", flush=True)
         async with self.queue_lock:
             waiting = [
                 c for c in self.active_connections
@@ -139,6 +144,7 @@ class MultiplayerService:
                 return None
 
             peer = waiting[0]
+            print(f"[find_match] waiting={[c.user_id for c in waiting]} peer={peer.user_id}", flush=True)
 
             key = self._pair_key(peer.user_id, connection.user_id)
             now = time.monotonic()
