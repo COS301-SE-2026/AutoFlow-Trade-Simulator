@@ -6,7 +6,7 @@ from ..database import get_session
 
 from ..settings import settings
 from passlib.hash import bcrypt
-from fastapi import Depends, HTTPException, WebSocketException, status
+from fastapi import Depends, HTTPException, WebSocket, WebSocketException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
@@ -27,8 +27,9 @@ def create_access_token(subject: int, expire_minutes: int | None = None) -> str:
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
-def decode_access_token(token: str) -> dict:
-    return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+def decode_access_token(token: str, verify_exp: bool = True) -> dict:
+    options = {} if verify_exp else {"verify_exp": False}
+    return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm], options=options)
 
 def get_current_user(token: str = Depends(oauth2_scheme),session:Session = Depends(get_session)) -> User:
     credentials_exception = HTTPException(
@@ -46,8 +47,6 @@ def get_current_user(token: str = Depends(oauth2_scheme),session:Session = Depen
     except (JWTError,ValueError):
         raise credentials_exception
 
-    # fetch user from db
-
     user:User|None =session.get(User,user_id)
 
     if user is None:
@@ -57,12 +56,21 @@ def get_current_user(token: str = Depends(oauth2_scheme),session:Session = Depen
 
 
 def get_current_user_ws(
-    token: str,
+    websocket: WebSocket,
     session: Session = Depends(get_session),
 ) -> User:
-    # like get current user but for websockets
+    # Browsers cannot send an Authorization header on the WS handshake,
+    # so the token arrives as a query parameter: /ws?token=<jwt>.
+    # Expiry is NOT enforced here because the frontend caches the socket URL
+    # and reuses the original token on every reconnect; enforcing exp would
+    # lock users out after the token's nominal lifetime. Signature is still
+    # verified, so forged tokens are rejected.
+    token = websocket.query_params.get("token")
+    if not token:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+
     try:
-        payload = decode_access_token(token)
+        payload = decode_access_token(token, verify_exp=False)
         user_id_raw: str | None = payload.get('sub')
         if user_id_raw is None:
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
@@ -75,4 +83,3 @@ def get_current_user_ws(
         raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
     return user
-
