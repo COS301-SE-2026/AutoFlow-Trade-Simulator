@@ -62,6 +62,41 @@ class ExecutionMetricDTO(SQLModel):
         default=0.0,
         description="Baseline index return percentage over the same window"
     )
+    buy_count: int = Field (
+        default=0,
+        ge=0,
+        description="Number of buy orders placed"
+    )
+    sell_count: int = Field (
+        default=0,
+        ge=0,
+        description="Number of sell orders placed"
+    )
+    buy_interval_cv: Optional[float] = Field (
+        default=None,
+        ge=0.0,
+        description="Coefficient of variation of the days between buys (0.0 = perfectly regular). None when fewer than 2 buys"
+    )
+    buy_amount_cv: Optional[float] = Field (
+        default=None,
+        ge=0.0,
+        description="Coefficient of variation of the cash amount per buy (0.0 = identical amounts). None when fewer than 2 buys"
+    )
+    schedule_coverage_pct: float = Field (
+        default=0.0,
+        ge=0.0,
+        le=100.0,
+        description="Percentage of the trading window spanned from the first buy to the last buy"
+    )
+    avg_cost_vs_mean_price_pct: Optional[float] = Field (
+        default=None,
+        description="Average cost basis relative to the mean close over the buying window (negative = bought cheaper than average)"
+    )
+    capital_deployed_pct: float = Field (
+        default=0.0,
+        ge=0.0,
+        description="Total cash spent on buys as a percentage of the initial balance"
+    )
 
 class EvaluationResultDTO(SQLModel):
     passed: bool = Field (
