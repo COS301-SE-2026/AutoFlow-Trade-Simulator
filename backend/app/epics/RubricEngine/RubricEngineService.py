@@ -7,6 +7,8 @@ from fastapi import HTTPException, status
 from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO, Grade
 from .base_strategy import BaseRubricStrategy
 from .mean_reversion_strategy import MeanReversionStrategy
+from .momentum_strategy import MomentumStrategy
+from .covered_call_strategy import CoveredCallStrategy
 
 from typing import Dict, List, Tuple
 from ...models.daily_OHLCV import DailyOHLCV
@@ -28,7 +30,9 @@ GRADE_TO_RUBRIC_SCORE: Dict[Grade, int] = {
 
 class RubricEngineService:
     strategies: Dict[str, BaseRubricStrategy] = {
-        "mean_reversion": MeanReversionStrategy()
+        "mean_reversion": MeanReversionStrategy(),
+        "momentum": MomentumStrategy(),
+        "covered_call": CoveredCallStrategy()
     }
 
     def __init__(self, session: Session):
