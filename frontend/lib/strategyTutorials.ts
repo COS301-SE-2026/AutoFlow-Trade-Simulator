@@ -19,44 +19,44 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
         title: "Dollar Cost Averaging Strategy Tutorial",
         scenario: "You have R2,000/month to invest and want to build a long-term AAPL position without trying to time the market.",
         steps: [
-            { 
+            {
                 title: "Press Play",
                 instruction: "Start the replay. Each tick is one trading day of SHN.",
                 elementId: "tut-play",
                 hint: "Click the Play button",
             },
             {
-                title: "Watch the Price", 
+                title: "Watch the Price",
                 instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
                 elementId: "tut-chart",
                 needsClick: true,
             },
             {
-                title: "Choose Quantity", 
+                title: "Choose Quantity",
                 instruction: "DCA uses a fixed rand amount each period. Because price changes, share count varies. Enter 10 shares for this purchase.",
                 elementId: "tut-qty",
                 hint: "Change the quantity to continue",
             },
             {
-                title: "Place Your Purchase", 
+                title: "Place Your Purchase",
                 instruction: "Click Buy. This is your scheduled purchase - same time, same amount, every period.",
                 elementId: "tut-buy",
                 hint: "Click the Buy button",
             },
             {
-                title: "See Your Position", 
+                title: "See Your Position",
                 instruction: "Your cash drops, your shares rise. This is what disciplined accumulation looks like.",
                 elementId: "tut-chart",
                 needsClick: true,
             },
             {
-                title: "Advance Time", 
+                title: "Advance Time",
                 instruction: "Skip forward to your next buy window and repeat the process.",
                 elementId: "tut-skip",
                 hint: "Click Skip Forward",
             },
             {
-                title: "Wrap Up", 
+                title: "Wrap Up",
                 instruction: "That's DCA. Consistent purchases, no market timing, compounding over time.",
                 elementId: "tut-finish",
                 needsClick: true,
@@ -68,14 +68,14 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
         scenario:
             "You've decided to invest into TSLA and hold. No timing the bottom, no selling on dips, no chasing rallies. You buy once and let time in the market do the work.",
         steps: [
-            { 
+            {
                 title: "Press Play",
                 instruction: "Start the replay. Each tick is one trading day of JSE stock data.",
                 elementId: "tut-play",
                 hint: "Click the Play button",
             },
             {
-                title: "Watch the Price", 
+                title: "Watch the Price",
                 instruction: "Buy and hold begins with a single decision: get in. You're not trying to pick the perfect entry - the whole premise is that you won't out-time the market.",
                 elementId: "tut-chart",
                 needsClick: true,
@@ -160,6 +160,54 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
             },
         ],
     },
+    mean_reversion: {
+        title: "Mean Reversion",
+        scenario: "A stock has jumped sharply above its recent average. Mean-reversion traders bet that price will snap back toward the average — not that it will keep running.",
+        steps: [
+            {
+                title: "Press Play",
+                instruction: "Start the replay. Watch how price drifts away from its recent average — that deviation is what mean reversion trades.",
+                elementId: "tut-play",
+                hint: "Click the Play button",
+            },
+            {
+                title: "Spot the Stretch",
+                instruction: "Price has pushed well above its recent average. In a ranging market, extremes like this tend to pull back. Traders measure the stretch with a z-score or Bollinger Bands — anything well outside the normal range is a candidate.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Size the Entry",
+                instruction: "Enter 10 shares. In mean reversion you size smaller than a trend trader would — the setup fails hard when the market is trending, so the position must be survivable.",
+                elementId: "tut-qty",
+                hint: "Change the quantity to continue",
+            },
+            {
+                title: "Fade the Extreme",
+                instruction: "Click Buy. You're betting the price falls back toward the mean, so you enter against the recent move. This is the opposite of momentum — you're the contrarian in the room.",
+                elementId: "tut-buy",
+                hint: "Click the Buy button",
+            },
+            {
+                title: "Let the Snapback Play Out",
+                instruction: "Skip forward. The trade needs time for price to drift back. Don't bail on the first wiggle — the thesis is the return to the mean, not a quick scalp.",
+                elementId: "tut-skip",
+                hint: "Click Skip Forward",
+            },
+            {
+                title: "Exit at the Mean",
+                instruction: "Sell your position. Price has returned toward the average — that's the target. Take the profit. Holding for more turns a mean-reversion trade into a trend bet you didn't plan for.",
+                elementId: "tut-sell",
+                hint: "Click the Sell button",
+            },
+            {
+                title: "Wrap Up",
+                instruction: "That's mean reversion. Enter when price is stretched, exit when it returns. The strategy has a high win rate but rare large losses — the discipline is cutting the losers before the deviation gets bigger, not holding and hoping.",
+                elementId: "tut-finish",
+                needsClick: true,
+            },
+        ],
+    },
 }
 
 export interface MockBar {
@@ -200,5 +248,6 @@ export function getStrategyTutorialKey(
     const n = (name ?? '').toLowerCase();
     if (n.includes('buy') && n.includes('hold')) return 'buy_and_hold';
     if (n.includes('momentum')) return 'momentum';
+    if (n.includes('mean reversion')) return 'mean_reversion';
     return 'dca';
 }
