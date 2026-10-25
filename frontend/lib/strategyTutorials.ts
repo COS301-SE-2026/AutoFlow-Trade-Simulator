@@ -208,6 +208,54 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
             },
         ],
     },
+    covered_call: {
+        title: "Covered Call",
+        scenario: "You own 100 shares of a stock and think it will stay flat or rise slowly. Selling a call against your shares earns premium income — you get paid to cap your upside.",
+        steps: [
+            {
+                title: "Press Play",
+                instruction: "Start the replay. You're going to hold a stock position and layer a call option on top of it. Watch how the price moves before you commit.",
+                elementId: "tut-play",
+                hint: "Click the Play button",
+            },
+            {
+                title: "Own the Shares",
+                instruction: "A covered call needs shares underneath it — that's what 'covered' means. Buy 100 shares first. 100 shares = 1 option contract, so you can sell exactly one call against this position.",
+                elementId: "tut-buy",
+                hint: "Buy 100 shares to cover the position",
+            },
+            {
+                title: "Pick the Strike",
+                instruction: "Sell a call with a strike above the current price — out-of-the-money. You're betting the stock won't rise past that level before expiry. The closer the strike, the more premium you collect but the less room the stock has to move.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Sell the Call",
+                instruction: "Sell one call option. The premium lands in your account immediately. That's the whole point of a covered call — you get paid today for agreeing to cap your gains later.",
+                elementId: "tut-sell",
+                hint: "Sell one call option against your shares",
+            },
+            {
+                title: "Collect the Premium",
+                instruction: "Skip forward toward expiry. If the stock stays below the strike, the call expires worthless and you keep the premium. You also keep your shares. That's the ideal outcome — you got paid for doing nothing.",
+                elementId: "tut-skip",
+                hint: "Click Skip Forward",
+            },
+            {
+                title: "Handle Assignment",
+                instruction: "If the stock rose above the strike, the call gets exercised and your shares are called away at the strike price. You still keep the premium, and you still made a profit — it's just capped. That's the trade-off you accepted on step 3.",
+                elementId: "tut-chart",
+                needsClick: true,
+            },
+            {
+                title: "Wrap Up",
+                instruction: "That's a covered call. You own shares, you sell calls against them, you collect premium. You win if the stock stays flat or rises a little. You underperform if it soars — but you get paid every time it doesn't. It's income, not a home run.",
+                elementId: "tut-finish",
+                needsClick: true,
+            },
+        ],
+    },
 }
 
 export interface MockBar {
@@ -249,5 +297,6 @@ export function getStrategyTutorialKey(
     if (n.includes('buy') && n.includes('hold')) return 'buy_and_hold';
     if (n.includes('momentum')) return 'momentum';
     if (n.includes('mean reversion')) return 'mean_reversion';
+    if (n.includes('covered call')) return 'covered_call';
     return 'dca';
 }
