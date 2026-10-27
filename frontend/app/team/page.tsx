@@ -1,9 +1,10 @@
 import Link from "next/link";
 import {
     ExternalLink,
+    Users,
     ArrowUpRight
 } from "lucide-react";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import {Button} from "@/components/ui/button";
 import Image from "next/image";
@@ -16,6 +17,61 @@ function GithubIcon({className = "w-4 h-4"}: { className?: string }) {
         </svg>
     );
 }
+
+function LinkedinIcon({className = "w-4 h-4"}: { className?: string }) {
+    return (
+        <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+            <path
+                d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+        </svg>
+    );
+}
+
+interface TeamMember {
+    name: string;
+    role: string;
+    bio: string;
+    github: string;
+    linkedin: string;
+}
+
+const teamMembers: TeamMember[] = [
+    {
+        name: "Michael Neto",
+        role: "Full-Stack Developer",
+        bio: "Information & Knowledge Systems student with focus on UX design & full-stack integration.",
+        github: "https://github.com/u24641342",
+        linkedin: "https://www.linkedin.com/in/michael-neto-0211563b9/",
+    },
+    {
+        name: "Dillon Kung",
+        role: "Backend Developer",
+        bio: "Computer Science student specializing in trading transaction logic and database architecture.",
+        github: "https://github.com/u24614582",
+        linkedin: "https://www.linkedin.com/in/dillon-kung/",
+    },
+    {
+        name: "Caitanya Singh",
+        role: "Backend Developer",
+        bio: "Focused on high-concurrency ingestion services, API provider adapters, and load performance.",
+        github: "https://github.com/u24603199",
+        linkedin: "https://www.linkedin.com/in/caitanya-krpa-narain-singh-4316393b6/",
+    },
+    {
+        name: "Grant Nel",
+        role: "Full-Stack Developer",
+        bio: "Computer Science student focused on financial market simulation, LCG engines, and system devops.",
+        github: "https://github.com/u24574547",
+        linkedin: "https://www.linkedin.com/in/grant-nel-72a0573b5",
+    },
+    {
+        name: "Finnley Wyllie",
+        role: "Software Engineer",
+        bio: "Final-year Computer Science student specializing in backend software engineering & cloud infrastructure.",
+        github: "https://github.com/Finn-Wyll",
+        linkedin: "https://za.linkedin.com/in/finnley-wyllie-1b24972a7",
+    },
+];
 
 export default function TeamPage() {
     return (
@@ -84,6 +140,62 @@ export default function TeamPage() {
                     </CardContent>
                 </Card>
 
+                <div className="flex items-center justify-between mb-6 border-b border-borderDark pb-3">
+                    <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-emerald"/>
+                        <h2 className="text-xl font-bold tracking-tight text-white">Software Engineering Team</h2>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-greyText bg-card-surface px-2.5 py-1 rounded-md border border-borderDark">
+                        5 DEVELOPERS
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {teamMembers.map((member) => (
+                        <Card
+                            key={member.name}
+                            className="bg-card-surface border-borderDark hover:border-emerald/40 transition-all duration-300 flex flex-col justify-between shadow-lg hover:shadow-xl hover:shadow-emerald/5"
+                        >
+                            <CardHeader className="p-5 pb-3">
+                                <div className="flex items-center justify-between">
+                                    <Badge
+                                        className="bg-emerald/10 text-emerald border-none font-mono text-[10px] uppercase font-bold px-2 py-0.5 tracking-wider">
+                                        {member.role}
+                                    </Badge>
+                                </div>
+                                <CardTitle className="text-lg font-bold text-white mt-3">
+                                    {member.name}
+                                </CardTitle>
+                                <CardDescription className="text-xs text-greyText leading-relaxed mt-1">
+                                    {member.bio}
+                                </CardDescription>
+                            </CardHeader>
+
+                            <CardFooter className="p-5 pt-3 border-t border-borderDark/60 flex gap-2">
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 bg-canvas border-borderDark hover:border-emerald text-greyText hover:text-emerald font-mono text-xs"
+                                >
+                                    <Link href={member.github} target="_blank">
+                                        <GithubIcon className="w-3.5 h-3.5 mr-1.5"/> GitHub
+                                    </Link>
+                                </Button>
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 bg-canvas border-borderDark hover:border-emerald text-greyText hover:text-emerald font-mono text-xs"
+                                >
+                                    <Link href={member.linkedin} target="_blank">
+                                        <LinkedinIcon className="w-3.5 h-3.5 mr-1.5 text-[#2b6cb0]"/> LinkedIn
+                                    </Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
             </main>
 
             <footer
