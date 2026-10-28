@@ -9,6 +9,7 @@ import { EventSimulator } from '@/components/EventSimulator';
 import { StrategyPuzzle } from '@/components/StrategyPuzzle';
 import { useTechTreeContext } from '@/context/TechTreeContext';
 import { completeTutorial } from '@/lib/api/tutorials';
+import { getStrategyTutorialKey } from '@/lib/strategyTutorials';
 
 const DCA_PRACTICE_EVENT = {
     id: 'dca-practice',
@@ -31,6 +32,7 @@ export default function LearningPage() {
     const { 
             strategyTutorialOpen, 
             tutorialStrategyId,
+            tutorialStrategyName,
             closeStrategyTutorial,
             puzzleStrategy,
             closeStrategyPuzzle 
@@ -63,6 +65,7 @@ export default function LearningPage() {
                 <EventSimulator
                     event={DCA_PRACTICE_EVENT}
                     mode='strategy'
+                    strategyKey={getStrategyTutorialKey(tutorialStrategyName)}
                     onBack={closeStrategyTutorial}
                     onTutorialComplete={handleTutorialComplete}
                 />

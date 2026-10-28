@@ -112,7 +112,7 @@ export function StrategyDetail({ id, onClose }: { id: number | null, onClose: ()
                                 type='button'
                                 data-testid="Try it now button"
                                 className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[var(--green)] text-[15px] font-semibold text-white transition-[background-color,transform] hover:bg-[#00a84e] active:scale-[0.98]"
-                                onClick={() => openStrategyTutorial(strategy.id)}
+                                onClick={() => openStrategyTutorial(strategy.id, strategy.name)}
                             >
                                 <Play aria-hidden='true' className='h-4 w-4' />
                                 Try it now!
