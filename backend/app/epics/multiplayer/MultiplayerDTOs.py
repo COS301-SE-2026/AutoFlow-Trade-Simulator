@@ -22,6 +22,7 @@ class QteOfferDTO(SQLModel):
 
 class MatchFoundMessage(SQLModel):
     type: Literal["match_found"] = "match_found"
+    match_id: int
     symbol: str
     start_date: date
     end_date: date
@@ -76,7 +77,7 @@ class MatchEndMessage(SQLModel):
     type: Literal["match_end"] = "match_end"
     final_balances: Dict[str, float]
     winner_user_id: Optional[int] = None
-    reason: Literal["completed", "opponent_disconnected"]
+    reason: Literal["completed", "opponent_disconnected", "abandoned"]
 
 
 class ErrorMessage(SQLModel):
@@ -89,3 +90,8 @@ class OpponentActionMessage(SQLModel):
     day_index: int
     action: Literal["buy", "sell"]
     qty: float
+
+
+class QueuedMessage(SQLModel):
+    type: Literal["queued"] = "queued"
+    message: str = "Waiting for an opponent..."
