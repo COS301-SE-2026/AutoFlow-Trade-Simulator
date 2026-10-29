@@ -3,13 +3,13 @@ import logging
 import secrets
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Callable, Dict, List, Optional, Tuple
 
 from fastapi import WebSocket
 from sqlmodel import Session, select
-from sqlalchemy import func, update
+from sqlalchemy import update
 
 
 from ...models.multiplayer_match import MultiplayerMatch, MultiplayerParticipant, MatchStatus
@@ -17,7 +17,7 @@ from ...models.scenario import Scenario
 from ..market_data.generator import LCGPseudoRandomGenerator
 from ..simulation.SimulationService import SimulationService
 from .MatchSession import MatchSession, PlayerState
-from .PerturbationService import derive_seed, perturb_bars
+from .PerturbationService import perturb_bars
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,7 @@ DEFAULT_INITIAL_BALANCE = Decimal("100000")
 PERTURBATION_VERSION: str = "v1"
 DATA_SNAPSHOT_ID: str = "demo"
 MATCH_RATE_LIMIT_SECONDS: float = 15.0
+ORPHAN_ABANDON_AGE_SECONDS: float = 3600.0
 
 
 @dataclass
@@ -49,9 +50,13 @@ class MultiplayerService:
     def _abandon_orphaned_matches(self) -> None:
         try:
             with self.session_factory() as db:
+                stale_before = datetime.utcnow() - timedelta(
+                    seconds=ORPHAN_ABANDON_AGE_SECONDS
+                )
                 db.exec(
                     update(MultiplayerMatch)
                     .where(MultiplayerMatch.status == MatchStatus.in_progress)
+                    .where(MultiplayerMatch.started_at < stale_before)
                     .values(
                         status=MatchStatus.abandoned,
                         ended_at=datetime.now(timezone.utc),
@@ -115,26 +120,30 @@ class MultiplayerService:
     def get_match(self, match_id: int) -> Optional[MatchSession]:
         return self.active_matches.get(match_id)
 
+    def remove_match(self, match_id: int) -> None:
+        self.active_matches.pop(match_id, None)
+
     def find_active_match_for_user(self, user_id: int) -> Optional[MatchSession]:
-        for match_id, match in self.active_matches.items():
-            if user_id not in match.players:
-                continue
-            if match.status != MatchStatus.in_progress:
-                del self.active_matches[match_id]
-                continue
-            return match
+        for match in self.active_matches.values():
+            if user_id in match.players and match.status == MatchStatus.in_progress:
+                return match
         return None
 
     def pick_scenario_for_players(self) -> Scenario:
         with self.session_factory() as db:
-            scenarios = list(db.exec(select(Scenario).where(Scenario.active == True).order_by(Scenario.id)).all())
+            scenarios = list(
+                db.exec(
+                    select(Scenario)
+                    .where(Scenario.active.is_(True))
+                    .order_by(Scenario.id)
+                ).all()
+            )
         if not scenarios:
             raise ValueError("No active scenarios configured")
-        rng = LCGPseudoRandomGenerator(seed=secrets.randbits(31)) # don't need to store this seed because we store what it chose.
+        rng = LCGPseudoRandomGenerator(seed=secrets.randbits(31))
         return rng.choice(scenarios)
 
     async def find_match(self, connection: Connection) -> Optional[MatchSession]:
-        print(f"[find_match] called for user {connection.user_id}", flush=True)
         async with self.queue_lock:
             waiting = [
                 c for c in self.active_connections
@@ -144,7 +153,6 @@ class MultiplayerService:
                 return None
 
             peer = waiting[0]
-            print(f"[find_match] waiting={[c.user_id for c in waiting]} peer={peer.user_id}", flush=True)
 
             key = self._pair_key(peer.user_id, connection.user_id)
             now = time.monotonic()
@@ -154,13 +162,9 @@ class MultiplayerService:
                     "Rate-limited match for pair %s (%.1fs since last)",
                     key,
                     now - last,
-                )
+                    )
                 try:
-                    await connection.socket.close(code=1013)
-                except Exception:
-                    pass
-                try:
-                    await peer.socket.close(code=1013)
+                    await connection.socket.close(code=1013, reason="rate_limited")
                 except Exception:
                     pass
                 return None
@@ -217,6 +221,7 @@ class MultiplayerService:
                 initial_balance=DEFAULT_INITIAL_BALANCE,
                 players=[player_one, player_two],
                 session_factory=self.session_factory,
+                on_finished=self.remove_match,
             )
             await session.announce()
 
