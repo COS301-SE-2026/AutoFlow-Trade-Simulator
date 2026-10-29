@@ -19,7 +19,19 @@ module.exports = {
       animation: {
         'slow-gradient': 'slowGradient 20s ease infinite',
       },
+      fontFamily: {
+        sans: ["Afacad", "var(--font-sans)", "sans-serif"],
+        mono: ["JetBrains Mono", "var(--font-mono)", "monospace"],
+      },
       colors: {
+        canvas: "#231f20",
+        emerald: {
+          DEFAULT: "#3dbf79",
+          dark: "#2a9a5e",
+        },
+        greyText: "#C3C3C3",
+        borderDark: "#383838",
+
         border: "hsl(var(--ui-border) / <alpha-value>)",
         input: "hsl(var(--ui-input) / <alpha-value>)",
         ring: "hsl(var(--ui-ring) / <alpha-value>)",
@@ -52,6 +64,7 @@ module.exports = {
         card: {
           DEFAULT: "hsl(var(--ui-card) / <alpha-value>)",
           foreground: "hsl(var(--ui-card-foreground) / <alpha-value>)",
+          surface: "#2b2b2b",
         },
       },
       borderRadius: {
