@@ -23,16 +23,16 @@ def get_multiplayer_service() -> MultiplayerService:
 
 @router.websocket("/ws")
 async def open_socket(
-    socket: WebSocket,
-    service: Annotated[MultiplayerService, Depends(get_multiplayer_service)],
-    current_user: User = Depends(get_current_user_ws),
+        socket: WebSocket,
+        service: Annotated[MultiplayerService, Depends(get_multiplayer_service)],
+        current_user: User = Depends(get_current_user_ws),
 ):
     connection = await service.connect(socket, current_user.id)
     try:
         existing = service.find_active_match_for_user(current_user.id)
         if existing is not None:
             connection.match_id = existing.match_id
-            existing.rebind_socket(current_user.id, socket)
+            await existing.rebind_socket(current_user.id, socket)
         else:
             try:
                 await socket.send_text(
