@@ -1,5 +1,6 @@
 from .base_strategy import BaseRubricStrategy
-from .RubricEngineDTO import CategoryScoreDTO, EvaluationResultDTO, ExecutionMetricDTO, Grade
+from .RubricEngineDTO import CategoryScoreDTO, EvaluationResultDTO, ExecutionMetricDTO
+
 
 class MeanReversionStrategy(BaseRubricStrategy):
 
@@ -28,7 +29,7 @@ class MeanReversionStrategy(BaseRubricStrategy):
             risk_fb = f"Dangerous drawdown ({metrics.max_drawdown_pct}%). Stop-losses must be STRICTLY enforced."
 
         # Avg holding time grading (gradings for this need to be consulted)
-        target_max_hold_allowed_sec = 1000.0 #Just a rough estimate will need to consult to change
+        target_max_hold_allowed_sec = 1000.0
         if metrics.avg_holding_period_sec <= target_max_hold_allowed_sec:
             hold_score = 100.0
             hold_fb = f"Great execution speed! Average hold time of {round(metrics.avg_holding_period_sec / 60, 1)} mins fits mean reversion."
@@ -42,23 +43,22 @@ class MeanReversionStrategy(BaseRubricStrategy):
         # Sharpe ratio and profitability
         alpha = metrics.total_return_pct - (metrics.benchmark_return_pct or 0.0)
         Sharpe = max(0.0, metrics.sharpe_ratio)
-        profit_score = round (
+        profit_score = round(
             (min(1.0, Sharpe / 1.5) * 50.0) + (min(1.0, max(0.0, alpha / 5.0)) * 50), 2
         )
         profit_fb = f"Sharpe: {metrics.sharpe_ratio}, Alpha +{round(alpha, 2)}% vs benchmark."
 
-        final_score = round (
+        final_score = round(
             (win_score * 0.30) + (risk_score * 0.25) + (hold_score * 0.25) + (profit_score * 0.20), 2
         )
 
-        # Idk my closet model to this is an afk timer. You need x a mount of trades to pass
         if metrics.total_trades < 3:
             acc_score = final_score
             final_score = min(final_score, 45.0)
             hold_fb += f" [SCORE CAPPED]: Minimum of 3 trades is required (made {metrics.total_trades}). Raw score was {acc_score}."
 
         grade = self._compute_grade(final_score)
-        passed = final_score >= 60.0 #Idk maybe we should make it 50
+        passed = self._compute_passed(final_score)
 
         return EvaluationResultDTO(
             passed=passed,
@@ -79,18 +79,3 @@ class MeanReversionStrategy(BaseRubricStrategy):
                 )
             }
         )
-
-    def _compute_grade(self, score: float) -> Grade:
-        if score >= 90.0:
-            return Grade.S
-        if score >= 80.0:
-            return Grade.A
-        if score >= 70.0:
-            return Grade.B
-        if score >= 60.0:
-            return Grade.C
-        if score >= 50.0:
-            return Grade.D
-        if score >= 40.0:
-            return Grade.E
-        return Grade.F

@@ -62,6 +62,37 @@ class ExecutionMetricDTO(SQLModel):
         default=0.0,
         description="Baseline index return percentage over the same window"
     )
+    sell_count: int = Field(
+        default=0, ge=0,
+        description="Number of user-initiated sells (excludes platform final_liquidation)"
+    )
+    sell_interval_cv: Optional[float] = Field(
+        default=None, ge=0.0,
+        description="Coefficient of variation of days between distinct sell days "
+                    "(0.0 = perfectly regular). None when fewer than 2 distinct days."
+    )
+    sell_amount_cv: Optional[float] = Field(
+        default=None, ge=0.0,
+        description="Coefficient of variation of cash amount per sell "
+                    "(0.0 = identical amounts). None when fewer than 2 sells."
+    )
+    sell_schedule_coverage_pct: float = Field(
+        default=0.0, ge=0.0, le=100.0,
+        description="Percentage of the trading window spanned from first to last sell"
+    )
+    held_through_pct: float = Field(
+        default=0.0, ge=0.0, le=100.0,
+        description="Position at end of window as % of peak position ever held"
+    )
+    max_single_sell_pct: float = Field(
+        default=0.0, ge=0.0, le=100.0,
+        description="Largest single sell quantity as % of peak position"
+    )
+    harvested_pct: float = Field(
+        default=0.0, ge=0.0,
+        description="Total sell proceeds as % of initial balance "
+                    "(note: can exceed 100% if underlying appreciated)"
+    )
 
 class EvaluationResultDTO(SQLModel):
     passed: bool = Field (

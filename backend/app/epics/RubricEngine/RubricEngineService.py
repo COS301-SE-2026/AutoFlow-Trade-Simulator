@@ -7,8 +7,10 @@ from fastapi import HTTPException, status
 from .RubricEngineDTO import EpicStatusDTO, EvaluationResultDTO, ExecutionMetricDTO, Grade
 from .base_strategy import BaseRubricStrategy
 from .mean_reversion_strategy import MeanReversionStrategy
+from .momentum_strategy import MomentumStrategy
+from .systematic_profit_taking_strategy import SystematicProfitTakingStrategy
 
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from ...models.daily_OHLCV import DailyOHLCV
 from ...models.asset import Asset
 from ...models.multiplayer_match import MatchEventLog, MultiplayerMatch, MultiplayerParticipant
@@ -28,7 +30,9 @@ GRADE_TO_RUBRIC_SCORE: Dict[Grade, int] = {
 
 class RubricEngineService:
     strategies: Dict[str, BaseRubricStrategy] = {
-        "mean_reversion": MeanReversionStrategy()
+        "mean_reversion": MeanReversionStrategy(),
+        "momentum": MomentumStrategy(),
+        "profit_taking": SystematicProfitTakingStrategy()
     }
 
     def __init__(self, session: Session):
@@ -41,7 +45,7 @@ class RubricEngineService:
         events = self._get_match_event_logs(match_id, user_id)
         trade_events = [e for e in events if e.event_type in ("buy", "sell")]
 
-        win_rate, avg_holding_sec = self._process_fifo_trades(trade_events)
+        win_rate, avg_holding_sec, avg_winner_pct, avg_loser_pct = self._process_fifo_trades(trade_events)
 
         bars = self._get_match_bars(match.symbol, match.start_date, match.end_date)
 
@@ -51,6 +55,7 @@ class RubricEngineService:
         max_dd_pct = self._calculate_max_drawdown(nav_series)
         sharpe_ratio = self._calculate_sharpe_ratio(daily_returns)
         benchmark_return_pct = self._calculate_benchmark_return(bars)
+        pt_metrics = self._calculate_profit_taking_metrics(trade_events, bars, match.initial_balance)
 
         return ExecutionMetricDTO(
             total_return_pct = total_return_pct,
@@ -59,7 +64,10 @@ class RubricEngineService:
             total_trades = len(trade_events),
             win_rate = win_rate,
             avg_holding_period_sec=avg_holding_sec,
-            benchmark_return_pct=benchmark_return_pct
+            benchmark_return_pct=benchmark_return_pct,
+            avg_winner_pct=avg_winner_pct,
+            avg_loser_pct=avg_loser_pct,
+            **pt_metrics
         )
 
     def map_metrics_from_puzzle_run(self, puzzle_id: int, user_id: int) -> ExecutionMetricDTO:
@@ -72,7 +80,7 @@ class RubricEngineService:
         synthetic_events = self._puzzle_actions_to_event_logs(actions, bars)
         trade_events = [e for e in synthetic_events if e.event_type in ("buy", "sell")]
 
-        win_rate, avg_holding_sec = self._process_fifo_trades(trade_events)
+        win_rate, avg_holding_sec, avg_winner_pct, avg_loser_pct = self._process_fifo_trades(trade_events)
 
         init_bal = puzzle.initial_balance
         nav_series, daily_returns = self._build_nav_series_and_returns(init_bal, synthetic_events, bars)
@@ -82,6 +90,7 @@ class RubricEngineService:
         max_dd_pct = self._calculate_max_drawdown(nav_series)
         sharpe_ratio = self._calculate_sharpe_ratio(daily_returns)
         benchmark_return_pct = self._calculate_benchmark_return(bars)
+        pt_metrics = self._calculate_profit_taking_metrics(trade_events, bars, init_bal)
 
         return ExecutionMetricDTO(
             total_return_pct=total_return_pct,
@@ -91,6 +100,9 @@ class RubricEngineService:
             win_rate=win_rate,
             avg_holding_period_sec=avg_holding_sec,
             benchmark_return_pct=benchmark_return_pct,
+            avg_winner_pct=avg_winner_pct,
+            avg_loser_pct=avg_loser_pct,
+            **pt_metrics,
         )
 
     def evaluate_puzzle_for_user(self, strat_key: str, puzzle_id: int, user_id: int) -> EvaluationResultDTO:
@@ -145,7 +157,7 @@ class RubricEngineService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You were not a valid participant in the match"
             )
-        
+
     def _get_match_event_logs(self, match_id: int, user_id: int) -> List[MatchEventLog]:
         return list(
             self.session.exec(
@@ -200,9 +212,10 @@ class RubricEngineService:
             )
         return events
 
-    def _process_fifo_trades(self, trade_events: List[MatchEventLog]) -> Tuple[float, float]:
+    def _process_fifo_trades(self, trade_events: List[MatchEventLog]) -> Tuple[float, float, Optional[float], Optional[float]]:
         buy_queue: List[Dict] = []
         trade_profits: List[Decimal] = []
+        trade_profit_pcts: List[float] = []
         holding_times_sec: List[float] = []
 
         for e in trade_events:
@@ -227,6 +240,10 @@ class RubricEngineService:
                     profit = match_qty * (price - earliest_buy["price"])
                     trade_profits.append(profit)
 
+                    entry_value = match_qty * earliest_buy["price"]
+                    if entry_value > 0:
+                        trade_profit_pcts.append(float(profit / entry_value))
+
                     duration = (event_time - earliest_buy["timestamp"]).total_seconds()
                     holding_times_sec.append(max(0.0, duration))
 
@@ -242,7 +259,12 @@ class RubricEngineService:
         win_rate = (winning_trades / closed_trades_count) if closed_trades_count > 0 else 0.0
         avg_holding_sec = (sum(holding_times_sec) / len(holding_times_sec)) if holding_times_sec else 0.0
 
-        return win_rate, avg_holding_sec
+        winners = [p for p in trade_profit_pcts if p > 0]
+        losers = [p for p in trade_profit_pcts if p < 0]
+        avg_winner_pct = (sum(winners) / len(winners)) if winners else None
+        avg_loser_pct = (sum(losers) / len(losers)) if losers else None
+
+        return win_rate, avg_holding_sec, avg_winner_pct, avg_loser_pct
 
     def _build_nav_series_and_returns(self, initial_balance: Decimal, events: List[MatchEventLog], bars: List[DailyOHLCV]) -> Tuple[List[Decimal], List[float]]:
         nav_series: List[Decimal] = []
@@ -322,6 +344,65 @@ class RubricEngineService:
             return float(((p_end - p_start) / p_start) * 100)
         return 0.0
 
+    def _calculate_profit_taking_metrics(self, trade_events: List[MatchEventLog], bars: List[DailyOHLCV], initial_balance: Decimal) -> Dict[str, Any]:
+        sell_days: List[int] = []
+        sell_amounts: List[float] = []
+        max_single_sell_qty = Decimal("0")
+        max_position_qty = Decimal("0")
+        running_qty = Decimal("0")
+        total_sell_proceeds = Decimal("0")
+
+        for e in trade_events:
+            payload = e.payload or {}
+            if payload.get("reason") == "final_liquidation":
+                continue
+
+            q_val = payload.get("qty") if "qty" in payload else payload.get("quantity", 0)
+            qty = Decimal(str(q_val))
+            price = Decimal(str(payload.get("price", 0)))
+            if qty <= 0 or price <= 0:
+                continue
+
+            if e.event_type == "buy":
+                running_qty += qty
+                if running_qty > max_position_qty:
+                    max_position_qty = running_qty
+            elif e.event_type == "sell":
+                sell_days.append(e.day_index)
+                sell_amounts.append(float(qty * price))
+                total_sell_proceeds += qty * price
+                if qty > max_single_sell_qty:
+                    max_single_sell_qty = qty
+                running_qty -= qty
+
+        distinct_sell_days = sorted(set(sell_days))
+        intervals = [float(b - a) for a, b in zip(distinct_sell_days, distinct_sell_days[1:])]
+
+        coverage_pct = 0.0
+        if len(distinct_sell_days) >= 2 and len(bars) >= 2:
+            coverage_pct = min(100.0, (distinct_sell_days[-1] - distinct_sell_days[0]) / (len(bars) - 1) * 100.0)
+
+        held_through_pct = float(running_qty / max_position_qty * 100) if max_position_qty > 0 else 0.0
+        max_single_sell_pct = float(max_single_sell_qty / max_position_qty * 100) if max_position_qty > 0 else 0.0
+        harvested_pct = float(total_sell_proceeds / initial_balance * 100) if initial_balance > 0 else 0.0
+
+        return {
+            "sell_count": len(sell_amounts),
+            "sell_interval_cv": self._coefficient_of_variation(intervals) if intervals else None,
+            "sell_amount_cv": self._coefficient_of_variation(sell_amounts) if len(sell_amounts) >= 2 else None,
+            "sell_schedule_coverage_pct": coverage_pct,
+            "held_through_pct": max(0.0, held_through_pct),
+            "max_single_sell_pct": max_single_sell_pct,
+            "harvested_pct": harvested_pct
+        }
+
+    def _coefficient_of_variation(self, values: List[float]) -> float:
+        mean = sum(values) / len(values)
+        if mean <= 0:
+            return 0.0
+        variance = sum((v - mean) ** 2 for v in values) / len(values)
+        return math.sqrt(variance) / mean
+
     def evaluate_match_for_user(self, strat_key: str, match_id: int, user_id: int) -> EvaluationResultDTO:
         metrics = self.map_metrics_from_match_log(match_id=match_id, user_id=user_id)
         result = self.evaluate_strategy(strat_key=strat_key, metrics=metrics)
@@ -354,7 +435,7 @@ class RubricEngineService:
         return EpicStatusDTO(
             epic="Rubric Engine", status="Service Operational"
         )
-    
+
     def evaluate_strategy(self, strat_key: str, metrics: ExecutionMetricDTO) -> EvaluationResultDTO:
         strategy = self.strategies.get(strat_key)
         if not strategy:
