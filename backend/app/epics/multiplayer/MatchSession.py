@@ -7,7 +7,7 @@ from typing import Callable, Dict, List, Optional
 
 from fastapi import WebSocket
 from pydantic import ValidationError
-from sqlalchemy import func, col
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from ..market_data.generator import LCGPseudoRandomGenerator
@@ -384,7 +384,7 @@ class MatchSession:
             ).order_by(QTEQuestion.id)
             if self.used_question_ids:
                 query = query.where(
-                    col(QTEQuestion.id).notin_(self.used_question_ids)
+                    QTEQuestion.id.notin_(self.used_question_ids)
                 )
             questions = list(db.exec(query).all())
         if not questions:
