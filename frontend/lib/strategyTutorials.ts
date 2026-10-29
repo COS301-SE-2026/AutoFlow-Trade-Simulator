@@ -208,49 +208,49 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
             },
         ],
     },
-    covered_call: {
-        title: "Covered Call",
-        scenario: "You own 100 shares of a stock and think it will stay flat or rise slowly. Selling a call against your shares earns premium income — you get paid to cap your upside.",
+    income_harvesting: {
+        title: "Income Harvesting",
+        scenario: "You own a position that has run up nicely. Instead of guessing the top, you sell a fraction of it — locking in some profit while keeping the rest exposed. Then you reset the threshold and do it again as the price rises.",
         steps: [
             {
                 title: "Press Play",
-                instruction: "Start the replay. You're going to hold a stock position and layer a call option on top of it. Watch how the price moves before you commit.",
+                instruction: "Start the replay. You're going to buy a position, watch it climb, and sell it down in pieces as it hits profit targets. The point isn't to catch the top — it's to take profit on the way up, systematically.",
                 elementId: "tut-play",
                 hint: "Click the Play button",
             },
             {
-                title: "Own the Shares",
-                instruction: "A covered call needs shares underneath it — that's what 'covered' means. Buy 100 shares first. 100 shares = 1 option contract, so you can sell exactly one call against this position.",
+                title: "Take the Position",
+                instruction: "Buy a position — say 100 shares. This is the holding you'll harvest from. The bigger the position, the more meaningful each partial sell becomes.",
                 elementId: "tut-buy",
-                hint: "Buy 100 shares to cover the position",
+                hint: "Buy 100 shares",
             },
             {
-                title: "Pick the Strike",
-                instruction: "Sell a call with a strike above the current price — out-of-the-money. You're betting the stock won't rise past that level before expiry. The closer the strike, the more premium you collect but the less room the stock has to move.",
+                title: "Pick Your Threshold",
+                instruction: "Decide a profit threshold before you trade — for example, sell 25% of the position every time it rises 20% above your average cost. The rule is mechanical, decided in advance, so you don't have to guess whether to take profit in the moment.",
                 elementId: "tut-chart",
                 needsClick: true,
             },
             {
-                title: "Sell the Call",
-                instruction: "Sell one call option. The premium lands in your account immediately. That's the whole point of a covered call — you get paid today for agreeing to cap your gains later.",
-                elementId: "tut-sell",
-                hint: "Sell one call option against your shares",
-            },
-            {
-                title: "Collect the Premium",
-                instruction: "Skip forward toward expiry. If the stock stays below the strike, the call expires worthless and you keep the premium. You also keep your shares. That's the ideal outcome — you got paid for doing nothing.",
+                title: "Let It Rise",
+                instruction: "Skip forward as the price climbs. Watch for the point where the position crosses your threshold. If it never gets there, you hold — that's fine. Income Harvesting only acts when the rule fires.",
                 elementId: "tut-skip",
                 hint: "Click Skip Forward",
             },
             {
-                title: "Handle Assignment",
-                instruction: "If the stock rose above the strike, the call gets exercised and your shares are called away at the strike price. You still keep the premium, and you still made a profit — it's just capped. That's the trade-off you accepted on step 3.",
+                title: "Harvest the First Slice",
+                instruction: "Price hits your threshold. Sell 25% of the position — for 100 shares that's 25 shares. You've now realised a chunk of the gain as cash, but you still own 75 shares exposed to further upside. This is the key move: partial, not full exit.",
+                elementId: "tut-sell",
+                hint: "Sell 25 shares to harvest profit",
+            },
+            {
+                title: "Reset and Repeat",
+                instruction: "Your average cost is now different, so recalculate the next threshold against the remaining position. Each time the price clears it, harvest another slice. Over a long uptrend this converts a volatile gain into a series of locked-in profits — without ever needing to sell the whole thing.",
                 elementId: "tut-chart",
                 needsClick: true,
             },
             {
                 title: "Wrap Up",
-                instruction: "That's a covered call. You own shares, you sell calls against them, you collect premium. You win if the stock stays flat or rises a little. You underperform if it soars — but you get paid every time it doesn't. It's income, not a home run.",
+                instruction: "That's Income Harvesting. You set a profit rule, sell fractions as it hits, and let the rest run. You cap your upside a little, but you smooth your returns and reduce concentration risk. It's discipline, not prediction — the opposite of trying to time the top.",
                 elementId: "tut-finish",
                 needsClick: true,
             },
@@ -297,6 +297,6 @@ export function getStrategyTutorialKey(
     if (n.includes('buy') && n.includes('hold')) return 'buy_and_hold';
     if (n.includes('momentum')) return 'momentum';
     if (n.includes('mean reversion')) return 'mean_reversion';
-    if (n.includes('covered call')) return 'covered_call';
+    if (n.includes('income harvesting')) return 'income_harvesting';
     return 'dca';
 }
