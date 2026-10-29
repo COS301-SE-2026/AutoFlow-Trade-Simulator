@@ -9,6 +9,7 @@ from .base_strategy import BaseRubricStrategy
 from .mean_reversion_strategy import MeanReversionStrategy
 from .momentum_strategy import MomentumStrategy
 from .systematic_profit_taking_strategy import SystematicProfitTakingStrategy
+from .dollar_cost_averaging_strategy import DollarCostAveragingStrategy
 
 from typing import Any, Dict, List, Optional, Tuple
 from ...models.daily_OHLCV import DailyOHLCV
@@ -33,6 +34,9 @@ class RubricEngineService:
         "mean_reversion": MeanReversionStrategy(),
         "momentum": MomentumStrategy(),
         "profit_taking": SystematicProfitTakingStrategy()
+        "mean_reversion": MeanReversionStrategy(),
+        "dollar_cost_averaging": DollarCostAveragingStrategy(),
+        "dca": DollarCostAveragingStrategy()
     }
 
     def __init__(self, session: Session):
@@ -55,6 +59,7 @@ class RubricEngineService:
         max_dd_pct = self._calculate_max_drawdown(nav_series)
         sharpe_ratio = self._calculate_sharpe_ratio(daily_returns)
         benchmark_return_pct = self._calculate_benchmark_return(bars)
+        dca_metrics = self._calculate_dca_metrics(trade_events, bars, match.initial_balance)
         pt_metrics = self._calculate_profit_taking_metrics(trade_events, bars, match.initial_balance)
 
         return ExecutionMetricDTO(
@@ -67,7 +72,8 @@ class RubricEngineService:
             benchmark_return_pct=benchmark_return_pct,
             avg_winner_pct=avg_winner_pct,
             avg_loser_pct=avg_loser_pct,
-            **pt_metrics
+            **pt_metrics,
+            **dca_metrics
         )
 
     def map_metrics_from_puzzle_run(self, puzzle_id: int, user_id: int) -> ExecutionMetricDTO:
@@ -90,6 +96,7 @@ class RubricEngineService:
         max_dd_pct = self._calculate_max_drawdown(nav_series)
         sharpe_ratio = self._calculate_sharpe_ratio(daily_returns)
         benchmark_return_pct = self._calculate_benchmark_return(bars)
+        dca_metrics = self._calculate_dca_metrics(trade_events, bars, init_bal)
         pt_metrics = self._calculate_profit_taking_metrics(trade_events, bars, init_bal)
 
         return ExecutionMetricDTO(
@@ -103,6 +110,7 @@ class RubricEngineService:
             avg_winner_pct=avg_winner_pct,
             avg_loser_pct=avg_loser_pct,
             **pt_metrics,
+            **dca_metrics,
         )
 
     def evaluate_puzzle_for_user(self, strat_key: str, puzzle_id: int, user_id: int) -> EvaluationResultDTO:
@@ -394,6 +402,61 @@ class RubricEngineService:
             "held_through_pct": max(0.0, held_through_pct),
             "max_single_sell_pct": max_single_sell_pct,
             "harvested_pct": harvested_pct
+        }
+
+    def _calculate_dca_metrics(self, trade_events: List[MatchEventLog], bars: List[DailyOHLCV], initial_balance: Decimal) -> Dict[str, Any]:
+        buy_days: List[int] = []
+        buy_amounts: List[float] = []
+        total_buy_qty = Decimal("0")
+        total_buy_cost = Decimal("0")
+        sell_count = 0
+
+        for e in trade_events:
+            payload = e.payload or {}
+            q_val = payload.get("qty") if "qty" in payload else payload.get("quantity", 0)
+            qty = Decimal(str(q_val))
+            price = Decimal(str(payload.get("price", 0)))
+
+            if qty <= 0 or price <= 0:
+                continue
+
+            if e.event_type == "buy":
+                buy_days.append(e.day_index)
+                buy_amounts.append(float(qty * price))
+                total_buy_qty += qty
+                total_buy_cost += qty * price
+            elif e.event_type == "sell":
+                # The forced sell at the end of a match isn't the learner's decision
+                if payload.get("reason") == "final_liquidation":
+                    continue
+                sell_count += 1
+
+        # Several buys on the same day count as one scheduled purchase for interval purposes
+        distinct_days = sorted(set(buy_days))
+        intervals = [float(b - a) for a, b in zip(distinct_days, distinct_days[1:])]
+
+        coverage_pct = 0.0
+        if len(distinct_days) >= 2 and len(bars) >= 2:
+            coverage_pct = min(100.0, (distinct_days[-1] - distinct_days[0]) / (len(bars) - 1) * 100)
+
+        avg_cost_vs_mean_price_pct: Optional[float] = None
+        if total_buy_qty > 0:
+            avg_cost = total_buy_cost / total_buy_qty
+            window = bars[distinct_days[0]:distinct_days[-1] + 1]
+            mean_close = (sum((b.close for b in window), Decimal("0")) / len(window)) if window else Decimal("0")
+            if mean_close > 0:
+                avg_cost_vs_mean_price_pct = float((avg_cost - mean_close) / mean_close * 100)
+
+        capital_deployed_pct = float(total_buy_cost / initial_balance * 100) if initial_balance > 0 else 0.0
+
+        return {
+            "buy_count": len(buy_amounts),
+            "sell_count": sell_count,
+            "buy_interval_cv": self._coefficient_of_variation(intervals) if intervals else None,
+            "buy_amount_cv": self._coefficient_of_variation(buy_amounts) if len(buy_amounts) >= 2 else None,
+            "schedule_coverage_pct": coverage_pct,
+            "avg_cost_vs_mean_price_pct": avg_cost_vs_mean_price_pct,
+            "capital_deployed_pct": capital_deployed_pct,
         }
 
     def _coefficient_of_variation(self, values: List[float]) -> float:
