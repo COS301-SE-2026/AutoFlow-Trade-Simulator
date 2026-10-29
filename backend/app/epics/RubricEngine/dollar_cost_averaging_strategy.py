@@ -14,8 +14,11 @@ class DollarCostAveragingStrategy(BaseRubricStrategy):
         coverage_score = min(100.0, (metrics.schedule_coverage_pct / 75.0) * 100.0)
         schedule_score = (interval_score * 0.70) + (coverage_score * 0.30)
 
-        if metrics.buy_interval_cv is None:
-            schedule_fb = "Not enough purchases to measure a schedule. DCA means buying on a recurring interval."
+        if metrics.buy_count == 0:
+            schedule_fb = "No purchases made. DCA means buying on a recurring interval."
+        elif metrics.buy_interval_cv is None:
+            schedule_fb = ("All purchases landed on the same day. DCA means buying "
+                           "across the window, not in a burst.")
         elif interval_score >= 100.0:
             schedule_fb = f"Clockwork schedule! Your buys were evenly spaced and covered {round(metrics.schedule_coverage_pct, 1)}% of the window."
         elif interval_score >= 60.0:
@@ -42,12 +45,16 @@ class DollarCostAveragingStrategy(BaseRubricStrategy):
         deploy_score = min(100.0, (metrics.capital_deployed_pct / 50.0) * 100.0)
         discipline_score = (sell_score * 0.60) + (deploy_score * 0.40)
 
-        if metrics.sell_count == 0:
-            discipline_fb = f"Disciplined accumulation with no panic selling. Deployed {round(metrics.capital_deployed_pct, 1)}% of your capital."
+        if total_orders == 0:
+            discipline_score = 0.0
+            discipline_fb = "No trades placed. DCA requires making purchases on a schedule."
         else:
-            discipline_fb = f"You sold {metrics.sell_count} time(s). DCA is an accumulation strategy, so hold through volatility. Deployed {round(metrics.capital_deployed_pct, 1)}% of your capital."
-        if metrics.capital_deployed_pct < 50.0:
-            discipline_fb += " Too much cash left idle, so commit more capital to your schedule."
+            if metrics.sell_count == 0:
+                discipline_fb = f"Disciplined accumulation with no panic selling. Deployed {round(metrics.capital_deployed_pct, 1)}% of your capital."
+            else:
+                discipline_fb = f"You sold {metrics.sell_count} time(s). DCA is an accumulation strategy, so hold through volatility. Deployed {round(metrics.capital_deployed_pct, 1)}% of your capital."
+            if metrics.capital_deployed_pct < 50.0:
+                discipline_fb += " Too much cash left idle, so commit more capital to your schedule."
 
         # Cost basis efficiency: fixed amounts buy more shares when cheap, so cost basis should sit at or below the average price
         diff = metrics.avg_cost_vs_mean_price_pct
@@ -73,6 +80,11 @@ class DollarCostAveragingStrategy(BaseRubricStrategy):
             acc_score = final_score
             final_score = min(final_score, 45.0)
             schedule_fb += f" [SCORE CAPPED]: Minimum of {MIN_BUYS_REQUIRED} buys is required (made {metrics.buy_count}). Raw score was {acc_score}."
+        # Buying several times on one day is a lump sum split into pieces, not DCA
+        elif metrics.buy_interval_cv is None:
+            acc_score = final_score
+            final_score = min(final_score, 45.0)
+            schedule_fb += f" [SCORE CAPPED]: Buys must be spread over at least 2 different days. Raw score was {acc_score}."
 
         grade = self._compute_grade(final_score)
         passed = final_score >= 60.0

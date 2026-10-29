@@ -351,6 +351,9 @@ class RubricEngineService:
                 total_buy_qty += qty
                 total_buy_cost += qty * price
             elif e.event_type == "sell":
+                # The forced sell at the end of a match isn't the learner's decision
+                if payload.get("reason") == "final_liquidation":
+                    continue
                 sell_count += 1
 
         # Several buys on the same day count as one scheduled purchase for interval purposes
