@@ -52,6 +52,7 @@ from app.models.news import NewsCategory
 from app.models.progression_grant import ProgressionSource
 from app.models.multiplayer_match import MatchStatus, QuestionType
 
+riskManagement = "Risk Management" #satisfy sonarqube
 
 # ---------------------------------------------------------------------------
 # 1. CURRENCIES
@@ -288,7 +289,7 @@ strategy_data = [
         "name": "Income Harvesting",
         "description": "Systematically sell a portion of a winning position once it reaches a predefined profit target, converting unrealised gains into realised cash flow without abandoning the position entirely.",
         "level": "Intermediate",
-        "category": "Risk Management",
+        "category": riskManagement,
         "steps": [
             "Decide a profit threshold (e.g. +20% above average cost) and a harvest fraction (e.g. sell 25% of the position)",
             "Set a price alert or conditional order at the threshold",
@@ -416,9 +417,9 @@ qte_question_data = [
 # ---------------------------------------------------------------------------
 tech_tree_data = [
     {"name": "Market Basics",      "cost": 0,   "prerequisites": [],                     "unlocks": ["Order Types"]},
-    {"name": "Order Types",        "cost": 100, "prerequisites": ["Market Basics"],      "unlocks": ["Risk Management"]},
-    {"name": "Risk Management",    "cost": 250, "prerequisites": ["Order Types"],        "unlocks": ["Technical Analysis"]},
-    {"name": "Technical Analysis", "cost": 400, "prerequisites": ["Risk Management"],    "unlocks": ["Options Trading"]},
+    {"name": "Order Types",        "cost": 100, "prerequisites": ["Market Basics"],      "unlocks": [riskManagement]},
+    {"name": riskManagement,    "cost": 250, "prerequisites": ["Order Types"],        "unlocks": ["Technical Analysis"]},
+    {"name": "Technical Analysis", "cost": 400, "prerequisites": [riskManagement],    "unlocks": ["Options Trading"]},
     {"name": "Options Trading",    "cost": 800, "prerequisites": ["Technical Analysis"], "unlocks": []},
 ]
 
