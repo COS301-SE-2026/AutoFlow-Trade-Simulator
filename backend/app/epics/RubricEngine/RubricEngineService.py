@@ -397,7 +397,6 @@ class RubricEngineService:
         harvested_pct = float(total_sell_proceeds / initial_balance * 100) if initial_balance > 0 else 0.0
 
         return {
-            "sell_count": len(sell_amounts),
             "sell_interval_cv": self._coefficient_of_variation(intervals) if intervals else None,
             "sell_amount_cv": self._coefficient_of_variation(sell_amounts) if len(sell_amounts) >= 2 else None,
             "sell_schedule_coverage_pct": coverage_pct,
