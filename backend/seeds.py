@@ -284,6 +284,31 @@ strategy_data = [
                  "Still exposed to full downside",
                  "Requires options approval and capital"],
     },
+        {
+        "name": "Income Harvesting",
+        "description": "Systematically sell a portion of a winning position once it reaches a predefined profit target, converting unrealised gains into realised cash flow without abandoning the position entirely.",
+        "level": "Intermediate",
+        "category": "Risk Management",
+        "steps": [
+            "Decide a profit threshold (e.g. +20% above average cost) and a harvest fraction (e.g. sell 25% of the position)",
+            "Set a price alert or conditional order at the threshold",
+            "When triggered, sell only the harvest fraction — keep the remainder open",
+            "Reset the threshold to the new average cost and repeat each time it is reached",
+            "Review periodically and tighten the threshold as the position matures",
+        ],
+        "pros": [
+            "Locks in gains without needing to time the top",
+            "Frees up cash for redeployment or diversification",
+            "Reduces concentration risk as the position grows",
+            "Mechanical rules remove emotion from the exit decision",
+        ],
+        "cons": [
+            "Caps upside if the asset keeps running",
+            "Repeated partial sells increase transaction costs",
+            "Requires disciplined record-keeping of average cost",
+            "Works poorly in choppy markets where price oscillates around the threshold",
+        ],
+    },
 ]
 
 
