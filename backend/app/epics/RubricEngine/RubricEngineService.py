@@ -10,6 +10,7 @@ from .mean_reversion_strategy import MeanReversionStrategy
 from .momentum_strategy import MomentumStrategy
 from .systematic_profit_taking_strategy import SystematicProfitTakingStrategy
 from .dollar_cost_averaging_strategy import DollarCostAveragingStrategy
+from .buy_and_hold_strategy import BuyAndHoldStrategy
 
 from typing import Any, Dict, List, Optional, Tuple
 from ...models.daily_OHLCV import DailyOHLCV
@@ -29,14 +30,15 @@ GRADE_TO_RUBRIC_SCORE: Dict[Grade, int] = {
     Grade.F: 0
 }
 
+
 class RubricEngineService:
     strategies: Dict[str, BaseRubricStrategy] = {
-        "mean_reversion": MeanReversionStrategy(),
+        "buy_and_hold": BuyAndHoldStrategy(),
+        "dca": DollarCostAveragingStrategy(),
         "momentum": MomentumStrategy(),
-        "profit_taking": SystematicProfitTakingStrategy()
+        "profit_taking": SystematicProfitTakingStrategy(),
         "mean_reversion": MeanReversionStrategy(),
-        "dollar_cost_averaging": DollarCostAveragingStrategy(),
-        "dca": DollarCostAveragingStrategy()
+        "covered_call": SystematicProfitTakingStrategy(),
     }
 
     def __init__(self, session: Session):

@@ -3,7 +3,6 @@ from .RubricEngineDTO import (
     CategoryScoreDTO,
     EvaluationResultDTO,
     ExecutionMetricDTO,
-    Grade,
 )
 
 
@@ -25,14 +24,14 @@ class BuyAndHoldStrategy(BaseRubricStrategy):
             + hold_score * 0.20
             + risk_score * 0.15,
             2,
-        )
+            )
 
         if metrics.total_trades == 0:
             final_score = 0.0
             trade_fb += " [SCORE ZEROED]: No trades were executed."
 
         grade = self._compute_grade(final_score)
-        passed = final_score >= 60.0
+        passed = self._compute_passed(final_score)
 
         return EvaluationResultDTO(
             passed=passed,
@@ -153,12 +152,3 @@ class BuyAndHoldStrategy(BaseRubricStrategy):
             f"Drawdown of {dd:.2f}% is extreme. Buy-and-hold does not justify "
             f"this level of downside - sizing or leverage is off."
         )
-
-    def _compute_grade(self, score: float) -> Grade:
-        if score >= 90.0: return Grade.S
-        if score >= 80.0: return Grade.A
-        if score >= 70.0: return Grade.B
-        if score >= 60.0: return Grade.C
-        if score >= 50.0: return Grade.D
-        if score >= 40.0: return Grade.E
-        return Grade.F

@@ -87,7 +87,7 @@ class DollarCostAveragingStrategy(BaseRubricStrategy):
             schedule_fb += f" [SCORE CAPPED]: Buys must be spread over at least 2 different days. Raw score was {acc_score}."
 
         grade = self._compute_grade(final_score)
-        passed = final_score >= 60.0
+        passed = self._compute_passed(final_score)
 
         return EvaluationResultDTO(
             passed=passed,
