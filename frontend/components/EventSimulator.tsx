@@ -806,16 +806,20 @@ export function EventSimulator({
 
                     <div className='rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-4'>
                         <h3 className='mb-3 text-sm font-semibold'>History</h3>
-                        {trades.length === 0 ? <p className='text-xs text-white/45'>No trades</p> : (
-                            <ul className='flex max-h-48 flex-col gap-1.5 overflow-y-auto'>
-                                {[...trades].reverse().map((t, i) => (
-                                    <li key={"n" + i} className='flex items-center gap-2'>
-                                        <span aria-hidden='true' className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${t.type === 'buy' ? 'bg-[rgba(0,148,68,0.15)] text-[var(--green-light)]' : 'bg-[rgba(247,148,29,0.15)] text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
-                                        <span className='tabular-nums text-xs text-white/75'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <div className='h-48 overflow-y-auto pr-1'>
+                            {trades.length === 0 ? (
+                                <p className='text-xs text-white/45'>No trades</p>
+                            ) : (
+                                <ul className='flex flex-col gap-1.5'>
+                                    {[...trades].reverse().map((t, i) => (
+                                        <li key={"n" + i} className='flex items-center gap-2'>
+                                            <span aria-hidden='true' className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${t.type === 'buy' ? 'bg-[rgba(0,148,68,0.15)] text-[var(--green-light)]' : 'bg-[rgba(247,148,29,0.15)] text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
+                                            <span className='tabular-nums text-xs text-white/75'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
