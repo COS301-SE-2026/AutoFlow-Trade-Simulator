@@ -21,7 +21,7 @@ import { useNews } from '@/hooks/useNews';
 import { ScrollableChart } from '@/components/ScrollableChart';
 import { useUnlockedGreeks } from '@/hooks/useUnlockedGreeks';
 import {NewsTicker} from "@/components/news/newsScroll";
-import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS } from '@/lib/strategyTutorials';
+import { STRATEGY_TUTORIALS, MOCK_AAPL_BARS, type StrategyTutorialKey } from '@/lib/strategyTutorials';
 import { driver, type Driver } from 'driver.js';
 import 'driver.js/dist/driver.css'
 
@@ -73,16 +73,18 @@ const CustomTooltip = ({ active, payload }: any) => {
     return null;
 };
 
-const INTERACTION_STEPS = ['tut-play', 'tut-qty', 'tut-buy', 'tut-skip'];
+const INTERACTION_STEPS = ['tut-play', 'tut-qty', 'tut-buy', 'tut-sell', 'tut-skip'];
 
 export function EventSimulator({ 
     event,
     mode = 'event',
+    strategyKey = 'dca',
     onBack,
     onTutorialComplete,
 }: Readonly<{ 
     event: EventDefinition;
     mode?: 'event' | 'strategy';
+    strategyKey?: StrategyTutorialKey;
     onBack: () => void;
     onTutorialComplete?: () => void;
 }>) {
@@ -104,7 +106,7 @@ export function EventSimulator({
 
     const isStrategy = mode === 'strategy';
 
-    const tutorial = isStrategy ? STRATEGY_TUTORIALS.dca : null;
+    const tutorial = isStrategy ? (STRATEGY_TUTORIALS[strategyKey] ?? null) : null;
     const [stepIndex, setStepIndex] = useState(0);
     const step = tutorial?.steps[stepIndex];
 
@@ -175,34 +177,8 @@ export function EventSimulator({
     }, [isStrategy, tutorial, simData, pendingTrade]);
 
     const prevQty = useRef(qty);
-
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-qty' && qty !== prevQty.current 
-            && Number.parseFloat(qty) >= 1) {
-            advanceStep();
-        }
-        prevQty.current = qty;
-    }, [qty, step, advanceStep]);
-
     const prevTradesLength = useRef(trades.length);
-
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-buy' && trades.length > prevTradesLength.current) {
-            advanceStep();
-        }
-        prevTradesLength.current = trades.length;
-    }, [trades.length, step, advanceStep]);
-
     const prevDayIndex = useRef(dayIndex);
-    useEffect(() => {
-        if (!step) return;
-        if (step.elementId === 'tut-skip' && dayIndex !== prevDayIndex.current) {
-            advanceStep();
-        }
-        prevDayIndex.current = dayIndex;
-    }, [dayIndex, step, advanceStep]);
 
     useEffect(() => {
         if (!step) return;
@@ -218,6 +194,10 @@ export function EventSimulator({
                     advanceStep();
                 }
                 break;
+            case 'tut-sell':
+                if (trades.length > prevTradesLength.current) {
+                    advanceStep();
+                }
             case 'tut-skip':
                 if (dayIndex !== prevDayIndex.current) {
                     advanceStep();
@@ -227,7 +207,7 @@ export function EventSimulator({
 
         prevQty.current = qty;
         prevTradesLength.current = trades.length;
-        prevDayIndex.current = dayIndex
+        prevDayIndex.current = dayIndex;
     }, [qty, trades.length, dayIndex, step, advanceStep]);
 
     useEffect(() => {
@@ -240,7 +220,10 @@ export function EventSimulator({
 
     useEffect(() => {
         if (!step) return;
-        const isFocusStep = step.elementId === 'tut-qty' || step.elementId === 'tut-buy';
+        const isFocusStep = 
+            step.elementId === 'tut-qty' || 
+            step.elementId === 'tut-buy' || 
+            step.elementId === 'tut-sell';
 
         if (isFocusStep && isPlaying) {
             setIsPlaying(false);
@@ -523,7 +506,7 @@ export function EventSimulator({
                 <div className='w-full max-w-xl rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.85)] p-8'>
                     <div className='mb-6 text-center'>
                         <h2 className='text-2xl font-semibold'>Simulation Finished</h2>
-                        <p className='mt-1 text-sm text-[var(--muted)]'>{event.title}</p>
+                        <p className='mt-1 text-sm text-[var(--muted)]'>{tutorial?.title ?? event.title}</p>
                     </div>
                     <dl className='mb-8 grid grid-cols-2 gap-3'>
                         <div className='rounded-xl border border-[var(--border)] bg-white/[0.02] p-4'>
@@ -571,7 +554,7 @@ export function EventSimulator({
                         <span>Back</span>
                     </button>
                     <span className='rounded-md bg-[rgba(28,117,188,0.15)] px-2 py-0.5 font-mono text-sm font-semibold text-[#6fb4ea]' translate='no'>{event.ticker}</span>
-                    <h2 className='truncate font-semibold'>{event.title}</h2>
+                    <h2 className='truncate font-semibold'>{tutorial?.title ?? event.title}</h2>
                 </div>
                 <div className='flex flex-wrap items-center gap-2'>
                     <button
@@ -763,6 +746,7 @@ export function EventSimulator({
                                 Buy
                             </button>
                             <button
+                                id='tut-sell'
                                 type='button'
                                 className='h-10 flex-1 rounded-lg bg-[#d4262d] text-sm font-semibold text-white transition-[background-color,transform] hover:bg-[var(--red)] active:scale-[0.98]'
                                 onClick={() => setPendingTrade({ type: 'sell' })}
@@ -822,16 +806,20 @@ export function EventSimulator({
 
                     <div className='rounded-2xl border border-[var(--border)] bg-[rgba(14,14,22,0.75)] p-4'>
                         <h3 className='mb-3 text-sm font-semibold'>History</h3>
-                        {trades.length === 0 ? <p className='text-xs text-white/45'>No trades</p> : (
-                            <ul className='flex max-h-48 flex-col gap-1.5 overflow-y-auto'>
-                                {[...trades].reverse().map((t, i) => (
-                                    <li key={"n" + i} className='flex items-center gap-2'>
-                                        <span aria-hidden='true' className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${t.type === 'buy' ? 'bg-[rgba(0,148,68,0.15)] text-[var(--green-light)]' : 'bg-[rgba(247,148,29,0.15)] text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
-                                        <span className='tabular-nums text-xs text-white/75'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <div className='h-48 overflow-y-auto pr-1'>
+                            {trades.length === 0 ? (
+                                <p className='text-xs text-white/45'>No trades</p>
+                            ) : (
+                                <ul className='flex flex-col gap-1.5'>
+                                    {[...trades].reverse().map((t, i) => (
+                                        <li key={"n" + i} className='flex items-center gap-2'>
+                                            <span aria-hidden='true' className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${t.type === 'buy' ? 'bg-[rgba(0,148,68,0.15)] text-[var(--green-light)]' : 'bg-[rgba(247,148,29,0.15)] text-[var(--orange)]'}`} >{t.type === 'buy' ? '↑' : '↓'}</span>
+                                            <span className='tabular-nums text-xs text-white/75'>{t.type.toUpperCase()} {t.qty} @ R{Number.parseFloat(t.price).toFixed(2)} ON {t.date}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

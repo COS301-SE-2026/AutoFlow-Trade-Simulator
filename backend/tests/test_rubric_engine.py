@@ -92,7 +92,7 @@ def test_process_fifo_trades_single_buy_sell(rubric_service):
         created_at=t2
     )
 
-    win_rate, avg_holding = rubric_service._process_fifo_trades([buy_event, sell_event])
+    win_rate, avg_holding, _, _ = rubric_service._process_fifo_trades([buy_event, sell_event])
 
     assert win_rate == 1.0
     assert avg_holding == 300.0
@@ -104,7 +104,7 @@ def test_process_fifo_trades_partial_fills_and_loss(rubric_service):
     buy_event = MagicMock(event_type="buy", payload={"qty": 10, "price": 100}, created_at=t0)
     sell_event = MagicMock(event_type="sell", payload={"qty": 5, "price": 80}, created_at=t1)
 
-    win_rate, avg_holding = rubric_service._process_fifo_trades([buy_event, sell_event])
+    win_rate, avg_holding, _, _ = rubric_service._process_fifo_trades([buy_event, sell_event])
 
     assert win_rate == 0.0
     assert avg_holding == 600.0

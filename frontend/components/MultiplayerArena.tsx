@@ -11,7 +11,6 @@ import {
     Tooltip,
 } from 'recharts';
 import { MoveLeft, TrendingUp, TrendingDown, Minus, Plus, Timer, CheckCircle2, XCircle, Lock } from 'lucide-react';
-import TradeConfirmModal from './TradeConfirmModal';
 import { ScrollableChart } from '@/components/ScrollableChart';
 import type { UseMultiplayerMatch } from '@/hooks/useMultiplayerMatch';
 
@@ -56,11 +55,11 @@ function QteCountdown({ seconds, dayIndex }: { seconds: number; dayIndex: number
 }
 
 export function MultiplayerArena({
-    m,
-    onBack,
-    myUserId = null,
-    opponentLabel = 'Opponent',
-}: Readonly<{
+                                     m,
+                                     onBack,
+                                     myUserId = null,
+                                     opponentLabel = 'Opponent',
+                                 }: Readonly<{
     m: UseMultiplayerMatch;
     onBack: () => void;
     myUserId?: number | null;
@@ -68,7 +67,6 @@ export function MultiplayerArena({
 }>) {
     const gradId = useId().replace(/:/g, '');
 
-    const [pendingTrade, setPendingTrade] = useState<{ type: 'buy' | 'sell' } | null>(null);
     const [qty, setQty] = useState('1');
     const [confirmLeave, setConfirmLeave] = useState(false);
 
@@ -104,7 +102,6 @@ export function MultiplayerArena({
     const opponentValue = day.opponent_cash_balance + day.opponent_position_qty * currentPrice;
     const opponentProfit = opponentValue - start;
     const leading = totalProfit >= opponentProfit;
-    // 50% when tied; slides toward whoever is further ahead
     const spread = Math.abs(totalProfit) + Math.abs(opponentProfit) || 1;
     const myShare = 50 + 50 * ((totalProfit - opponentProfit) / spread);
 
@@ -121,18 +118,18 @@ export function MultiplayerArena({
     const lastResult = m.lastQteResult;
     const myOutcome = lastResult && myUserId !== null ? lastResult.per_player[String(myUserId)] : undefined;
 
+    const lastTrade = m.myTrades[m.myTrades.length - 1];
+    const hasCurrentDayTrade = !!lastTrade && lastTrade.day_index === day.day_index;
+
     const step = (delta: number) => setQty(String(Math.max(1, Math.floor(qtyNum) + delta)));
 
-    const handleConfirm = () => {
-        if (!pendingTrade) {
-            return;
-        }
-        if (pendingTrade.type === 'buy') {
-            m.buy(qtyNum);
-        } else {
-            m.sell(qtyNum);
-        }
-        setPendingTrade(null);
+    const handleTrade = (side: 'buy' | 'sell') => {
+        if (settled) return;
+        if (qtyNum <= 0) return;
+        if (side === 'buy' && qtyNum > maxBuy) return;
+        if (side === 'sell' && qtyNum > maxSell) return;
+        if (side === 'buy') m.buy(qtyNum);
+        else m.sell(qtyNum);
     };
 
     const tradeBtn = 'h-10 flex-1 rounded-lg text-sm font-semibold text-white transition-[background-color,transform,opacity] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100';
@@ -281,9 +278,31 @@ export function MultiplayerArena({
                     <div className={PANEL}>
                         <div className='tabular-nums mb-3 text-sm font-semibold'>Trade at {money(currentPrice)} / sh</div>
                         {settled ? (
-                            <div className='flex items-start gap-2 rounded-lg bg-white/[0.04] px-3 py-3 text-sm text-white/75'>
-                                <Lock aria-hidden='true' className='mt-0.5 h-4 w-4 shrink-0 text-white/50' />
-                                <span>Your move is locked in for today. Waiting for the next day…</span>
+                            <div className='flex flex-col gap-2 rounded-lg bg-white/[0.04] px-3 py-3 text-sm'>
+                                {!hasCurrentDayTrade && !m.error && (
+                                    <div className='flex items-center gap-2 text-white/75'>
+                                        <span className='h-1.5 w-1.5 rounded-full bg-white/50 motion-safe:animate-pulse' aria-hidden='true' />
+                                        <span>Processing order…</span>
+                                    </div>
+                                )}
+                                {hasCurrentDayTrade && lastTrade && (
+                                    <div className='flex items-start gap-2 text-[var(--green-light)]'>
+                                        <CheckCircle2 aria-hidden='true' className='mt-0.5 h-4 w-4 shrink-0' />
+                                        <span>
+                                            {lastTrade.action === 'buy' ? 'Bought' : 'Sold'} {lastTrade.qty} @ {money(lastTrade.price)}
+                                        </span>
+                                    </div>
+                                )}
+                                {m.error && (
+                                    <div className='flex items-start gap-2 text-[#ff6b72]'>
+                                        <XCircle aria-hidden='true' className='mt-0.5 h-4 w-4 shrink-0' />
+                                        <span>{m.error}</span>
+                                    </div>
+                                )}
+                                <p className='flex items-center gap-1.5 text-xs text-white/45'>
+                                    <Lock aria-hidden='true' className='h-3 w-3' />
+                                    Waiting for the next day…
+                                </p>
                             </div>
                         ) : (
                             <>
@@ -328,7 +347,7 @@ export function MultiplayerArena({
                                         disabled={qtyNum > maxBuy}
                                         title={qtyNum > maxBuy ? 'Not enough cash' : undefined}
                                         className={`${tradeBtn} bg-[var(--green)] hover:bg-[#00a84e]`}
-                                        onClick={() => setPendingTrade({ type: 'buy' })}
+                                        onClick={() => handleTrade('buy')}
                                     >
                                         Buy
                                     </button>
@@ -337,28 +356,13 @@ export function MultiplayerArena({
                                         disabled={qtyNum > maxSell}
                                         title={qtyNum > maxSell ? 'Not enough shares' : undefined}
                                         className={`${tradeBtn} bg-[#d4262d] hover:bg-[var(--red)]`}
-                                        onClick={() => setPendingTrade({ type: 'sell' })}
+                                        onClick={() => handleTrade('sell')}
                                     >
                                         Sell
                                     </button>
                                 </div>
                                 <p className='mt-2 text-[11px] text-white/40'>One move per day. If you don&apos;t act, you hold.</p>
                             </>
-                        )}
-                        {m.error && (
-                            <div role='alert' className='mt-3 rounded-lg bg-[rgba(237,28,36,0.1)] px-3 py-2 text-xs text-[#ff6b72]'>
-                                {m.error}
-                            </div>
-                        )}
-                        {pendingTrade && (
-                            <TradeConfirmModal
-                                side={pendingTrade.type}
-                                quantity={qtyNum}
-                                price={currentPrice}
-                                onConfirm={handleConfirm}
-                                onCancel={() => setPendingTrade(null)}
-                                orderType='market'
-                            />
                         )}
                     </div>
 
@@ -395,22 +399,24 @@ export function MultiplayerArena({
 
                     <div className={PANEL}>
                         <h3 className='mb-2 text-sm font-semibold'>Your trades</h3>
-                        {m.myTrades.length === 0 ? (
-                            <p className='text-xs text-white/45'>No trades yet</p>
-                        ) : (
-                            <ul className='flex max-h-40 flex-col gap-1.5 overflow-y-auto'>
-                                {[...m.myTrades].reverse().map((t, i) => (
-                                    <li key={`${t.day_index}-${i}`} className='flex items-center gap-2'>
-                                        <span aria-hidden='true' className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${t.action === 'buy' ? 'bg-[rgba(0,148,68,0.15)] text-[var(--green-light)]' : 'bg-[rgba(237,28,36,0.15)] text-[#ff6b72]'}`}>
-                                            {t.action === 'buy' ? '↑' : '↓'}
-                                        </span>
-                                        <span className='tabular-nums text-xs text-white/75'>
-                                            {t.action.toUpperCase()} {t.qty} @ {money(t.price)} · Day {t.day_index + 1}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <div className='h-40 overflow-y-auto pr-1'>
+                            {m.myTrades.length === 0 ? (
+                                <p className='text-xs text-white/45'>No trades yet</p>
+                            ) : (
+                                <ul className='flex flex-col gap-1.5'>
+                                    {[...m.myTrades].reverse().map((t, i) => (
+                                        <li key={`${t.day_index}-${i}`} className='flex items-center gap-2'>
+                                            <span aria-hidden='true' className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${t.action === 'buy' ? 'bg-[rgba(0,148,68,0.15)] text-[var(--green-light)]' : 'bg-[rgba(237,28,36,0.15)] text-[#ff6b72]'}`}>
+                                                {t.action === 'buy' ? '↑' : '↓'}
+                                            </span>
+                                            <span className='tabular-nums text-xs text-white/75'>
+                                                {t.action.toUpperCase()} {t.qty} @ {money(t.price)} · Day {t.day_index + 1}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

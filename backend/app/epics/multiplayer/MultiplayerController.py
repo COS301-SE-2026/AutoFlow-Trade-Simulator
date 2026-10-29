@@ -1,13 +1,13 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, WebSocketException, status
 from sqlmodel import Session
 
 from ...core.security import get_current_user_ws
 from ...database import engine
 from ...models.user import User
-from .MultiplayerDTOs import ErrorMessage
+from .MultiplayerDTOs import ErrorMessage, QueuedMessage
 from .MultiplayerService import MultiplayerService
 
 logger = logging.getLogger(__name__)
@@ -23,17 +23,25 @@ def get_multiplayer_service() -> MultiplayerService:
 
 @router.websocket("/ws")
 async def open_socket(
-    socket: WebSocket,
-    service: Annotated[MultiplayerService, Depends(get_multiplayer_service)],
-    current_user: User = Depends(get_current_user_ws),
+        socket: WebSocket,
+        service: Annotated[MultiplayerService, Depends(get_multiplayer_service)],
+        current_user: User = Depends(get_current_user_ws),
 ):
-    connection = await service.connect(socket, current_user.id)
+    user_id = current_user.id
+    if user_id is None:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+
+    connection = await service.connect(socket, user_id)
     try:
-        existing = service.find_active_match_for_user(current_user.id)
+        existing = service.find_active_match_for_user(user_id)
         if existing is not None:
             connection.match_id = existing.match_id
-            existing.rebind_socket(current_user.id, socket)
+            await existing.rebind_socket(user_id, socket)
         else:
+            try:
+                await socket.send_text(QueuedMessage().model_dump_json())
+            except Exception:
+                logger.exception("Failed to send queued ack to user %s", user_id)
             await service.find_match(connection)
 
         while True:
@@ -42,11 +50,11 @@ async def open_socket(
             if match is None:
                 continue
             try:
-                await match.handle_client_message(current_user.id, data)
+                await match.handle_client_message(user_id, data)
             except WebSocketDisconnect:
                 raise
             except Exception:
-                logger.exception("Failed handling message from user %s", current_user.id)
+                logger.exception("Failed handling message from user %s", user_id)
                 await socket.send_text(ErrorMessage(detail="internal error handling message").model_dump_json())
     except WebSocketDisconnect:
-        await service.disconnect(current_user.id)
+        await service.disconnect(user_id, socket)

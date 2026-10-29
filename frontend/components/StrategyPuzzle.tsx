@@ -438,15 +438,23 @@ export function StrategyPuzzle({
                     </div>
 
                     <div className='rounded-xl border border-[var(--border)] bg-[var(--background)] p-3'>
-                        History
-                        {trades.length === 0 ? <p>No trades</p> : [...trades].reverse().map((t, i) => (
-                            <div key={"n" + i} className='flex items-center gap-2 mb-1'>
-                                <span className={`font-bold ${t.action === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`} >{t.action === 'buy' ? '↑' : '↓'}</span>
-                                <span className='text-xs'>{t.action.toUpperCase()} {t.qty} @ R{Number(t.price).toFixed(2)} ON Day {t.dayIndex + 1}</span>
-                            </div>
-                        ))
-
-                        }
+                        <h3 className='mb-2 text-sm font-semibold'>History</h3>
+                        <div className='h-40 overflow-y-auto pr-1'>
+                            {trades.length === 0 ? (
+                                <p className='text-xs text-white/45'>No trades</p>
+                            ) : (
+                                <div className='flex flex-col gap-1.5'>
+                                    {[...trades].reverse().map((t, i) => (
+                                        <div key={"n" + i} className='flex items-center gap-2'>
+                                            <span className={`font-bold ${t.action === 'buy' ? 'text-[var(--green)]' : 'text-[var(--orange)]'}`}>{t.action === 'buy' ? '↑' : '↓'}</span>
+                                            <span className='text-xs'>
+                            {t.action.toUpperCase()} {t.qty} @ R{Number(t.price).toFixed(2)} ON Day {t.dayIndex + 1}
+                        </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                     {submitError && (
                         <div className='text-xs text-[var(--red)] text-center'>

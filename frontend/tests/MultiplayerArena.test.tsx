@@ -43,16 +43,6 @@ beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 600 });
 });
 
-jest.mock('../components/TradeConfirmModal', () => ({
-    __esModule: true,
-    default: ({ onConfirm, onCancel }: any) => (
-        <div>
-            <button onClick={onConfirm}>confirm</button>
-            <button onClick={onCancel}>cancel</button>
-        </div>
-    ),
-}));
-
 describe('MultiplayerArena', () => {
     it('renders nothing when day or match is missing', () => {
         const { container } = render(
@@ -98,19 +88,19 @@ describe('MultiplayerArena', () => {
         expect(m.answerQte).toHaveBeenCalledWith('A');
     });
 
-    it('opens the trade confirm modal and calls buy on confirm', () => {
+    it('calls buy with the entered quantity when Buy is clicked', () => {
         const m = makeMatch();
         render(<MultiplayerArena m={m} onBack={jest.fn()} />);
 
         fireEvent.click(screen.getByRole('button', { name: 'Buy' }));
-        fireEvent.click(screen.getByRole('button', { name: 'confirm' }));
 
-        expect(m.buy).toHaveBeenCalled();
+        expect(m.buy).toHaveBeenCalledWith(1);
     });
 
     it('shows the locked-in panel when the move is settled', () => {
         render(<MultiplayerArena m={makeMatch({ actionSettled: true } as any)} onBack={jest.fn()} />);
-        expect(screen.getByText(/move is locked in/i)).toBeInTheDocument();
+        expect(screen.getByText(/processing order/i)).toBeInTheDocument();
+        expect(screen.getByText(/waiting for the next day/i)).toBeInTheDocument();
     });
 
     it('shows the leave confirmation, and calls onBack when confirmed', () => {

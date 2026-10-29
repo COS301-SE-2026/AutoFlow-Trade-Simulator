@@ -7,59 +7,229 @@ export interface TutorialStep {
 }
 
 export interface TutorialDef {
+    title: string;
     scenario: string;
     steps: TutorialStep[];
 }
 
+const playStep = (instruction: string): TutorialStep => ({
+    title: "Press Play",
+    instruction,
+    elementId: "tut-play",
+    hint: "Click the Play button",
+});
+
+const chartStep = (title: string, instruction: string): TutorialStep => ({
+    title,
+    instruction,
+    elementId: "tut-chart",
+    needsClick: true,
+});
+
+const qtyStep = (title: string, instruction: string): TutorialStep => ({
+    title,
+    instruction,
+    elementId: "tut-qty",
+    hint: "Change the quantity to continue",
+});
+
+const buyStep = (
+    title: string,
+    instruction: string,
+    overrides: Partial<TutorialStep> = {},
+): TutorialStep => ({
+    title,
+    instruction,
+    elementId: "tut-buy",
+    hint: "Click the Buy button",
+    ...overrides,
+});
+
+const sellStep = (
+    title: string,
+    instruction: string,
+    overrides: Partial<TutorialStep> = {},
+): TutorialStep => ({
+    title,
+    instruction,
+    elementId: "tut-sell",
+    hint: "Click the Sell button",
+    ...overrides,
+});
+
+const skipStep = (title: string, instruction: string): TutorialStep => ({
+    title,
+    instruction,
+    elementId: "tut-skip",
+    hint: "Click Skip Forward",
+});
+
+const wrapUpStep = (instruction: string): TutorialStep => ({
+    title: "Wrap Up",
+    instruction,
+    elementId: "tut-finish",
+    needsClick: true,
+});
+
+export type StrategyTutorialKey = keyof typeof STRATEGY_TUTORIALS;
+
 export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
     dca: {
+        title: "Dollar Cost Averaging Strategy Tutorial",
         scenario: "You have R2,000/month to invest and want to build a long-term AAPL position without trying to time the market.",
-    steps: [
-        { 
-            title: "Press Play",
-            instruction: "Start the replay. Each tick is one trading day of SHN.",
-            elementId: "tut-play",
-            hint: "Click the Play button",
-        },
-        {
-            title: "Watch the Price", 
-            instruction: "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
-            elementId: "tut-chart",
-            needsClick: true,
-        },
-        {
-            title: "Choose Quantity", 
-            instruction: "DCA uses a fixed rand amount each period. Because price changes, share count varies. Enter 10 shares for this purchase.",
-            elementId: "tut-qty",
-            hint: "Change the quantity to continue",
-        },
-        {
-            title: "Place Your Purchase", 
-            instruction: "Click Buy. This is your scheduled purchase - same time, same amount, every period.",
-            elementId: "tut-buy",
-            hint: "Click the Buy button",
-        },
-        {
-            title: "See Your Position", 
-            instruction: "Your cash drops, your shares rise. This is what disciplined accumulation looks like.",
-            elementId: "tut-chart",
-            needsClick: true,
-        },
-        {
-            title: "Advance Time", 
-            instruction: "Skip forward to your next buy window and repeat the process.",
-            elementId: "tut-skip",
-            hint: "Click Skip Forward",
-        },
-        {
-            title: "Wrap Up", 
-            instruction: "That's DCA. Consistent purchases, no market timing, compounding over time.",
-            elementId: "tut-finish",
-            needsClick: true,
-        },
-    ],
-},
-}
+        steps: [
+            playStep("Start the replay. Each tick is one trading day of SHN."),
+            chartStep(
+                "Watch the Price",
+                "Enter the fixed rand amount you will invest every period. R2,000/month deployed consistently beats attempting to time dips - the math is on your side.",
+            ),
+            qtyStep(
+                "Choose Quantity",
+                "DCA uses a fixed rand amount each period. Because price changes, share count varies. Enter 10 shares for this purchase.",
+            ),
+            buyStep(
+                "Place Your Purchase",
+                "Click Buy. This is your scheduled purchase - same time, same amount, every period.",
+            ),
+            chartStep(
+                "See Your Position",
+                "Your cash drops, your shares rise. This is what disciplined accumulation looks like.",
+            ),
+            skipStep(
+                "Advance Time",
+                "Skip forward to your next buy window and repeat the process.",
+            ),
+            wrapUpStep(
+                "That's DCA. Consistent purchases, no market timing, compounding over time.",
+            ),
+        ],
+    },
+    buy_and_hold: {
+        title: "Buy and Hold Strategy Tutorial",
+        scenario: "You've decided to invest into TSLA and hold. No timing the bottom, no selling on dips, no chasing rallies. You buy once and let time in the market do the work.",
+        steps: [
+            playStep("Start the replay. Each tick is one trading day of JSE stock data."),
+            chartStep(
+                "Watch the Price",
+                "Buy and hold begins with a single decision: get in. You're not trying to pick the perfect entry - the whole premise is that you won't out-time the market.",
+            ),
+            qtyStep(
+                "Size Your Position",
+                "Unlike Dollar Cost Averaging, you commit your whole position at once. Enter 10 shares for this lump sum",
+            ),
+            buyStep(
+                "Place Your Purchase",
+                "Click Buy. This is your one entry - there is no second tranche, no averaging in later.",
+                { needsClick: true, hint: undefined },
+            ),
+            chartStep(
+                "See Your Position",
+                "Cash drops, shares rise. From here on, you're a holder, not a trader.",
+            ),
+            skipStep(
+                "Resist the Urge",
+                "Skip ahead. The price will move both ways - that's noise. Buy and Hold means doing nothing until your horizon ends.",
+            ),
+            wrapUpStep(
+                "That's Buy and Hold. One purchase, then patience through the noise. Compounding handles the rest.",
+            ),
+        ],
+    },
+    momentum: {
+        title: "Momentum Trading Strategy Tutorial",
+        scenario: "A stock is in a clear uptrend. You want to ride the momentum, then exit when the trend shows signs of reversing.",
+        steps: [
+            playStep("Start the replay. Watch for a sustained directional move - that's momentum."),
+            chartStep(
+                "Spot the Trend",
+                "Momentum traders look for sustained directional moves - higher highs and higher lows in an uptrend. Don't chase a single candle. Wait for the trend to confirm itself.",
+            ),
+            qtyStep(
+                "Size the Entry",
+                "Enter 10 shares. Position sizing matters - enough on the table to matter, not so much that one reversal wipes you out.",
+            ),
+            buyStep(
+                "Ride the Trend",
+                "Click Buy. You're entering in the direction of the trend - not against it. Moment traders never fight the tape.",
+            ),
+            skipStep(
+                "Let It Run",
+                "Skip forward. Momentum doesn't pay in a day. You hold while the trend holds - no scalping, no panic-selling on every decline.",
+            ),
+            sellStep(
+                "Exit on Reversal",
+                "Sell your position. The trend is fading - holding any longer is hope, not strategy. Cut the trade the moment momentum is gone.",
+            ),
+            wrapUpStep(
+                "That's momentum trading. Enter with the trend, hold it while it runs, exit when it reverses. Discipline is the edge.",
+            ),
+        ],
+    },
+    mean_reversion: {
+        title: "Mean Reversion Strategy Tutorial",
+        scenario: "A stock has jumped sharply above its recent average. Mean-reversion traders bet that price will snap back toward the average — not that it will keep running.",
+        steps: [
+            playStep("Start the replay. Watch how price drifts away from its recent average — that deviation is what mean reversion trades."),
+            chartStep(
+                "Spot the Stretch",
+                "Price has pushed well above its recent average. In a ranging market, extremes like this tend to pull back. Traders measure the stretch with a z-score or Bollinger Bands — anything well outside the normal range is a candidate.",
+            ),
+            qtyStep(
+                "Size the Entry",
+                "Enter 10 shares. In mean reversion you size smaller than a trend trader would — the setup fails hard when the market is trending, so the position must be survivable.",
+            ),
+            buyStep(
+                "Fade the Extreme",
+                "Click Buy. You're betting the price falls back toward the mean, so you enter against the recent move. This is the opposite of momentum — you're the contrarian in the room.",
+            ),
+            skipStep(
+                "Let the Snapback Play Out",
+                "Skip forward. The trade needs time for price to drift back. Don't bail on the first wiggle — the thesis is the return to the mean, not a quick scalp.",
+            ),
+            sellStep(
+                "Exit at the Mean",
+                "Sell your position. Price has returned toward the average — that's the target. Take the profit. Holding for more turns a mean-reversion trade into a trend bet you didn't plan for.",
+            ),
+            wrapUpStep(
+                "That's mean reversion. Enter when price is stretched, exit when it returns. The strategy has a high win rate but rare large losses — the discipline is cutting the losers before the deviation gets bigger, not holding and hoping.",
+            ),
+        ],
+    },
+    profit_taking: {
+        title: "Systematic Profit Taking Strategy Tutorial",
+        scenario: "You own a position that has run up nicely. Instead of guessing the top, you sell a fraction of it — locking in some profit while keeping the rest exposed. Then you reset the threshold and do it again as the price rises.",
+        steps: [
+            playStep(
+                "Start the replay. You're going to buy a position, watch it climb, and sell it down in pieces as it hits profit targets. The point isn't to catch the top — it's to take profit on the way up, systematically.",
+            ),
+            buyStep(
+                "Take the Position",
+                "Buy a position — say 100 shares. This is the holding you'll harvest from. The bigger the position, the more meaningful each partial sell becomes.",
+                { hint: "Buy 100 shares" },
+            ),
+            chartStep(
+                "Pick Your Threshold",
+                "Decide a profit threshold before you trade — for example, sell 25% of the position every time it rises 20% above your average cost. The rule is mechanical, decided in advance, so you don't have to guess whether to take profit in the moment.",
+            ),
+            skipStep(
+                "Let It Rise",
+                "Skip forward as the price climbs. Watch for the point where the position crosses your threshold. If it never gets there, you hold — that's fine. Systematic Profit Taking only acts when the rule fires.",
+            ),
+            sellStep(
+                "Harvest the First Slice",
+                "Price hits your threshold. Sell 25% of the position — for 100 shares that's 25 shares. You've now realised a chunk of the gain as cash, but you still own 75 shares exposed to further upside. This is the key move: partial, not full exit.",
+                { hint: "Sell 25 shares to harvest profit" },
+            ),
+            chartStep(
+                "Reset and Repeat",
+                "Your average cost is now different, so recalculate the next threshold against the remaining position. Each time the price clears it, harvest another slice. Over a long uptrend this converts a volatile gain into a series of locked-in profits — without ever needing to sell the whole thing.",
+            ),
+            wrapUpStep(
+                "That's systematic profit taking. You set a profit rule, sell fractions as it hits, and let the rest run. You cap your upside a little, but you smooth your returns and reduce concentration risk. It's discipline, not prediction — the opposite of trying to time the top.",
+            ),
+        ],
+    },
+};
 
 export interface MockBar {
     timestamp: string;
@@ -92,3 +262,14 @@ export const MOCK_AAPL_BARS: MockBar[] = [
     { timestamp: '2023-01-30T00:00:00.000Z', open: 188.20, high: 190.55, low: 188.05, close: 190.20, volume: 57_900_000 },
     { timestamp: '2023-01-31T00:00:00.000Z', open: 190.40, high: 192.10, low: 190.15, close: 191.85, volume: 55_500_000 },
 ];
+
+export function getStrategyTutorialKey(
+    name: string | null | undefined,
+): StrategyTutorialKey {
+    const n = (name ?? '').toLowerCase();
+    if (n.includes('buy') && n.includes('hold')) return 'buy_and_hold';
+    if (n.includes('momentum')) return 'momentum';
+    if (n.includes('mean reversion')) return 'mean_reversion';
+    if (n.includes('profit taking') || n.includes('income harvesting')) return 'profit_taking';
+    return 'dca';
+}

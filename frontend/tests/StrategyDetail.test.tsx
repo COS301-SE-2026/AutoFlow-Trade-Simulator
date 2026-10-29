@@ -114,7 +114,7 @@ describe('StrategyDetail', () => {
             expect(button).toBeInTheDocument();
 
             fireEvent.click(button);
-            expect(mockOpenStrategyTutorial).toHaveBeenCalledWith(mockStrategy.id);
+            expect(mockOpenStrategyTutorial).toHaveBeenCalledWith(mockStrategy.id, mockStrategy.name);
         });
     });
 })
