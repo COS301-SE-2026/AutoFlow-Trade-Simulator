@@ -168,8 +168,8 @@ class SystematicProfitTakingStrategy(BaseRubricStrategy):
     def _score_risk(self, drawdown: float) -> tuple[float, str]:
         if drawdown <= 6.0:
             return 100.0, (
-                f"Drawdown kept under 6% - your harvest strategy absorbed "
-                f"volatility and preserved the gains you realised."
+                "Drawdown kept under 6% - your harvest strategy absorbed "
+                "volatility and preserved the gains you realised."
             )
         if drawdown <= 15.0:
             score = 100.0 - ((drawdown - 6.0) / 9.0) * 50.0

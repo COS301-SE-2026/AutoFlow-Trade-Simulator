@@ -109,8 +109,8 @@ class MomentumStrategy(BaseRubricStrategy):
     def _score_risk(self, drawdown: float) -> tuple[float, str]:
         if drawdown <= 8.0:
             return 100.0, (
-                f"Drawdown kept under 8% — your trailing stops held during "
-                f"pullbacks and preserved the trend's gains."
+                "Drawdown kept under 8% — your trailing stops held during "
+                "pullbacks and preserved the trend's gains."
             )
         if drawdown <= 20.0:
             score = 100.0 - ((drawdown - 8.0) / 12.0) * 50.0
