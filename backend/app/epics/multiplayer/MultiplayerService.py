@@ -50,7 +50,7 @@ class MultiplayerService:
     def _abandon_orphaned_matches(self) -> None:
         try:
             with self.session_factory() as db:
-                stale_before = datetime.utcnow() - timedelta(
+                stale_before = datetime.now(timezone.utc) - timedelta(
                     seconds=ORPHAN_ABANDON_AGE_SECONDS
                 )
                 db.exec(

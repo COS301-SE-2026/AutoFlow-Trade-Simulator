@@ -77,6 +77,9 @@ class AuthService:
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=invalid_str)
 
+        if user.password_hash is None or not verify_password_hash(data.password, user.password_hash):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=invalid_str)
+        
         if not verify_password_hash(data.password,user.password_hash):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail=invalid_str)
 
