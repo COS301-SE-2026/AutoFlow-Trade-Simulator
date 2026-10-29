@@ -45,11 +45,16 @@ const buyStep = (
     ...overrides,
 });
 
-const sellStep = (title: string, instruction: string): TutorialStep => ({
+const sellStep = (
+    title: string,
+    instruction: string,
+    overrides: Partial<TutorialStep> = {},
+): TutorialStep => ({
     title,
     instruction,
     elementId: "tut-sell",
     hint: "Click the Sell button",
+    ...overrides,
 });
 
 const skipStep = (title: string, instruction: string): TutorialStep => ({
@@ -112,12 +117,11 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
                 "Size Your Position",
                 "Unlike Dollar Cost Averaging, you commit your whole position at once. Enter 10 shares for this lump sum",
             ),
-            {
-                title: "Place Your Purchase",
-                instruction: "Click Buy. This is your one entry - there is no second tranche, no averaging in later.",
-                elementId: "tut-buy",
-                needsClick: true,
-            },
+            buyStep(
+                "Place Your Purchase",
+                "Click Buy. This is your one entry - there is no second tranche, no averaging in later.",
+                { needsClick: true, hint: undefined },
+            ),
             chartStep(
                 "See Your Position",
                 "Cash drops, shares rise. From here on, you're a holder, not a trader.",
@@ -132,7 +136,7 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
         ],
     },
     momentum: {
-        title: "Momentum Trading",
+        title: "Momentum Trading Strategy Tutorial",
         scenario: "A stock is in a clear uptrend. You want to ride the momentum, then exit when the trend shows signs of reversing.",
         steps: [
             playStep("Start the replay. Watch for a sustained directional move - that's momentum."),
@@ -162,7 +166,7 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
         ],
     },
     mean_reversion: {
-        title: "Mean Reversion",
+        title: "Mean Reversion Strategy Tutorial",
         scenario: "A stock has jumped sharply above its recent average. Mean-reversion traders bet that price will snap back toward the average — not that it will keep running.",
         steps: [
             playStep("Start the replay. Watch how price drifts away from its recent average — that deviation is what mean reversion trades."),
@@ -191,34 +195,37 @@ export const STRATEGY_TUTORIALS: Record<string, TutorialDef> = {
             ),
         ],
     },
-    covered_call: {
-        title: "Covered Call",
-        scenario: "You own 100 shares of a stock and think it will stay flat or rise slowly. Selling a call against your shares earns premium income — you get paid to cap your upside.",
+    profit_taking: {
+        title: "Systematic Profit Taking Strategy Tutorial",
+        scenario: "You own a position that has run up nicely. Instead of guessing the top, you sell a fraction of it — locking in some profit while keeping the rest exposed. Then you reset the threshold and do it again as the price rises.",
         steps: [
-            playStep("Start the replay. You're going to hold a stock position and layer a call option on top of it. Watch how the price moves before you commit."),
+            playStep(
+                "Start the replay. You're going to buy a position, watch it climb, and sell it down in pieces as it hits profit targets. The point isn't to catch the top — it's to take profit on the way up, systematically.",
+            ),
             buyStep(
-                "Own the Shares",
-                "A covered call needs shares underneath it — that's what 'covered' means. Buy 100 shares first. 100 shares = 1 option contract, so you can sell exactly one call against this position.",
-                { hint: "Buy 100 shares to cover the position" },
+                "Take the Position",
+                "Buy a position — say 100 shares. This is the holding you'll harvest from. The bigger the position, the more meaningful each partial sell becomes.",
+                { hint: "Buy 100 shares" },
             ),
             chartStep(
-                "Pick the Strike",
-                "Sell a call with a strike above the current price — out-of-the-money. You're betting the stock won't rise past that level before expiry. The closer the strike, the more premium you collect but the less room the stock has to move.",
-            ),
-            sellStep(
-                "Sell the Call",
-                "Sell one call option. The premium lands in your account immediately. That's the whole point of a covered call — you get paid today for agreeing to cap your gains later.",
+                "Pick Your Threshold",
+                "Decide a profit threshold before you trade — for example, sell 25% of the position every time it rises 20% above your average cost. The rule is mechanical, decided in advance, so you don't have to guess whether to take profit in the moment.",
             ),
             skipStep(
-                "Collect the Premium",
-                "Skip forward toward expiry. If the stock stays below the strike, the call expires worthless and you keep the premium. You also keep your shares. That's the ideal outcome — you got paid for doing nothing.",
+                "Let It Rise",
+                "Skip forward as the price climbs. Watch for the point where the position crosses your threshold. If it never gets there, you hold — that's fine. Systematic Profit Taking only acts when the rule fires.",
+            ),
+            sellStep(
+                "Harvest the First Slice",
+                "Price hits your threshold. Sell 25% of the position — for 100 shares that's 25 shares. You've now realised a chunk of the gain as cash, but you still own 75 shares exposed to further upside. This is the key move: partial, not full exit.",
+                { hint: "Sell 25 shares to harvest profit" },
             ),
             chartStep(
-                "Handle Assignment",
-                "If the stock rose above the strike, the call gets exercised and your shares are called away at the strike price. You still keep the premium, and you still made a profit — it's just capped. That's the trade-off you accepted on step 3.",
+                "Reset and Repeat",
+                "Your average cost is now different, so recalculate the next threshold against the remaining position. Each time the price clears it, harvest another slice. Over a long uptrend this converts a volatile gain into a series of locked-in profits — without ever needing to sell the whole thing.",
             ),
             wrapUpStep(
-                "That's a covered call. You own shares, you sell calls against them, you collect premium. You win if the stock stays flat or rises a little. You underperform if it soars — but you get paid every time it doesn't. It's income, not a home run.",
+                "That's systematic profit taking. You set a profit rule, sell fractions as it hits, and let the rest run. You cap your upside a little, but you smooth your returns and reduce concentration risk. It's discipline, not prediction — the opposite of trying to time the top.",
             ),
         ],
     },
@@ -263,6 +270,6 @@ export function getStrategyTutorialKey(
     if (n.includes('buy') && n.includes('hold')) return 'buy_and_hold';
     if (n.includes('momentum')) return 'momentum';
     if (n.includes('mean reversion')) return 'mean_reversion';
-    if (n.includes('covered call')) return 'covered_call';
+    if (n.includes('profit taking') || n.includes('income harvesting')) return 'profit_taking';
     return 'dca';
 }
