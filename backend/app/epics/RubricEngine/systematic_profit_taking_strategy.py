@@ -4,13 +4,12 @@ from .base_strategy import BaseRubricStrategy
 from .RubricEngineDTO import CategoryScoreDTO, ExecutionMetricDTO, EvaluationResultDTO
 
 MIN_SELLS_REQUIRED = 3
-RETENTION_FLOOR_PCT = 10. # below this = exited (cap)
-RETENTION_CEILING_PCT = 30. # at/above this = full retention credit
+RETENTION_FLOOR_PCT = 10.0
+RETENTION_CEILING_PCT = 30.0
 MAX_SINGLE_SELL_PCT_THRESHOLD = 40.0
 COVERAGE_TARGET_PCT = 70.0
-HARVEST_TARGET_PCT = 15. # % of initial capital realised -> full volume credit
+HARVEST_TARGET_PCT = 15.0
 CAP_SCORE = 45.0
-PASS_THRESHOLD = 60.0
 
 
 class SystematicProfitTakingStrategy(BaseRubricStrategy):
@@ -48,7 +47,7 @@ class SystematicProfitTakingStrategy(BaseRubricStrategy):
             )
 
         grade = self._compute_grade(final_score)
-        passed = final_score >= PASS_THRESHOLD
+        passed = self._compute_passed(final_score)
 
         return EvaluationResultDTO(
             passed=passed,
@@ -194,7 +193,6 @@ class SystematicProfitTakingStrategy(BaseRubricStrategy):
         sharpe = max(0.0, metrics.sharpe_ratio)
         sharpe_term = min(100.0, (sharpe / 1.2) * 100.0)
         alpha = metrics.total_return_pct - (metrics.benchmark_return_pct or 0.0)
-        # -3% alpha → 0, +5% alpha → 100, linear in between.
         alpha_term = max(0.0, min(100.0, ((alpha + 3.0) / 8.0) * 100.0))
 
         score = round(
@@ -218,7 +216,6 @@ class SystematicProfitTakingStrategy(BaseRubricStrategy):
             f"{volume_msg} Sharpe {round(metrics.sharpe_ratio, 2)}, "
             f"alpha {alpha:+.2f}% vs benchmark."
         )
-
 
     def _cv_to_score(
             self, cv: Optional[float], full: float, pass_cv: float, decay: float

@@ -36,7 +36,7 @@ class MomentumStrategy(BaseRubricStrategy):
             )
 
         grade = self._compute_grade(final_score)
-        passed = final_score >= 60.0
+        passed = self._compute_passed(final_score)
 
         return EvaluationResultDTO(
             passed=passed,
@@ -125,7 +125,6 @@ class MomentumStrategy(BaseRubricStrategy):
         )
 
     def _score_hold(self, held_sec: float) -> tuple[float, str]:
-        # Thresholds unchanged (per reviewer).
         avg_min = round(held_sec / 60.0, 1)
         if 600.0 <= held_sec <= 7200.0:
             return 100.0, (
