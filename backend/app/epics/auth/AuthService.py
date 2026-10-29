@@ -1,18 +1,23 @@
-from sqlite3 import IntegrityError
-
 from fastapi import HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 import string
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from ...core.security import create_access_token, create_password_hash, verify_password_hash
-from ...models import User,Portfolio
+from ...models import User, Portfolio
 from ...settings import settings
-from .AuthDTOs import LoginResponseDTO, RegistrationDTO,LoginDTO,GoogleLoginDTO,EpicStatusDTO, RegistrationResponseDTO
+from .AuthDTOs import (
+    LoginResponseDTO,
+    RegistrationDTO,
+    LoginDTO,
+    GoogleLoginDTO,
+    EpicStatusDTO,
+    RegistrationResponseDTO,
+)
 
 
 class AuthService:
-
     ERROR_MESSAGE: str = "User ID was not generated"
 
     def __init__(self, session: Session):
@@ -20,18 +25,24 @@ class AuthService:
 
     def register(self, data: RegistrationDTO) -> RegistrationResponseDTO:
         try:
-        #check if registered already
-            if self.session.exec(select(User).where(User.email==data.email)).all():
-                raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="Email already registered, please login")
+            if self.session.exec(select(User).where(User.email == data.email)).all():
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Email already registered, please login",
+                )
 
-        # check if password is valid length
-            if len(data.password) < 8 :
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Password field must be 8 or more characters")
-            # check if password contains a symbol
+            if len(data.password) < 8:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Password field must be 8 or more characters",
+                )
 
             if not any(char in string.punctuation for char in data.password):
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Password field must contain a symbol")
-        # Create user
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Password field must contain a symbol",
+                )
+
             user = User(
                 email=data.email,
                 full_name=data.full_name,
@@ -44,7 +55,6 @@ class AuthService:
             if user.id is None:
                 raise ValueError(self.ERROR_MESSAGE)
 
-        # Create portfolio
             portfolio = Portfolio(
                 user_id=user.id,
                 name=f"{user.full_name}'s portfolio",
@@ -53,7 +63,7 @@ class AuthService:
 
             self.session.commit()
 
-            token:str = create_access_token(user.id)
+            token: str = create_access_token(user.id)
             return RegistrationResponseDTO(access_token=token)
 
         except Exception:
@@ -74,8 +84,7 @@ class AuthService:
             raise ValueError(invalid_str)
 
         token:str =create_access_token(user.id)
-        login_response:LoginResponseDTO= LoginResponseDTO(access_token=token)
-        return login_response
+        return LoginResponseDTO(access_token=token)
 
     def login_with_google(self, data: GoogleLoginDTO) -> LoginResponseDTO:
         try:
@@ -92,59 +101,54 @@ class AuthService:
         try:
             user = self.session.exec(
                 select(User).where(User.google_sub == google_sub)
-            ).scalar_one_or_none()
+            ).first()
 
             if user is None:
                 user = self.session.exec(
                     select(User).where(User.email == email)
-                ).scalar_one_or_none()
+                ).first()
 
-                if user is None:
-                    user = User(email=email, full_name=full_name, google_sub=google_sub)
-                    self.session.add(user)
-                    self.session.flush()
-                    self.session.add(
-                        Portfolio(
-                            user_id=user.id,
-                            name=f"{user.full_name}'s portfolio",
-                        )
-                    )
-                elif user.google_sub is None:
-                    user.google_sub = google_sub
-                    self.session.add(user)
-                else:
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail="Email is already linked to a different Google account",
-                    )
-
-            try:
-                self.session.commit()
-            except IntegrityError:
-                self.session.rollback()
-                user = self.session.exec(
-                    select(User).where(User.google_sub == google_sub)
-                ).scalar_one_or_none()
-                if user is None:
-                    raise
-
-            user_id: int | None = user.id
-            if user_id is None:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=self.ERROR_MESSAGE,
+            if user is None:
+                user = User(
+                    email=email,
+                    full_name=full_name,
+                    google_sub=google_sub,
+                    upgrades=['strategy_basic', 'strategy_mean_reversion'],
                 )
+                self.session.add(user)
+                self.session.flush()
 
-            return LoginResponseDTO(access_token=create_access_token(user_id))
+                if user.id is None:
+                    raise ValueError(self.ERROR_MESSAGE)
 
+                portfolio = Portfolio(
+                    user_id=user.id,
+                    name=f"{user.full_name}'s portfolio",
+                )
+                self.session.add(portfolio)
+            elif user.google_sub is None:
+                user.google_sub = google_sub
+                self.session.add(user)
+
+            self.session.commit()
+
+        except IntegrityError:
+            self.session.rollback()
+            user = self.session.exec(
+                select(User).where(User.google_sub == google_sub)
+            ).first()
+            if user is None:
+                raise
         except Exception:
             self.session.rollback()
             raise
 
+        if user.id is None:
+            raise ValueError(self.ERROR_MESSAGE)
+
+        token: str = create_access_token(user.id)
+        return LoginResponseDTO(access_token=token)
+
     @staticmethod
     def get_status() -> EpicStatusDTO:
-        return EpicStatusDTO(
-            epic="Authorisation",
-            status="Healthy",
-        )
-
+        return EpicStatusDTO(epic="Authorisation", status="Healthy")
