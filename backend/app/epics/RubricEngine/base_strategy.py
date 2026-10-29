@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
+from typing import ClassVar
 from .RubricEngineDTO import EvaluationResultDTO, ExecutionMetricDTO, Grade
 
+
 class BaseRubricStrategy(ABC):
+    PASS_THRESHOLD: ClassVar[float] = 60.0
 
     @abstractmethod
     def evaluate(self, metrics: ExecutionMetricDTO) -> EvaluationResultDTO:
@@ -21,3 +24,6 @@ class BaseRubricStrategy(ABC):
         if score >= 40.0:
             return Grade.E
         return Grade.F
+
+    def _compute_passed(self, score: float) -> bool:
+        return score >= self.PASS_THRESHOLD

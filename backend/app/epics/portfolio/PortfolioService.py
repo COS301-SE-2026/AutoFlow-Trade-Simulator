@@ -83,7 +83,7 @@ class PortfolioService:
 
         if data.direction== Direction.Buy:
             #buy asset
-            if balance < total_cost:
+            if balance > total_cost:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Account balance is too low")
 
             account.balance = balance - total_cost
