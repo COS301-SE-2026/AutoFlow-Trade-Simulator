@@ -48,7 +48,7 @@ const teamMembers: TeamMember[] = [
         role: "Backend Developer",
         bio: "Computer Science student specializing in trading transaction logic and database architecture.",
         github: "https://github.com/u24614582",
-        linkedin: "https://www.linkedin.com/in/dillon-kung/",
+        linkedin: "https://www.linkedin.com/in/dillon-kung-a55975406/",
     },
     {
         name: "Caitanya Singh",
